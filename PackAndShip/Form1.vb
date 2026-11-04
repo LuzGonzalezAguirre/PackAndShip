@@ -277,8 +277,8 @@ Public Class Form1
             picker.ValueMember = "Id"
             picker.DataSource = New List(Of BusinessUnit)(units)
             If SessionContext.BusinessUnitId > 0 Then
-                Dim selected = units.Find(Function(u) u.Id = SessionContext.BusinessUnitId)
-                If selected IsNot Nothing Then picker.SelectedValue = selected.Id
+                Dim savedCustomer = units.Find(Function(u) u.Id = SessionContext.BusinessUnitId)
+                If savedCustomer IsNot Nothing Then picker.SelectedValue = savedCustomer.Id
             End If
             Dim save As New Button With {
                 .Text = "Save", .DialogResult = DialogResult.OK,

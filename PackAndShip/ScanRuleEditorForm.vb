@@ -10,7 +10,9 @@ Public Class ScanRuleEditorForm
 
     Private ReadOnly original As ScanRuleRecord
     Private ReadOnly navy As Color = Color.FromArgb(31, 78, 121)
+    Private ReadOnly customerPicker As New ComboBox()
     Private ReadOnly partPicker As New ComboBox()
+    Private isBinding As Boolean
     Private ReadOnly scanCount As New NumericUpDown()
     Private ReadOnly matchCheck As New CheckBox()
     Private ReadOnly activeCheck As New CheckBox()
@@ -39,32 +41,37 @@ Public Class ScanRuleEditorForm
             .Font = New Font("Segoe UI", 22, FontStyle.Bold), .ForeColor = Color.White,
             .AutoSize = True, .Location = New Point(22, 15)
         })
-        Dim upper As New Panel With {.Dock = DockStyle.Top, .Height = 191, .Padding = New Padding(18)}
-        upper.Controls.Add(New Label With {.Text = "Part number (SSI / Volvo)", .Location = New Point(20, 12), .AutoSize = True})
-        partPicker.SetBounds(20, 38, 590, 33)
+        Dim upper As New Panel With {.Dock = DockStyle.Top, .Height = 234, .Padding = New Padding(18)}
+        upper.Controls.Add(New Label With {.Text = "Customer", .Location = New Point(20, 12), .AutoSize = True})
+        customerPicker.SetBounds(20, 38, 280, 33)
+        customerPicker.DropDownStyle = ComboBoxStyle.DropDownList
+        upper.Controls.Add(customerPicker)
+        AddHandler customerPicker.SelectedIndexChanged, AddressOf CustomerChanged
+
+        upper.Controls.Add(New Label With {.Text = "Part number (SSI / Client)", .Location = New Point(320, 12), .AutoSize = True})
+        partPicker.SetBounds(320, 38, 520, 33)
         partPicker.DropDownStyle = ComboBoxStyle.DropDownList
-        partPicker.DataSource = choices
         partPicker.DisplayMember = "DisplayName"
         partPicker.ValueMember = "Id"
         upper.Controls.Add(partPicker)
 
-        upper.Controls.Add(New Label With {.Text = "Scan count", .Location = New Point(632, 12), .AutoSize = True})
-        scanCount.SetBounds(632, 38, 110, 33)
+        upper.Controls.Add(New Label With {.Text = "Scan count", .Location = New Point(20, 91), .AutoSize = True})
+        scanCount.SetBounds(20, 116, 110, 33)
         scanCount.Minimum = 1
         scanCount.Maximum = 100
         upper.Controls.Add(scanCount)
 
         matchCheck.Text = "Requires match"
-        matchCheck.SetBounds(770, 36, 160, 35)
+        matchCheck.SetBounds(163, 114, 160, 35)
         activeCheck.Text = "Active"
-        activeCheck.SetBounds(950, 36, 130, 35)
+        activeCheck.SetBounds(340, 114, 130, 35)
         upper.Controls.Add(matchCheck)
         upper.Controls.Add(activeCheck)
 
-        upper.Controls.Add(New Label With {.Text = "Notes", .Location = New Point(20, 89), .AutoSize = True})
+        upper.Controls.Add(New Label With {.Text = "Notes", .Location = New Point(20, 165), .AutoSize = True})
         notesBox.Multiline = True
         notesBox.MaxLength = 4000
-        notesBox.SetBounds(20, 112, 1050, 62)
+        notesBox.SetBounds(20, 187, 1050, 37)
         notesBox.Anchor = AnchorStyles.Left Or AnchorStyles.Top Or AnchorStyles.Right
         upper.Controls.Add(notesBox)
 
@@ -162,15 +169,37 @@ Public Class ScanRuleEditorForm
     End Sub
 
     Private Sub LoadValues()
+        ' In Edit preserve the stored part even if it belongs to a different customer.
+        Dim initialCustomerId As Integer = SessionContext.BusinessUnitId
+        If original IsNot Nothing Then
+            Dim originalPart = choices.FirstOrDefault(Function(p) p.Id = original.PartId)
+            If originalPart IsNot Nothing AndAlso originalPart.BusinessUnitId.HasValue Then
+                initialCustomerId = originalPart.BusinessUnitId.Value
+            Else
+                initialCustomerId = original.CustomerId
+            End If
+        End If
+
+        Dim customers = choices.Where(Function(p) p.BusinessUnitId.HasValue).
+            GroupBy(Function(p) p.BusinessUnitId.Value).
+            Select(Function(g) New BusinessUnit With {.Id = g.Key, .Name = g.First().BusinessUnit}).
+            OrderBy(Function(b) b.Name).ToList()
+        customers.Insert(0, New BusinessUnit With {.Id = 0, .Name = "All customers"})
+
+        isBinding = True
+        customerPicker.DisplayMember = "Name"
+        customerPicker.ValueMember = "Id"
+        customerPicker.DataSource = customers
+        Dim index = customers.FindIndex(Function(b) b.Id = initialCustomerId)
+        customerPicker.SelectedIndex = If(index >= 0, index, 0)
+        isBinding = False
+        RefreshParts(If(original Is Nothing, 0, original.PartId))
+
         If original Is Nothing Then
             scanCount.Value = 2
             activeCheck.Checked = False ' New shared rules require deliberate activation.
-            Dim customerId = SessionContext.BusinessUnitId
-            Dim candidate = choices.FirstOrDefault(Function(p) p.BusinessUnitId.HasValue AndAlso p.BusinessUnitId.Value = customerId)
-            If candidate IsNot Nothing Then partPicker.SelectedItem = candidate
             Return
         End If
-        partPicker.SelectedValue = original.PartId
         scanCount.Value = Math.Max(1, Math.Min(100, original.ScanCount))
         matchCheck.Checked = original.RequiresMatch
         activeCheck.Checked = original.IsActive
@@ -178,6 +207,31 @@ Public Class ScanRuleEditorForm
         For Each field In ScanRulesData.ReadFields(original.Id)
             fields.Add(field)
         Next
+    End Sub
+
+    Private Sub CustomerChanged(sender As Object, e As EventArgs)
+        If isBinding Then Return
+        RefreshParts(0)
+    End Sub
+
+    Private Sub RefreshParts(preferredPartId As Integer)
+        Dim customer = TryCast(customerPicker.SelectedItem, BusinessUnit)
+        Dim selectedId As Integer = If(customer Is Nothing, 0, customer.Id)
+        Dim filtered = choices.Where(Function(p) selectedId = 0 OrElse
+            (p.BusinessUnitId.HasValue AndAlso p.BusinessUnitId.Value = selectedId)).
+            OrderBy(Function(p) p.Number).ThenBy(Function(p) p.Id).ToList()
+
+        isBinding = True
+        partPicker.DataSource = Nothing
+        partPicker.DisplayMember = "DisplayName"
+        partPicker.ValueMember = "Id"
+        partPicker.DataSource = filtered
+        partPicker.SelectedIndex = -1
+        If preferredPartId > 0 Then
+            Dim index = filtered.FindIndex(Function(p) p.Id = preferredPartId)
+            If index >= 0 Then partPicker.SelectedIndex = index
+        End If
+        isBinding = False
     End Sub
 
     Private Sub SaveRule(sender As Object, e As EventArgs)

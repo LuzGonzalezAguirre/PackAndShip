@@ -105,3 +105,22 @@ Q-Wall. **No hay previsualización ni simulación del resultado de escaneo**:
 se necesita confirmar con casos reales antes del uso productivo.
 Los cambios requieren compilación y pruebas de integración en Visual
 Studio y SQL Server.
+
+## Scan Fields — editor visual por escaneo
+
+El editor de reglas ahora muestra tarjetas por **Scan 1, Scan 2, ...**, de acuerdo con
+`scan_count`. Cada tarjeta de campo incluye label, destino, modo de extracción,
+separador, posición, prefijo, longitud esperada, índice de segmento, orden y preview.
+Se pueden agregar/quitar campos independientemente en cada escaneo. Los valores
+legibles se convierten a los existentes en SQL (`por_separador`, `espacio`,
+`despues`, `frameSN`, `volvoSerialNumber`). Se conservan como texto editable los
+valores de extracción desconocidos para no reemplazar reglas históricas.
+
+El script `sql/003_seed_standard_scan_rules.sql` prepara reglas **inactivas** para
+modelos estándar Volvo y John Deere que carezcan de reglas; tiene `@Apply = 0`
+como **dry run** por defecto. Revisar cada candidato antes de establecer
+`@Apply = 1`. No inserta excepciones de un solo escaneo, auto-generación,
+separadores opcionales ni clientes sin representación comprobada en el parser.
+
+El editor y el script no sustituyen una prueba del escáner real. Las reglas
+compartidas pueden cambiar el comportamiento de Q-Wall.

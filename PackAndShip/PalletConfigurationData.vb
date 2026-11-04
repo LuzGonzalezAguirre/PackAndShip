@@ -5,11 +5,11 @@ Imports Microsoft.Data.SqlClient
 Public NotInheritable Class PaSPart
     Public Property Id As Integer
     Public Property Number As String = ""
-    Public Property VolvoNumber As String = ""
+    Public Property ClientNumber As String = ""
     Public ReadOnly Property DisplayName As String
         Get
-            If String.IsNullOrWhiteSpace(VolvoNumber) Then Return "SSI: " & Number
-            Return "SSI: " & Number & "   |   Volvo: " & VolvoNumber
+            If String.IsNullOrWhiteSpace(ClientNumber) Then Return "SSI: " & Number
+            Return "SSI: " & Number & "   |   Client: " & ClientNumber
         End Get
     End Property
     Public Property BusinessUnitId As Integer?
@@ -48,7 +48,7 @@ Public NotInheritable Class PalletConfigurationData
                         result.Add(New PaSPart With {
                             .Id = rd.GetInt32(0),
                             .Number = rd.GetString(1),
-                            .VolvoNumber = If(rd.IsDBNull(2), "", rd.GetString(2)),
+                            .ClientNumber = If(rd.IsDBNull(2), "", rd.GetString(2)),
                             .BusinessUnitId = If(rd.IsDBNull(3), CType(Nothing, Integer?), rd.GetInt32(3)),
                             .BusinessUnit = rd.GetString(4),
                             .Configured = rd.GetBoolean(5)

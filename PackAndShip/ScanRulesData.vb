@@ -247,7 +247,7 @@ Public NotInheritable Class ScanRulesData
                     RequireAuthorized(cn, tx)
                     Using cmd As New SqlCommand(
                         "UPDATE dbo.quality_pn_scan_rules SET is_active=@active," &
-                        "updated_by_id=@actor,updated_at=SYSDATETIME() " &
+                        "updated_at=SYSDATETIME() " &
                         "WHERE id=@id AND updated_at=@updated", cn, tx)
                         cmd.Parameters.Add("@active", SqlDbType.Bit).Value = active
                         cmd.Parameters.Add("@id", SqlDbType.Int).Value = rule.Id

@@ -54,8 +54,8 @@ Public Class Form1
         AddHandler changeCustomer.Click, AddressOf ChangeDefaultCustomer
         Dim palletEntry = setupMenu.Items.Add("Pallet Configuration")
         AddHandler palletEntry.Click, AddressOf OpenPalletConfiguration
-        Dim scanEntry = setupMenu.Items.Add("Scan Rules (pending)")
-        scanEntry.Enabled = False
+        Dim scanEntry = setupMenu.Items.Add("Scan Rules")
+        AddHandler scanEntry.Click, AddressOf OpenScanRules
         Dim usersEntry = setupMenu.Items.Add("Users & Roles")
         AddHandler usersEntry.Click, AddressOf OpenUsersSetup
         Dim generalEntry = setupMenu.Items.Add("General (pending)")
@@ -210,6 +210,17 @@ Public Class Form1
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    Private Sub OpenScanRules(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
+            MessageBox.Show("Your role cannot access Setup.", "Access denied",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+        Using dialog As New ScanRulesForm()
+            dialog.ShowDialog(Me)
+        End Using
     End Sub
 
     Private Sub OpenPalletConfiguration(sender As Object, e As EventArgs)

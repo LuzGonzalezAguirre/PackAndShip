@@ -17,8 +17,8 @@ Public Class ScanRuleEditorForm
     Private ReadOnly matchCheck As New CheckBox()
     Private ReadOnly activeCheck As New CheckBox()
     Private ReadOnly notesBox As New TextBox()
-    Private ReadOnly fieldsGrid As New DataGridView()
-    Private ReadOnly fields As New BindingList(Of ScanFieldRecord)()
+    Private ReadOnly scanContainer As New FlowLayoutPanel()
+    Private ReadOnly scanGroups As New Dictionary(Of Integer, FlowLayoutPanel)()
     Private ReadOnly choices As List(Of PaSPart)
 
     Public Sub New(existing As ScanRuleRecord, availableParts As List(Of PaSPart))
@@ -32,6 +32,7 @@ Public Class ScanRuleEditorForm
         Font = New Font("Segoe UI", 10)
         BuildLayout()
         LoadValues()
+        AddHandler scanCount.ValueChanged, AddressOf ScanCountChanged
     End Sub
 
     Private Sub BuildLayout()
@@ -75,61 +76,12 @@ Public Class ScanRuleEditorForm
         notesBox.Anchor = AnchorStyles.Left Or AnchorStyles.Top Or AnchorStyles.Right
         upper.Controls.Add(notesBox)
 
-        Dim toolbar As New FlowLayoutPanel With {
-            .Dock = DockStyle.Top, .Height = 64, .Padding = New Padding(16, 10, 10, 7)
-        }
-        Dim addField As New Button With {.Text = "Add field", .Size = New Size(125, 34)}
-        Dim removeField As New Button With {.Text = "Remove field", .Size = New Size(130, 34)}
-        StyleButton(addField)
-        StyleButton(removeField)
-        toolbar.Controls.Add(addField)
-        toolbar.Controls.Add(removeField)
-        toolbar.Controls.Add(New Label With {
-            .Text = "Scan index starts at 0. Existing extraction values are preserved.",
-            .AutoSize = True, .Margin = New Padding(14, 8, 0, 0)
-        })
-        AddHandler addField.Click, Sub()
-                                       fields.Add(New ScanFieldRecord With {
-                                           .ScanIndex = 0, .SequenceOrder = fields.Count,
-                                           .ExtractionMode = "por_separador", .FieldTarget = "",
-                                           .Separator = "espacio", .ValuePosition = "despues"
-                                       })
-                                   End Sub
-        AddHandler removeField.Click, Sub()
-                                          If fieldsGrid.CurrentRow Is Nothing Then
-                                              MessageBox.Show("Select a field first.")
-                                              Return
-                                          End If
-                                          Dim field = TryCast(fieldsGrid.CurrentRow.DataBoundItem, ScanFieldRecord)
-                                          If field IsNot Nothing Then fields.Remove(field)
-                                      End Sub
-
-        fieldsGrid.Dock = DockStyle.Fill
-        fieldsGrid.AutoGenerateColumns = False
-        fieldsGrid.DataSource = fields
-        fieldsGrid.AllowUserToAddRows = False
-        fieldsGrid.AllowUserToDeleteRows = False
-        fieldsGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        fieldsGrid.MultiSelect = False
-        fieldsGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        fieldsGrid.BackgroundColor = Color.White
-        fieldsGrid.RowHeadersVisible = False
-        AddColumn("Scan", "ScanIndex", 35)
-        AddColumn("Mode", "ExtractionMode", 85)
-        AddColumn("Target", "FieldTarget", 85)
-        AddColumn("Separator", "Separator", 68)
-        AddColumn("Custom separator", "SeparatorCustom", 72)
-        AddColumn("Position", "ValuePosition", 70)
-        AddColumn("Segment", "SegmentIndex", 48)
-        AddColumn("Length", "FixedLength", 48)
-        AddColumn("Prefix", "PrefixValue", 110)
-        AddColumn("Label", "DisplayLabel", 90)
-        AddColumn("Order", "SequenceOrder", 40)
-        AddHandler fieldsGrid.DataError, Sub(sender, e)
-                                             e.ThrowException = False
-                                             MessageBox.Show("Invalid field value. Check numeric columns.",
-                                                             "Scan field", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-                                         End Sub
+        scanContainer.Dock = DockStyle.Fill
+        scanContainer.FlowDirection = FlowDirection.TopDown
+        scanContainer.WrapContents = False
+        scanContainer.AutoScroll = True
+        scanContainer.Padding = New Padding(12, 10, 12, 10)
+        AddHandler scanContainer.Resize, Sub() ResizeGroups()
 
         Dim footer As New Panel With {.Dock = DockStyle.Bottom, .Height = 73}
         Dim save As New Button With {.Text = "Save rule", .Size = New Size(158, 39),
@@ -149,17 +101,10 @@ Public Class ScanRuleEditorForm
         AddHandler save.Click, AddressOf SaveRule
         CancelButton = cancel
 
-        Controls.Add(fieldsGrid)
+        Controls.Add(scanContainer)
         Controls.Add(footer)
-        Controls.Add(toolbar)
         Controls.Add(upper)
         Controls.Add(header)
-    End Sub
-
-    Private Sub AddColumn(title As String, propertyName As String, weight As Single)
-        fieldsGrid.Columns.Add(New DataGridViewTextBoxColumn With {
-            .HeaderText = title, .DataPropertyName = propertyName, .FillWeight = weight
-        })
     End Sub
 
     Private Sub StyleButton(button As Button)
@@ -198,15 +143,14 @@ Public Class ScanRuleEditorForm
         If original Is Nothing Then
             scanCount.Value = 2
             activeCheck.Checked = False ' New shared rules require deliberate activation.
+            BuildScanGroups(New List(Of ScanFieldRecord)())
             Return
         End If
         scanCount.Value = Math.Max(1, Math.Min(100, original.ScanCount))
         matchCheck.Checked = original.RequiresMatch
         activeCheck.Checked = original.IsActive
         notesBox.Text = original.Notes
-        For Each field In ScanRulesData.ReadFields(original.Id)
-            fields.Add(field)
-        Next
+        BuildScanGroups(ScanRulesData.ReadFields(original.Id))
     End Sub
 
     Private Sub CustomerChanged(sender As Object, e As EventArgs)
@@ -234,11 +178,136 @@ Public Class ScanRuleEditorForm
         isBinding = False
     End Sub
 
-    Private Sub SaveRule(sender As Object, e As EventArgs)
-        If Not fieldsGrid.EndEdit() Then
-            MessageBox.Show("Finish editing the current field before saving.")
+    Private Sub ScanCountChanged(sender As Object, e As EventArgs)
+        Dim saved As List(Of ScanFieldRecord)
+        Try
+            saved = GetFieldModels()
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Scan fields", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
+        End Try
+        If saved.Any(Function(f) f.ScanIndex >= CInt(scanCount.Value)) Then
+            If MessageBox.Show("Reducing scan count will remove fields from higher scans. Continue?",
+                               "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then
+                RemoveHandler scanCount.ValueChanged, AddressOf ScanCountChanged
+                scanCount.Value = saved.Max(Function(f) f.ScanIndex) + 1
+                AddHandler scanCount.ValueChanged, AddressOf ScanCountChanged
+                Return
+            End If
         End If
+        BuildScanGroups(saved.Where(Function(f) f.ScanIndex < CInt(scanCount.Value)).ToList())
+    End Sub
+
+    Private Sub BuildScanGroups(models As List(Of ScanFieldRecord))
+        scanContainer.SuspendLayout()
+        Try
+            While scanContainer.Controls.Count > 0
+                Dim item = scanContainer.Controls(0)
+                scanContainer.Controls.RemoveAt(0)
+                item.Dispose()
+            End While
+            scanGroups.Clear()
+            For index As Integer = 0 To CInt(scanCount.Value) - 1
+                Dim currentIndex = index
+                Dim group As New FlowLayoutPanel With {
+                    .FlowDirection = FlowDirection.TopDown, .WrapContents = False,
+                    .Width = Math.Max(900, scanContainer.ClientSize.Width - 32),
+                    .AutoScroll = False, .BackColor = Color.White,
+                    .BorderStyle = BorderStyle.FixedSingle,
+                    .Padding = New Padding(10, 8, 10, 8),
+                    .Margin = New Padding(0, 0, 0, 14)
+                }
+                Dim heading As New Label With {
+                    .Text = "SCAN " & (index + 1),
+                    .ForeColor = Color.FromArgb(31, 78, 121),
+                    .Font = New Font("Segoe UI", 12, FontStyle.Bold),
+                    .Height = 33, .Width = group.Width - 36
+                }
+                group.Controls.Add(heading)
+                scanGroups.Add(index, group)
+                Dim scanFields = models.Where(Function(f) f.ScanIndex = currentIndex).
+                                        OrderBy(Function(f) f.SequenceOrder).ToList()
+                For Each field In scanFields
+                    InsertFieldCard(currentIndex, field)
+                Next
+                Dim add As New Button With {
+                    .Text = "+ Add field", .Width = 130, .Height = 31,
+                    .ForeColor = Color.FromArgb(31, 78, 121),
+                    .FlatStyle = FlatStyle.Flat, .Tag = currentIndex
+                }
+                AddHandler add.Click, Sub()
+                                          Dim groupFields = group.Controls.OfType(Of ScanFieldCard)().Count()
+                                          Dim model As New ScanFieldRecord With {
+                                              .ScanIndex = currentIndex, .SequenceOrder = groupFields,
+                                              .ExtractionMode = "por_separador", .Separator = "espacio",
+                                              .ValuePosition = "despues",
+                                              .FieldTarget = If(currentIndex = 0, "frameSN", "volvoSerialNumber"),
+                                              .DisplayLabel = (currentIndex + 1).ToString()
+                                          }
+                                          InsertFieldCard(currentIndex, model)
+                                          group.Controls.SetChildIndex(group.Controls.OfType(Of ScanFieldCard)().Last(), group.Controls.Count - 2)
+                                          UpdateGroupHeight(group)
+                                      End Sub
+                group.Controls.Add(add)
+                UpdateGroupHeight(group)
+                scanContainer.Controls.Add(group)
+            Next
+            ResizeGroups()
+        Finally
+            scanContainer.ResumeLayout()
+        End Try
+    End Sub
+
+    Private Sub InsertFieldCard(index As Integer, model As ScanFieldRecord)
+        Dim group = scanGroups(index)
+        Dim card As New ScanFieldCard(index, model)
+        card.Width = Math.Max(795, group.Width - 35)
+        AddHandler card.RemoveRequested, Sub(chosen)
+                                             group.Controls.Remove(chosen)
+                                             chosen.Dispose()
+                                             UpdateGroupHeight(group)
+                                         End Sub
+        group.Controls.Add(card)
+        UpdateGroupHeight(group)
+    End Sub
+
+    Private Sub UpdateGroupHeight(group As FlowLayoutPanel)
+        group.Height = 65 + group.Controls.OfType(Of ScanFieldCard)().Count() * 225 + 43
+    End Sub
+
+    Private Sub ResizeGroups()
+        For Each group In scanGroups.Values
+            group.Width = Math.Max(900, scanContainer.ClientSize.Width - 32)
+            For Each card In group.Controls.OfType(Of ScanFieldCard)()
+                card.Width = Math.Max(795, group.Width - 35)
+            Next
+        Next
+    End Sub
+
+    Private Function GetFieldModels() As List(Of ScanFieldRecord)
+        Dim result As New List(Of ScanFieldRecord)()
+        For Each group In scanGroups.OrderBy(Function(g) g.Key)
+            For Each card In group.Value.Controls.OfType(Of ScanFieldCard)()
+                result.Add(card.GetField())
+            Next
+        Next
+        Return result
+    End Function
+
+    Private Sub SaveRule(sender As Object, e As EventArgs)
+        Dim fieldModels As List(Of ScanFieldRecord)
+        Try
+            fieldModels = GetFieldModels()
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Invalid scan field", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End Try
+        For index As Integer = 0 To CInt(scanCount.Value) - 1
+            If Not fieldModels.Any(Function(f) f.ScanIndex = index) Then
+                MessageBox.Show("Scan " & (index + 1) & " needs at least one field.")
+                Return
+            End If
+        Next
         Dim part = TryCast(partPicker.SelectedItem, PaSPart)
         If part Is Nothing Then
             MessageBox.Show("Select a part number.")
@@ -257,7 +326,7 @@ Public Class ScanRuleEditorForm
                            "Confirm shared rule update", MessageBoxButtons.YesNo,
                            MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
         Try
-            ScanRulesData.SaveRule(rule, fields.ToList())
+            ScanRulesData.SaveRule(rule, fieldModels)
             DialogResult = DialogResult.OK
             Close()
         Catch ex As Exception

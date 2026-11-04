@@ -23,13 +23,12 @@ Public NotInheritable Class PackAndShipData
     End Sub
 
     Private Shared Function OpenConnection() As SqlConnection
-        ' Definir PACKANDSHIP_CONNECTION_STRING en la estación; no publicar secretos en Git.
-        Dim cs = Environment.GetEnvironmentVariable("PACKANDSHIP_CONNECTION_STRING")
-        If String.IsNullOrWhiteSpace(cs) Then
-            Throw New InvalidOperationException(
-                "Falta configurar la variable de entorno PACKANDSHIP_CONNECTION_STRING.")
-        End If
-        Dim connection = New SqlConnection(cs)
+        ' Cadena definida directamente en código, como en Q-Wall.
+        ' Reemplazar SERVIDOR_SQL y BASE_DE_DATOS en el entorno local.
+        ' No publicar usuario/contraseña reales en el repositorio.
+        Const connectionString As String =
+            "Server=SERVIDOR_SQL;Database=BASE_DE_DATOS;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;"
+        Dim connection = New SqlConnection(connectionString)
         connection.Open()
         Return connection
     End Function

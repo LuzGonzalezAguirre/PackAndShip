@@ -2,6 +2,8 @@
 -- First execute with @Apply=0. No rows persist in dry-run.
 -- New extraction_mode 'prefijo_11_opcional' requires parser support
 -- before these rules can be activated in PackAndShip.
+-- NVARCHAR sizes in the schema are reported in bytes: separator 40 bytes = 20 chars,
+-- prefix_value 100 bytes = 50 chars, ssi_pn 40 bytes = 20 chars.
 -- Allowed input: CLIENTPN'12345678901, CLIENTPN-12345678901,
 --                CLIENTPN12345678901.
 SET NOCOUNT ON;
@@ -22,9 +24,10 @@ SELECT p.pn_id, p.ssiPN, b.bu_id, b.bu_name,
 FROM dbo.ssi_PartNumbers AS p
 INNER JOIN dbo.ssi_BusinessUnits AS b ON b.bu_id=p.bu_id
 WHERE UPPER(LTRIM(RTRIM(b.bu_name)))='CUMMINS'
-  AND LEN(p.ssiPN) BETWEEN 1 AND 40
+  AND LEN(p.ssiPN) BETWEEN 1 AND 20
   AND NULLIF(LTRIM(RTRIM(p.volvoProductNumber)), '') IS NOT NULL
-  AND LEN(LTRIM(RTRIM(p.volvoProductNumber)))<=100
+  AND LEN(LTRIM(RTRIM(p.volvoProductNumber)))<=50
+  AND LEN(b.bu_name)<=50
   AND NOT EXISTS (
     SELECT 1 FROM dbo.quality_pn_scan_rules AS r
     WHERE r.pn_id=p.pn_id AND r.bu_id=p.bu_id
@@ -72,10 +75,10 @@ BEGIN TRY
          fixed_length, prefix_value, display_label, sequence_order)
       VALUES
         (@id,0,N'prefijo_11_opcional',N'frameSN',
-         N'opcional_apostrofe_guion',N'',N'despues',NULL,11,@client,
+         N'opt_apos_guion',N'',N'despues',NULL,11,@client,
          N'Internal serial',0),
         (@id,0,N'prefijo_11_opcional',N'volvoSerialNumber',
-         N'opcional_apostrofe_guion',N'',N'despues',NULL,11,@client,
+         N'opt_apos_guion',N'',N'despues',NULL,11,@client,
          N'Client serial',1);
     END
     FETCH NEXT FROM rows_to_seed INTO @pn,@ssi,@bu,@buName,@client;

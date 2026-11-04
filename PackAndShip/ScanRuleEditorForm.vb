@@ -164,7 +164,7 @@ Public Class ScanRuleEditorForm
     Private Sub LoadValues()
         If original Is Nothing Then
             scanCount.Value = 2
-            activeCheck.Checked = True
+            activeCheck.Checked = False ' New shared rules require deliberate activation.
             Dim customerId = SessionContext.BusinessUnitId
             Dim candidate = choices.FirstOrDefault(Function(p) p.BusinessUnitId.HasValue AndAlso p.BusinessUnitId.Value = customerId)
             If candidate IsNot Nothing Then partPicker.SelectedItem = candidate

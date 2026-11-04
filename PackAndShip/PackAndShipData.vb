@@ -22,7 +22,7 @@ Public NotInheritable Class PackAndShipData
     Private Sub New()
     End Sub
 
-    Private Shared Function OpenConnection() As SqlConnection
+    Friend Shared Function CreateConnection() As SqlConnection
         ' Cadena definida directamente en código, como en Q-Wall.
         ' Reemplazar SERVIDOR_SQL y BASE_DE_DATOS en el entorno local.
         ' No publicar usuario/contraseña reales en el repositorio.
@@ -35,7 +35,7 @@ Public NotInheritable Class PackAndShipData
 
     Public Shared Function GetBusinessUnits() As List(Of BusinessUnit)
         Dim result As New List(Of BusinessUnit)()
-        Using connection = OpenConnection()
+        Using connection = CreateConnection()
             Using command As New SqlCommand(
                 "SELECT bu_id, bu_name FROM dbo.ssi_BusinessUnits ORDER BY bu_name", connection)
                 Using reader = command.ExecuteReader()

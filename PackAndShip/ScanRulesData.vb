@@ -170,7 +170,12 @@ Public NotInheritable Class ScanRulesData
                     End Using
                     If rule.IsActive AndAlso fields.Any(Function(field) field.ExtractionMode = "prefijo_11_opcional") Then
                         Throw New InvalidOperationException(
-                            "Cummins optional-separator parser is not implemented. Keep this rule inactive.")
+                            "Unsupported optional-separator extraction mode. Keep this rule inactive.")
+                    End If
+                    If rule.IsActive AndAlso rule.Id = 0 AndAlso
+                       String.Equals(customer, "Cummins", StringComparison.OrdinalIgnoreCase) Then
+                        Throw New InvalidOperationException(
+                            "Cummins rules require a validated prefix/optional-separator parser before activation.")
                     End If
 
                     Dim id As Integer = rule.Id
@@ -252,8 +257,9 @@ Public NotInheritable Class ScanRulesData
                     RequireAuthorized(cn, tx)
                     If active Then
                         Using validation As New SqlCommand(
-                            "SELECT COUNT(1) FROM dbo.quality_scan_fields " &
-                            "WHERE rule_id=@id AND extraction_mode=N'prefijo_11_opcional'", cn, tx)
+                            "SELECT COUNT(1) FROM dbo.quality_pn_scan_rules r " &
+                            "WHERE r.id=@id AND UPPER(r.bu_name)=N'CUMMINS' " &
+                            "AND r.notes LIKE N'%Parser pending%'", cn, tx)
                             validation.Parameters.Add("@id", SqlDbType.Int).Value = rule.Id
                             If Convert.ToInt32(validation.ExecuteScalar()) > 0 Then
                                 Throw New InvalidOperationException(

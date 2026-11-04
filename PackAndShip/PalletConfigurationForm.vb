@@ -49,7 +49,7 @@ Public Class PalletConfigurationForm
         })
 
         Dim browser As New Panel With {
-            .Dock = DockStyle.Left, .Width = 330, .Padding = New Padding(14, 14, 10, 14),
+            .Dock = DockStyle.Left, .Width = 410, .Padding = New Padding(14, 14, 10, 14),
             .BackColor = Color.White
         }
         Dim browserHeading As New Label With {
@@ -90,7 +90,7 @@ Public Class PalletConfigurationForm
         Dim editor As New Panel With {.Dock = DockStyle.Fill, .Padding = New Padding(20, 16, 20, 14)}
         Dim editorTop As New Panel With {.Dock = DockStyle.Top, .Height = 132}
         titleLabel.Text = "Select a part number"
-        titleLabel.Font = New Font("Segoe UI", 19, FontStyle.Bold)
+        titleLabel.Font = New Font("Segoe UI", 16, FontStyle.Bold)
         titleLabel.ForeColor = navy
         titleLabel.SetBounds(0, 0, 680, 44)
         titleLabel.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right

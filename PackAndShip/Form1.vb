@@ -268,18 +268,23 @@ Public Class Form1
             }
             Dim picker As New ComboBox With {
                 .Location = New Point(22, 62), .Width = 435,
-                .DropDownStyle = ComboBoxStyle.DropDownList,
-                .DataSource = New List(Of BusinessUnit)(units), .DisplayMember = "Name"
+                .DropDownStyle = ComboBoxStyle.DropDownList
             }
+            ' Bind only after the ComboBox has a handle. This avoids a zero-count
+            ' Items collection when SelectedIndex is set before Controls.Add.
+            dialog.Controls.AddRange(New Control() {caption, picker})
+            picker.DisplayMember = "Name"
+            picker.ValueMember = "Id"
+            picker.DataSource = New List(Of BusinessUnit)(units)
             If SessionContext.BusinessUnitId > 0 Then
-                Dim index = units.FindIndex(Function(u) u.Id = SessionContext.BusinessUnitId)
-                If index >= 0 Then picker.SelectedIndex = index
+                Dim selected = units.Find(Function(u) u.Id = SessionContext.BusinessUnitId)
+                If selected IsNot Nothing Then picker.SelectedValue = selected.Id
             End If
             Dim save As New Button With {
                 .Text = "Save", .DialogResult = DialogResult.OK,
                 .Location = New Point(327, 115), .Size = New Size(130, 35)
             }
-            dialog.Controls.AddRange(New Control() {caption, picker, save})
+            dialog.Controls.Add(save)
             dialog.AcceptButton = save
 
             If dialog.ShowDialog(Me) <> DialogResult.OK Then Return

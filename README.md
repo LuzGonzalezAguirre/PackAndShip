@@ -35,3 +35,21 @@ debe existir al menos un usuario autorizado en `ssi_PaS_Users` para completar el
 - Todavía faltan CRUD de usuarios, configuración de pallets por nivel, editor compartido de
   reglas de escaneo, ajustes generales y reglas de Pallet Scanner.
 - Los cambios aún no se han compilado ni probado contra SQL Server real.
+
+## Setup — Users & Roles (primera versión)
+
+El menú **Setup > Users & Roles** abre un formulario Windows Forms con DataGridView,
+búsqueda, alta, edición, activación/desactivación y restablecimiento de contraseña
+al Barcode ID. Los roles se cargan del catálogo `ssi_PaS_Roles` y los registros
+de `ssi_PaS_Users`. Los cambios verifican nuevamente en SQL que el usuario
+administrador sigue activo y tiene `can_modify_setup=1`.
+
+La baja es lógica (desactivar), no un borrado físico. Cambiar el Barcode ID
+de un empleado **no** restablece automáticamente su contraseña: existe un botón
+específico para hacerlo. No se puede modificar la propia cuenta mientras está
+iniciada la sesión.
+
+**Pendiente antes de producción:** el esquema temporal SHA2-256 sin sal y las
+contraseñas iguales al Barcode ID son inseguros; migrar a credenciales individuales
+y un KDF con sal. Esta pantalla aún requiere compilación y pruebas de integración
+con la base SQL Server de la planta.

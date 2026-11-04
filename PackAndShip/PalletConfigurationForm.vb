@@ -239,10 +239,11 @@ Public Class PalletConfigurationForm
     End Sub
 
     Private Sub ClearLevels()
-        For Each control As Control In levelsPanel.Controls
-            control.Dispose()
-        Next
-        levelsPanel.Controls.Clear()
+        While levelsPanel.Controls.Count > 0
+            Dim child = levelsPanel.Controls(0)
+            levelsPanel.Controls.RemoveAt(0)
+            child.Dispose()
+        End While
         quantityInputs.Clear()
         UpdateTotals()
     End Sub

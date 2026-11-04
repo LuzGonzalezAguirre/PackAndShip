@@ -168,6 +168,11 @@ Public NotInheritable Class ScanRulesData
                             customer = rd.GetString(2)
                         End Using
                     End Using
+                    If rule.IsActive AndAlso fields.Any(Function(field) field.ExtractionMode = "prefijo_11_opcional") Then
+                        Throw New InvalidOperationException(
+                            "Cummins optional-separator parser is not implemented. Keep this rule inactive.")
+                    End If
+
                     Dim id As Integer = rule.Id
                     If id > 0 Then
                         Using cmd As New SqlCommand(
@@ -245,6 +250,17 @@ Public NotInheritable Class ScanRulesData
             Using tx = cn.BeginTransaction()
                 Try
                     RequireAuthorized(cn, tx)
+                    If active Then
+                        Using validation As New SqlCommand(
+                            "SELECT COUNT(1) FROM dbo.quality_scan_fields " &
+                            "WHERE rule_id=@id AND extraction_mode=N'prefijo_11_opcional'", cn, tx)
+                            validation.Parameters.Add("@id", SqlDbType.Int).Value = rule.Id
+                            If Convert.ToInt32(validation.ExecuteScalar()) > 0 Then
+                                Throw New InvalidOperationException(
+                                    "Cummins optional-separator parser is not implemented. Cannot activate this rule.")
+                            End If
+                        End Using
+                    End If
                     Using cmd As New SqlCommand(
                         "UPDATE dbo.quality_pn_scan_rules SET is_active=@active," &
                         "updated_at=SYSDATETIME() " &

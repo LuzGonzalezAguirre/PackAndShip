@@ -13,6 +13,7 @@ Public Class ScanRulesForm
     Private ReadOnly summaryLabel As New Label()
     Private ReadOnly notesLabel As New TextBox()
     Private rules As New List(Of ScanRuleRecord)()
+    Private availableParts As New List(Of PaSPart)()
     Private loading As Boolean
 
     Public Sub New()
@@ -33,9 +34,33 @@ Public Class ScanRulesForm
             .ForeColor = Color.White, .Font = New Font("Segoe UI", 22, FontStyle.Bold)
         })
         header.Controls.Add(New Label With {
-            .Text = "Shared Q-Wall rules • Read-only inspection",
+            .Text = "Shared Q-Wall rules • Changes also affect Q-Wall",
             .AutoSize = True, .Location = New Point(25, 59), .ForeColor = Color.White
         })
+
+        Dim actions As New FlowLayoutPanel With {
+            .Dock = DockStyle.Top, .Height = 54, .Padding = New Padding(12, 9, 12, 4),
+            .WrapContents = False
+        }
+        Dim addRule As New Button With {.Text = "Add rule", .Size = New Size(130, 34)}
+        Dim editRule As New Button With {.Text = "Edit selected", .Size = New Size(145, 34)}
+        Dim toggleRule As New Button With {.Text = "Activate / Deactivate", .Size = New Size(185, 34)}
+        For Each btn In {addRule, editRule, toggleRule}
+            btn.BackColor = navy
+            btn.ForeColor = Color.White
+            btn.FlatStyle = FlatStyle.Flat
+            actions.Controls.Add(btn)
+        Next
+        AddHandler addRule.Click, Sub() OpenRuleEditor(Nothing)
+        AddHandler editRule.Click, Sub()
+                                       Dim selected = SelectedRule()
+                                       If selected Is Nothing Then
+                                           MessageBox.Show("Select a rule first.")
+                                           Return
+                                       End If
+                                       OpenRuleEditor(selected)
+                                   End Sub
+        AddHandler toggleRule.Click, AddressOf ToggleSelectedRule
 
         Dim filters As New FlowLayoutPanel With {
             .Dock = DockStyle.Top, .Height = 58, .Padding = New Padding(12, 11, 12, 6),
@@ -102,6 +127,7 @@ Public Class ScanRulesForm
         Controls.Add(bottom)
         Controls.Add(topGrid)
         Controls.Add(filters)
+        Controls.Add(actions)
         Controls.Add(header)
     End Sub
 
@@ -120,6 +146,7 @@ Public Class ScanRulesForm
 
     Private Sub ReloadRules()
         Try
+            availableParts = ScanRulesData.ReadPartOptions()
             rules = ScanRulesData.ReadRules()
             Dim previousId = 0
             Dim previous = TryCast(customerPicker.SelectedItem, BusinessUnit)
@@ -159,6 +186,39 @@ Public Class ScanRulesForm
         fieldsGrid.DataSource = Nothing
         notesLabel.Clear()
         summaryLabel.Text = subset.Count & " of " & rules.Count & " rules"
+    End Sub
+
+    Private Function SelectedRule() As ScanRuleRecord
+        If rulesGrid.SelectedRows.Count = 0 Then Return Nothing
+        Return TryCast(rulesGrid.SelectedRows(0).DataBoundItem, ScanRuleRecord)
+    End Function
+
+    Private Sub OpenRuleEditor(rule As ScanRuleRecord)
+        Try
+            Using editor As New ScanRuleEditorForm(rule, availableParts)
+                If editor.ShowDialog(Me) = DialogResult.OK Then ReloadRules()
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Scan rule editor", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Sub ToggleSelectedRule(sender As Object, e As EventArgs)
+        Dim rule = SelectedRule()
+        If rule Is Nothing Then
+            MessageBox.Show("Select a rule first.")
+            Return
+        End If
+        Dim action = If(rule.IsActive, "deactivate", "activate")
+        If MessageBox.Show("Do you want to " & action & " this rule for " &
+                           rule.SsiPart & "? This affects Q-Wall.", "Confirm shared rule change",
+                           MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
+        Try
+            ScanRulesData.SetActive(rule, Not rule.IsActive)
+            ReloadRules()
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Cannot update rule", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub ShowRuleDetails(sender As Object, e As EventArgs)

@@ -1,6 +1,7 @@
 -- Cummins - proposed scan rules. Shared with Q-Wall.
 -- First execute with @Apply=0. No rows persist in dry-run.
--- New extraction_mode 'prefijo_11_opcional' requires parser support
+-- Allowed extraction_mode 'completo' stores the raw scan; prefix/optional-separator
+-- validation still requires parser support
 -- before these rules can be activated in PackAndShip.
 -- NVARCHAR sizes in the schema are reported in bytes: separator 40 bytes = 20 chars,
 -- prefix_value 100 bytes = 50 chars, ssi_pn 40 bytes = 20 chars.
@@ -35,7 +36,7 @@ WHERE UPPER(LTRIM(RTRIM(b.bu_name)))='CUMMINS'
 
 SELECT pn_id, ssi_pn AS SSI_PN, client_pn AS Client_PN,
        bu_name AS Customer,
-       'prefijo_11_opcional' AS ProposedExtractionMode,
+       'completo' AS ProposedExtractionMode,
        'INACTIVE' AS ProposedStatus
 FROM @Candidates ORDER BY ssi_pn, pn_id;
 
@@ -62,23 +63,25 @@ BEGIN TRY
          notes, is_active, created_by_id, created_at, updated_by_id, updated_at)
       VALUES
         (@pn, @ssi, @bu, @buName, 1, 0,
-         N'Cummins: Client PN + optional apostrophe/hyphen + exactly 11 digits. Parser pending.',
+         N'Cummins: Client PN + optional apostrophe/hyphen + exactly 11 digits. Parser pending: validate prefix, optional apostrophe/hyphen, and 11 digits before use.',
          0, NULL, SYSDATETIME(), NULL, SYSDATETIME());
       SET @id=CONVERT(int,SCOPE_IDENTITY());
       INSERT INTO @Inserted VALUES (@pn,@id);
 
       -- Q-Wall Form1 assigns the same scanned serial to both fields.
       -- These two extraction mappings intentionally share scan_index 0.
+      -- 'completo' is valid under current CHECK constraints and retains the raw scan.
+      -- It does NOT enforce prefix/length/optional separators by itself.
       INSERT INTO dbo.quality_scan_fields
         (rule_id, scan_index, extraction_mode, field_target,
          separator, separator_custom, value_position, segment_index,
          fixed_length, prefix_value, display_label, sequence_order)
       VALUES
-        (@id,0,N'prefijo_11_opcional',N'frameSN',
-         N'opt_apos_guion',N'',N'despues',NULL,11,@client,
+        (@id,0,N'completo',N'frameSN',
+         N'ninguno',N'',N'completo',NULL,NULL,@client,
          N'Internal serial',0),
-        (@id,0,N'prefijo_11_opcional',N'volvoSerialNumber',
-         N'opt_apos_guion',N'',N'despues',NULL,11,@client,
+        (@id,0,N'completo',N'volvoSerialNumber',
+         N'ninguno',N'',N'completo',NULL,NULL,@client,
          N'Client serial',1);
     END
     FETCH NEXT FROM rows_to_seed INTO @pn,@ssi,@bu,@buName,@client;

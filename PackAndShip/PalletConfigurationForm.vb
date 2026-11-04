@@ -15,11 +15,13 @@ Public Class PalletConfigurationForm
     Private ReadOnly countLabel As New Label()
     Private ReadOnly statusLabel As New Label()
     Private ReadOnly activeCheck As New CheckBox()
+    Private ReadOnly levelCountInput As New NumericUpDown()
+    Private ReadOnly piecesPerLevelInput As New NumericUpDown()
+    Private ReadOnly distributeButton As New Button()
     Private ReadOnly addLevelButton As New Button()
     Private ReadOnly saveButton As New Button()
     Private ReadOnly refreshButton As New Button()
     Private ReadOnly quantityInputs As New List(Of NumericUpDown)()
-    Private ReadOnly addPanel As New Panel()
     Private parts As New List(Of PaSPart)()
     Private selectedPart As PaSPart
     Private isLoading As Boolean
@@ -73,7 +75,7 @@ Public Class PalletConfigurationForm
         AddHandler buPicker.SelectedIndexChanged, Sub() FilterParts()
         partsList.Dock = DockStyle.Fill
         partsList.IntegralHeight = False
-        partsList.DisplayMember = "Number"
+        partsList.DisplayMember = "DisplayName"
         AddHandler partsList.SelectedIndexChanged, AddressOf PartSelected
         refreshButton.Text = "Refresh catalog"
         refreshButton.Dock = DockStyle.Bottom
@@ -98,6 +100,43 @@ Public Class PalletConfigurationForm
         activeCheck.SetBounds(0, 90, 240, 30)
         activeCheck.Checked = True
         editorTop.Controls.AddRange(New Control() {titleLabel, statusLabel, activeCheck})
+
+        Dim distribution As New Panel With {
+            .Dock = DockStyle.Top, .Height = 103, .BackColor = Color.White,
+            .Padding = New Padding(8)
+        }
+        Dim helperTitle As New Label With {
+            .Text = "Quick level distribution", .Font = New Font("Segoe UI", 12, FontStyle.Bold),
+            .ForeColor = navy, .Location = New Point(10, 7), .Size = New Size(390, 27)
+        }
+        Dim levelCaption As New Label With {
+            .Text = "Total levels", .Location = New Point(10, 41), .AutoSize = True
+        }
+        levelCountInput.SetBounds(105, 38, 75, 30)
+        levelCountInput.Minimum = 1
+        levelCountInput.Maximum = 1000
+        levelCountInput.Value = 1
+        levelCountInput.TextAlign = HorizontalAlignment.Center
+        Dim piecesCaption As New Label With {
+            .Text = "Pieces per level", .Location = New Point(196, 41), .AutoSize = True
+        }
+        piecesPerLevelInput.SetBounds(310, 38, 90, 30)
+        piecesPerLevelInput.Minimum = 1
+        piecesPerLevelInput.Maximum = Integer.MaxValue
+        piecesPerLevelInput.Value = 1
+        piecesPerLevelInput.TextAlign = HorizontalAlignment.Center
+        distributeButton.Text = "Generate levels"
+        distributeButton.SetBounds(416, 36, 160, 36)
+        StyleButton(distributeButton)
+        AddHandler distributeButton.Click, AddressOf GenerateLevels
+        Dim helperNote As New Label With {
+            .Text = "Generate equal quantities, then adjust individual levels below.",
+            .Location = New Point(10, 77), .AutoSize = True, .ForeColor = Color.DimGray
+        }
+        distribution.Controls.AddRange(New Control() {
+            helperTitle, levelCaption, levelCountInput, piecesCaption,
+            piecesPerLevelInput, distributeButton, helperNote
+        })
 
         Dim footer As New Panel With {.Dock = DockStyle.Bottom, .Height = 112}
         countLabel.Text = "0 levels"
@@ -125,6 +164,7 @@ Public Class PalletConfigurationForm
         AddHandler levelsPanel.Resize, Sub() ResizeRows()
         editor.Controls.Add(levelsPanel)
         editor.Controls.Add(footer)
+        editor.Controls.Add(distribution)
         editor.Controls.Add(editorTop)
 
         Controls.Add(editor)
@@ -151,9 +191,16 @@ Public Class PalletConfigurationForm
                 Select(Function(g) New BusinessUnit With {.Id = g.Key, .Name = g.First().BusinessUnit}).
                 OrderBy(Function(b) b.Name).ToList()
             customers.Insert(0, New BusinessUnit With {.Id = 0, .Name = "All customers"})
+            Dim selectedCustomerId As Integer = SessionContext.BusinessUnitId
+            Dim previousCustomer = TryCast(buPicker.SelectedItem, BusinessUnit)
+            If previousCustomer IsNot Nothing Then
+                selectedCustomerId = previousCustomer.Id
+            End If
             buPicker.DataSource = customers
             buPicker.DisplayMember = "Name"
             buPicker.ValueMember = "Id"
+            Dim customerIndex = customers.FindIndex(Function(b) b.Id = selectedCustomerId)
+            buPicker.SelectedIndex = If(customerIndex >= 0, customerIndex, 0)
             isLoading = False
             FilterParts(selectedId)
         Catch ex As Exception
@@ -169,12 +216,13 @@ Public Class PalletConfigurationForm
         Dim selectedBu = TryCast(buPicker.SelectedItem, BusinessUnit)
         Dim buId = If(selectedBu Is Nothing, 0, selectedBu.Id)
         Dim options = parts.Where(Function(p) (buId = 0 OrElse p.BusinessUnitId = buId) AndAlso
-            (query = "" OrElse p.Number.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)).
+            (query = "" OrElse p.Number.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+             p.VolvoNumber.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)).
             ToList()
         isLoading = True
         partsList.DataSource = Nothing
         partsList.DataSource = options
-        partsList.DisplayMember = "Number"
+        partsList.DisplayMember = "DisplayName"
         partsList.ClearSelected()
         If preferredPartId > 0 Then
             Dim index = options.FindIndex(Function(p) p.Id = preferredPartId)
@@ -205,13 +253,14 @@ Public Class PalletConfigurationForm
         Try
             Dim config = PalletConfigurationData.GetConfiguration(selectedPart.Id)
             ClearLevels()
-            titleLabel.Text = selectedPart.Number & "   |   " & selectedPart.BusinessUnit
+            titleLabel.Text = selectedPart.DisplayName
+            statusLabel.Text = selectedPart.BusinessUnit
             If config Is Nothing Then
-                statusLabel.Text = "Not configured • New configuration"
+                statusLabel.Text = selectedPart.BusinessUnit & " • Not configured • New configuration"
                 activeCheck.Checked = True
                 AddLevel(1)
             Else
-                statusLabel.Text = "Existing configuration"
+                statusLabel.Text = selectedPart.BusinessUnit & " • Existing configuration"
                 activeCheck.Checked = config.IsActive
                 For Each quantity In config.Levels
                     AddLevel(quantity)
@@ -223,6 +272,8 @@ Public Class PalletConfigurationForm
                     statusLabel.Text = "Warning: stored total does not match the levels."
                 End If
             End If
+            levelCountInput.Value = Math.Max(1, Math.Min(1000, quantityInputs.Count))
+            If quantityInputs.Count > 0 Then piecesPerLevelInput.Value = quantityInputs(0).Value
             EnableEditor(True)
         Catch ex As Exception
             EnableEditor(False)
@@ -233,9 +284,42 @@ Public Class PalletConfigurationForm
 
     Private Sub EnableEditor(enabled As Boolean)
         addLevelButton.Enabled = enabled
+        distributeButton.Enabled = enabled
+        levelCountInput.Enabled = enabled
+        piecesPerLevelInput.Enabled = enabled
         saveButton.Enabled = enabled
         activeCheck.Enabled = enabled
         levelsPanel.Enabled = enabled
+    End Sub
+
+    Private Sub GenerateLevels(sender As Object, e As EventArgs)
+        If selectedPart Is Nothing Then
+            MessageBox.Show("Select a part number first.")
+            Return
+        End If
+        Dim numberOfLevels = CInt(levelCountInput.Value)
+        Dim pieces = CInt(piecesPerLevelInput.Value)
+        If CLng(numberOfLevels) * CLng(pieces) > Integer.MaxValue Then
+            MessageBox.Show("The total exceeds the supported maximum.",
+                            "Invalid configuration", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+        If quantityInputs.Count > 0 AndAlso
+           MessageBox.Show("Replace the currently displayed levels? Unsaved changes will be lost.",
+                           "Generate levels", MessageBoxButtons.YesNo,
+                           MessageBoxIcon.Question) <> DialogResult.Yes Then
+            Return
+        End If
+        levelsPanel.SuspendLayout()
+        Try
+            ClearLevels()
+            For i As Integer = 1 To numberOfLevels
+                AddLevel(pieces)
+            Next
+        Finally
+            levelsPanel.ResumeLayout()
+        End Try
+        UpdateTotals()
     End Sub
 
     Private Sub ClearLevels()

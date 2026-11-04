@@ -217,7 +217,7 @@ Public Class PalletConfigurationForm
         Dim buId = If(selectedBu Is Nothing, 0, selectedBu.Id)
         Dim options = parts.Where(Function(p) (buId = 0 OrElse p.BusinessUnitId = buId) AndAlso
             (query = "" OrElse p.Number.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0 OrElse
-             p.VolvoNumber.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)).
+             p.ClientNumber.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)).
             ToList()
         isLoading = True
         partsList.DataSource = Nothing

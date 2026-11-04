@@ -233,7 +233,7 @@ Public Class Form1
             Dim picker As New ComboBox With {
                 .Location = New Point(22, 62), .Width = 435,
                 .DropDownStyle = ComboBoxStyle.DropDownList,
-                .DataSource = units.ToList(), .DisplayMember = "Name"
+                .DataSource = New List(Of BusinessUnit)(units), .DisplayMember = "Name"
             }
             If SessionContext.BusinessUnitId > 0 Then
                 Dim index = units.FindIndex(Function(u) u.Id = SessionContext.BusinessUnitId)

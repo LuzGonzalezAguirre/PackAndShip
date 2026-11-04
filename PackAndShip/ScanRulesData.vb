@@ -173,7 +173,7 @@ Public NotInheritable Class ScanRulesData
                         Using cmd As New SqlCommand(
                             "UPDATE dbo.quality_pn_scan_rules SET pn_id=@part,ssi_pn=@pn,bu_id=@bu,bu_name=@name," &
                             "scan_count=@count,requires_match=@match,notes=@notes,is_active=@active," &
-                            "updated_by_id=@actor,updated_at=SYSDATETIME() " &
+                            "updated_at=SYSDATETIME() " &
                             "WHERE id=@id AND updated_at=@updated", cn, tx)
                             AddRuleParameters(cmd, rule, number, buId, customer)
                             cmd.Parameters.Add("@id", SqlDbType.Int).Value = id
@@ -192,7 +192,7 @@ Public NotInheritable Class ScanRulesData
                             "(pn_id,ssi_pn,bu_id,bu_name,scan_count,requires_match,notes,is_active," &
                             "created_by_id,created_at,updated_by_id,updated_at) " &
                             "OUTPUT INSERTED.id VALUES (@part,@pn,@bu,@name,@count,@match,@notes,@active," &
-                            "@actor,SYSDATETIME(),@actor,SYSDATETIME())", cn, tx)
+                            "NULL,SYSDATETIME(),NULL,SYSDATETIME())", cn, tx)
                             AddRuleParameters(cmd, rule, number, buId, customer)
                             id = Convert.ToInt32(cmd.ExecuteScalar())
                         End Using
@@ -238,7 +238,6 @@ Public NotInheritable Class ScanRulesData
         cmd.Parameters.Add("@match", SqlDbType.Bit).Value = rule.RequiresMatch
         cmd.Parameters.Add("@notes", SqlDbType.NVarChar, -1).Value = rule.Notes
         cmd.Parameters.Add("@active", SqlDbType.Bit).Value = rule.IsActive
-        cmd.Parameters.Add("@actor", SqlDbType.Int).Value = SessionContext.UserId
     End Sub
 
     Public Shared Sub SetActive(rule As ScanRuleRecord, active As Boolean)
@@ -251,7 +250,6 @@ Public NotInheritable Class ScanRulesData
                         "updated_by_id=@actor,updated_at=SYSDATETIME() " &
                         "WHERE id=@id AND updated_at=@updated", cn, tx)
                         cmd.Parameters.Add("@active", SqlDbType.Bit).Value = active
-                        cmd.Parameters.Add("@actor", SqlDbType.Int).Value = SessionContext.UserId
                         cmd.Parameters.Add("@id", SqlDbType.Int).Value = rule.Id
                         cmd.Parameters.Add("@updated", SqlDbType.DateTime2).Value = rule.UpdatedAt
                         If cmd.ExecuteNonQuery() <> 1 Then

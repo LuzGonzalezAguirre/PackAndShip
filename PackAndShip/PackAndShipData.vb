@@ -55,7 +55,7 @@ Public NotInheritable Class PackAndShipData
         If String.IsNullOrWhiteSpace(barcode) OrElse String.IsNullOrWhiteSpace(password) Then Return Nothing
         If barcode.Length > 50 OrElse password.Length > 50 Then Return Nothing
 
-        Using connection = OpenConnection()
+        Using connection = CreateConnection()
             ' Compatible con el esquema SHA2_256 de Q-Wall (temporal).
             ' Migrar a hash con salt y KDF antes del despliegue productivo.
             Const sql As String =

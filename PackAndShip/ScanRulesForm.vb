@@ -152,8 +152,9 @@ Public Class ScanRulesForm
             Dim previous = TryCast(customerPicker.SelectedItem, BusinessUnit)
             If previous IsNot Nothing Then previousId = previous.Id
             If previousId = 0 Then previousId = SessionContext.BusinessUnitId
-            Dim options = rules.GroupBy(Function(r) r.CustomerId).
-                Select(Function(g) New BusinessUnit With {.Id = g.Key, .Name = g.First().Customer}).
+            Dim options = availableParts.Where(Function(p) p.BusinessUnitId.HasValue).
+                GroupBy(Function(p) p.BusinessUnitId.Value).
+                Select(Function(g) New BusinessUnit With {.Id = g.Key, .Name = g.First().BusinessUnit}).
                 OrderBy(Function(x) x.Name).ToList()
             options.Insert(0, New BusinessUnit With {.Id = 0, .Name = "All customers"})
             loading = True

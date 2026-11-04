@@ -8,6 +8,7 @@ Public Class UsersSetupForm
     Private ReadOnly navy As Color = Color.FromArgb(31, 78, 121)
     Private ReadOnly usersGrid As New DataGridView()
     Private ReadOnly searchBox As New TextBox()
+    Private ReadOnly roleFilter As New ComboBox()
     Private ReadOnly countLabel As New Label()
     Private ReadOnly newButton As New Button()
     Private ReadOnly editButton As New Button()
@@ -52,7 +53,7 @@ Public Class UsersSetupForm
         ConfigureButton(reloadButton, "Refresh", 95)
         actions.Controls.AddRange(New Control() {newButton, editButton, statusButton, resetButton, reloadButton})
         AddHandler newButton.Click, Sub() OpenEditor(Nothing)
-        AddHandler editButton.Click, Sub() OpenEditor(SelectedUser())
+        AddHandler editButton.Click, AddressOf EditSelectedUser
         AddHandler statusButton.Click, AddressOf ToggleStatus
         AddHandler resetButton.Click, AddressOf ResetPassword
         AddHandler reloadButton.Click, Sub() LoadData()
@@ -62,12 +63,22 @@ Public Class UsersSetupForm
             .Text = "Search", .Location = New Point(20, 15), .AutoSize = True
         }
         searchBox.Location = New Point(95, 11)
-        searchBox.Width = 340
+        searchBox.Width = 245
         searchBox.Anchor = AnchorStyles.Left Or AnchorStyles.Top
         AddHandler searchBox.TextChanged, Sub() RenderRows()
+
+        Dim roleLabel As New Label With {
+            .Text = "Role", .Location = New Point(360, 15), .AutoSize = True
+        }
+        roleFilter.SetBounds(407, 11, 230, 30)
+        roleFilter.DropDownStyle = ComboBoxStyle.DropDownList
+        roleFilter.DisplayMember = "Name"
+        roleFilter.ValueMember = "Id"
+        AddHandler roleFilter.SelectedIndexChanged, Sub() RenderRows()
+
         countLabel.AutoSize = True
-        countLabel.Location = New Point(460, 15)
-        searchPanel.Controls.AddRange(New Control() {searchLabel, searchBox, countLabel})
+        countLabel.Location = New Point(660, 15)
+        searchPanel.Controls.AddRange(New Control() {searchLabel, searchBox, roleLabel, roleFilter, countLabel})
 
         usersGrid.Dock = DockStyle.Fill
         usersGrid.ReadOnly = True
@@ -85,7 +96,10 @@ Public Class UsersSetupForm
         usersGrid.Columns.Add(New DataGridViewTextBoxColumn With {.Name = "RoleName", .HeaderText = "Role", .DataPropertyName = "RoleName", .FillWeight = 90})
         usersGrid.Columns.Add(New DataGridViewCheckBoxColumn With {.Name = "IsActive", .HeaderText = "Active", .DataPropertyName = "IsActive", .FillWeight = 35})
         AddHandler usersGrid.CellDoubleClick, Sub(sender, e)
-                                                  If e.RowIndex >= 0 Then OpenEditor(SelectedUser())
+                                                  If e.RowIndex >= 0 Then
+                                                      Dim user = TryCast(usersGrid.Rows(e.RowIndex).DataBoundItem, PaSUser)
+                                                      If user IsNot Nothing Then OpenEditor(user)
+                                                  End If
                                               End Sub
 
         Dim gridBox As New Panel With {.Dock = DockStyle.Fill, .Padding = New Padding(18, 5, 18, 18)}
@@ -110,6 +124,17 @@ Public Class UsersSetupForm
         Try
             roles = UserAdministration.ListRoles()
             allUsers = UserAdministration.ListUsers()
+            Dim previousRole As Integer = 0
+            Dim previouslySelected = TryCast(roleFilter.SelectedItem, PaSRole)
+            If previouslySelected IsNot Nothing Then previousRole = previouslySelected.Id
+
+            Dim filterOptions As New List(Of PaSRole) From {
+                New PaSRole With {.Id = 0, .Name = "All roles"}
+            }
+            filterOptions.AddRange(roles)
+            roleFilter.DataSource = filterOptions
+            roleFilter.SelectedValue = previousRole
+            If roleFilter.SelectedIndex < 0 Then roleFilter.SelectedIndex = 0
             RenderRows()
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Cannot load users", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -118,10 +143,13 @@ Public Class UsersSetupForm
 
     Private Sub RenderRows()
         Dim term = searchBox.Text.Trim()
-        Dim filtered = allUsers.Where(Function(u) term = "" OrElse
-            u.FullName.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0 OrElse
-            u.Barcode.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0 OrElse
-            u.RoleName.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0).ToList()
+        Dim chosenRole = TryCast(roleFilter.SelectedItem, PaSRole)
+        Dim roleId As Integer = If(chosenRole Is Nothing, 0, chosenRole.Id)
+        Dim filtered = allUsers.Where(Function(u) (roleId = 0 OrElse u.RoleId = roleId) AndAlso
+            (term = "" OrElse
+             u.FullName.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+             u.Barcode.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+             u.RoleName.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)).ToList()
         usersGrid.DataSource = Nothing
         usersGrid.DataSource = filtered
         countLabel.Text = filtered.Count.ToString() & " of " & allUsers.Count.ToString() & " users"
@@ -132,6 +160,16 @@ Public Class UsersSetupForm
         If usersGrid.SelectedRows.Count = 0 Then Return Nothing
         Return TryCast(usersGrid.SelectedRows(0).DataBoundItem, PaSUser)
     End Function
+
+    Private Sub EditSelectedUser(sender As Object, e As EventArgs)
+        Dim user = SelectedUser()
+        If user Is Nothing Then
+            MessageBox.Show("Select a user first.", "Edit user",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Return
+        End If
+        OpenEditor(user)
+    End Sub
 
     Private Sub OpenEditor(user As PaSUser)
         Try

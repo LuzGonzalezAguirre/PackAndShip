@@ -55,8 +55,8 @@ Friend Class ScanFieldCard
         fieldLabel.SetBounds(12, 36, 190, 30)
         fieldLabel.MaxLength = 200
         Controls.Add(fieldLabel)
-        ConfigureChoice(target, {"frameSN", "volvoSerialNumber"}, 213, 36, 225)
-        ConfigureChoice(mode, {"por_separador"}, 451, 36, 270)
+        ConfigureChoice(target, {"Internal serial (frameSN)", "Customer serial (volvoSerialNumber)"}, 213, 36, 225)
+        ConfigureChoice(mode, {"Split by separator"}, 451, 36, 270)
         remove.Text = "×"
         remove.ForeColor = Color.DarkRed
         remove.SetBounds(734, 36, 39, 30)
@@ -67,8 +67,8 @@ Friend Class ScanFieldCard
         TextAt("Extract value", 174, 79)
         TextAt("Known prefix", 345, 79)
         TextAt("Expected length", 617, 79)
-        ConfigureChoice(separator, {"espacio", "personalizado", "ninguno"}, 12, 102, 149)
-        ConfigureChoice(position, {"despues", "antes"}, 174, 102, 160)
+        ConfigureChoice(separator, {"Space ( )", "personalizado", "ninguno"}, 12, 102, 149)
+        ConfigureChoice(position, {"After separator", "Before separator"}, 174, 102, 160)
         prefix.SetBounds(345, 102, 260, 30)
         prefix.MaxLength = 100
         Controls.Add(prefix)
@@ -93,10 +93,12 @@ Friend Class ScanFieldCard
         Controls.Add(preview)
 
         fieldLabel.Text = model.DisplayLabel
-        target.Text = model.FieldTarget
-        mode.Text = model.ExtractionMode
-        separator.Text = model.Separator
-        position.Text = model.ValuePosition
+        target.Text = If(model.FieldTarget = "frameSN", "Internal serial (frameSN)",
+                         If(model.FieldTarget = "volvoSerialNumber", "Customer serial (volvoSerialNumber)", model.FieldTarget))
+        mode.Text = If(model.ExtractionMode = "por_separador", "Split by separator", model.ExtractionMode)
+        separator.Text = If(model.Separator = "espacio", "Space ( )", model.Separator)
+        position.Text = If(model.ValuePosition = "despues", "After separator",
+                           If(model.ValuePosition = "antes", "Before separator", model.ValuePosition))
         prefix.Text = model.PrefixValue
         length.Text = If(model.FixedLength.HasValue, model.FixedLength.Value.ToString(), "")
         customSeparator.Text = model.SeparatorCustom
@@ -111,12 +113,12 @@ Friend Class ScanFieldCard
 
     Private Sub UpdatePreview()
         If preview Is Nothing Then Return
-        Dim sep = If(separator.Text = "espacio", " ", If(separator.Text = "personalizado", customSeparator.Text, ""))
+        Dim sep = If(separator.Text = "Space ( )", " ", If(separator.Text = "personalizado", customSeparator.Text, ""))
         Dim count As Integer
         If Not Integer.TryParse(length.Text.Trim(), count) OrElse count <= 0 Then count = 11
         Dim digitExample = New String("X"c, Math.Min(count, 16))
         If count > 16 Then digitExample &= "..."
-        If mode.Text = "por_separador" Then
+        If mode.Text = "Split by separator" Then
             preview.Text = "Preview: " & prefix.Text & sep & digitExample
         Else
             preview.Text = "Preview: verify extraction mode"
@@ -141,9 +143,14 @@ Friend Class ScanFieldCard
         End If
         Return New ScanFieldRecord With {
             .ScanIndex = scanIndex, .DisplayLabel = fieldLabel.Text,
-            .FieldTarget = target.Text, .ExtractionMode = mode.Text,
-            .Separator = separator.Text, .SeparatorCustom = customSeparator.Text,
-            .ValuePosition = position.Text, .PrefixValue = prefix.Text,
+            .FieldTarget = If(target.Text = "Internal serial (frameSN)", "frameSN",
+                              If(target.Text = "Customer serial (volvoSerialNumber)", "volvoSerialNumber", target.Text)),
+            .ExtractionMode = If(mode.Text = "Split by separator", "por_separador", mode.Text),
+            .Separator = If(separator.Text = "Space ( )", "espacio", separator.Text),
+            .SeparatorCustom = customSeparator.Text,
+            .ValuePosition = If(position.Text = "After separator", "despues",
+                                If(position.Text = "Before separator", "antes", position.Text)),
+            .PrefixValue = prefix.Text,
             .FixedLength = parsedLength, .SegmentIndex = parsedSegment,
             .SequenceOrder = CInt(order.Value)
         }

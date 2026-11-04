@@ -10,19 +10,9 @@ Aplicación de escritorio VB.NET Windows Forms (.NET 10), con apariencia inicial
 
 ## Configuración de conexión
 
-No se almacena ninguna contraseña de SQL en el repositorio. Configurar la variable de entorno
-`PACKANDSHIP_CONNECTION_STRING` en la computadora de Pack and Ship. Para autenticación
-integrada de Windows, un ejemplo (ajustar servidor y nombre de base de datos) es:
+La cadena SQL Server se define **directamente en el método `OpenConnection()` de `PackAndShip/PackAndShipData.vb`**, siguiendo la preferencia del proyecto Q-Wall.
 
-```powershell
-[Environment]::SetEnvironmentVariable(
-    "PACKANDSHIP_CONNECTION_STRING",
-    "Server=SERVIDOR;Database=CCS;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;",
-    "User"
-)
-```
-
-Reiniciar Visual Studio después de configurar la variable.
+Sustituir los marcadores `SERVIDOR_SQL` y `BASE_DE_DATOS` en Visual Studio. El ejemplo usa autenticación integrada de Windows. **No subir claves o contraseñas SQL reales al repositorio**, que actualmente es público.
 
 ## Flujo implementado
 

@@ -227,6 +227,15 @@ Public Class ScanRuleEditorForm
                 scanGroups.Add(index, group)
                 Dim scanFields = models.Where(Function(f) f.ScanIndex = currentIndex).
                                         OrderBy(Function(f) f.SequenceOrder).ToList()
+                If scanFields.Count = 0 Then
+                    scanFields.Add(New ScanFieldRecord With {
+                        .ScanIndex = currentIndex, .SequenceOrder = 0,
+                        .ExtractionMode = "por_separador", .Separator = "espacio",
+                        .ValuePosition = "despues",
+                        .FieldTarget = If(currentIndex = 0, "frameSN", "volvoSerialNumber"),
+                        .DisplayLabel = (currentIndex + 1).ToString()
+                    })
+                End If
                 For Each field In scanFields
                     InsertFieldCard(currentIndex, field)
                 Next

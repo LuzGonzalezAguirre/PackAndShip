@@ -5,6 +5,13 @@ Imports Microsoft.Data.SqlClient
 Public NotInheritable Class PaSPart
     Public Property Id As Integer
     Public Property Number As String = ""
+    Public Property VolvoNumber As String = ""
+    Public ReadOnly Property DisplayName As String
+        Get
+            If String.IsNullOrWhiteSpace(VolvoNumber) Then Return Number
+            Return Number & "   |   Volvo SN: " & VolvoNumber
+        End Get
+    End Property
     Public Property BusinessUnitId As Integer?
     Public Property BusinessUnit As String = ""
     Public Property Configured As Boolean
@@ -29,7 +36,7 @@ Public NotInheritable Class PalletConfigurationData
         Dim result As New List(Of PaSPart)()
         Using cn = PackAndShipData.CreateConnection()
             Const sql As String =
-                "SELECT p.pn_id, p.ssiPN, p.bu_id, ISNULL(b.bu_name, ''), " &
+                "SELECT p.pn_id, p.ssiPN, p.volvoProductNumber, p.bu_id, ISNULL(b.bu_name, ''), " &
                 "CASE WHEN c.configuration_id IS NULL THEN CAST(0 AS BIT) ELSE CAST(1 AS BIT) END " &
                 "FROM dbo.ssi_PartNumbers p " &
                 "LEFT JOIN dbo.ssi_BusinessUnits b ON b.bu_id = p.bu_id " &
@@ -41,9 +48,10 @@ Public NotInheritable Class PalletConfigurationData
                         result.Add(New PaSPart With {
                             .Id = rd.GetInt32(0),
                             .Number = rd.GetString(1),
-                            .BusinessUnitId = If(rd.IsDBNull(2), CType(Nothing, Integer?), rd.GetInt32(2)),
-                            .BusinessUnit = rd.GetString(3),
-                            .Configured = rd.GetBoolean(4)
+                            .VolvoNumber = If(rd.IsDBNull(2), "", rd.GetString(2)),
+                            .BusinessUnitId = If(rd.IsDBNull(3), CType(Nothing, Integer?), rd.GetInt32(3)),
+                            .BusinessUnit = rd.GetString(4),
+                            .Configured = rd.GetBoolean(5)
                         })
                     End While
                 End Using

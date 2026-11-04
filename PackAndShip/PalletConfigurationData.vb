@@ -1,4 +1,5 @@
 Imports System.Data
+Imports System.Linq
 Imports Microsoft.Data.SqlClient
 
 Public NotInheritable Class PaSPart
@@ -97,12 +98,14 @@ Public NotInheritable Class PalletConfigurationData
         If quantities.Any(Function(q) q <= 0) Then
             Throw New ArgumentException("Each level must have at least one piece.")
         End If
-        Dim total As Integer
-        Try
-            total = quantities.Aggregate(0, Function(acc, q) Checked(acc + q))
-        Catch ex As OverflowException
-            Throw New ArgumentException("Total pieces exceeds the permitted range.", ex)
-        End Try
+        Dim sum As Long = 0
+        For Each quantity In quantities
+            sum += CLng(quantity)
+            If sum > Integer.MaxValue Then
+                Throw New ArgumentException("Total pieces exceeds the permitted range.")
+            End If
+        Next
+        Dim total As Integer = CInt(sum)
 
         Using cn = PackAndShipData.CreateConnection()
             Using tx = cn.BeginTransaction(IsolationLevel.Serializable)

@@ -8,8 +8,8 @@ Public NotInheritable Class PaSPart
     Public Property VolvoNumber As String = ""
     Public ReadOnly Property DisplayName As String
         Get
-            If String.IsNullOrWhiteSpace(VolvoNumber) Then Return Number
-            Return Number & "   |   Volvo SN: " & VolvoNumber
+            If String.IsNullOrWhiteSpace(VolvoNumber) Then Return "SSI: " & Number
+            Return "SSI: " & Number & "   |   Volvo: " & VolvoNumber
         End Get
     End Property
     Public Property BusinessUnitId As Integer?

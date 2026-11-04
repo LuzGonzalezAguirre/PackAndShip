@@ -75,3 +75,33 @@ de compilación en Visual Studio y validación funcional contra SQL Server.
 
 Por ahora no contempla historial/versiones de configuración ni reglas
 de escaneo del pallet; se definirán con las operaciones de la estación.
+
+## Scan Rules — CRUD compartido (primera versión)
+
+`Setup > Scan Rules` incluye **Add rule**, **Edit selected** y
+**Activate / Deactivate**. El editor permite seleccionar `pn_id` del
+catálogo, configurar `scan_count`, `requires_match`, `is_active`,
+notas y agregar/quitar campos con las columnas existentes de
+`quality_scan_fields`. En la edición se cargan todos los campos reales;
+se mantienen sin cambios si el usuario no los edita.
+
+Las operaciones usan transacciones SQL y verifican `can_modify_setup`
+contra la base. La edición contrasta `updated_at` para detectar cambios
+concurrentes. No se ofrece eliminación física de reglas. Las reglas
+nuevas se muestran **inactivas** por defecto para evitar efectos
+inmediatos en Q-Wall.
+
+**Precauciones:** se utilizan tablas de Q-Wall; un cambio a una regla
+activa afecta ambas aplicaciones. Antes de modificar la regla real,
+probar altas y edición con una regla inactiva de laboratorio y respaldar
+`quality_pn_scan_rules` y `quality_scan_fields`. Los campos de auditoría
+`created_by_id`/`updated_by_id` no reciben identificadores de
+usuarios PackAndShip porque pertenecen a una identidad distinta.
+El esquema actual no tiene auditoría PaS propia para estas operaciones.
+
+Las opciones de `extraction_mode` y otros valores siguen siendo texto
+editable para no introducir supuestos no verificados sobre el parser de
+Q-Wall. **No hay previsualización ni simulación del resultado de escaneo**:
+se necesita confirmar con casos reales antes del uso productivo.
+Los cambios requieren compilación y pruebas de integración en Visual
+Studio y SQL Server.

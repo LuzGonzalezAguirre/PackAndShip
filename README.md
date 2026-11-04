@@ -53,3 +53,25 @@ iniciada la sesión.
 contraseñas iguales al Barcode ID son inseguros; migrar a credenciales individuales
 y un KDF con sal. Esta pantalla aún requiere compilación y pruebas de integración
 con la base SQL Server de la planta.
+
+## Setup — Pallet Configuration (primera versión)
+
+Requiere ejecutar `sql/001_pallet_configuration.sql` antes de abrir el formulario.
+
+`Setup > Pallet Configuration` permite seleccionar modelos desde
+`ssi_PartNumbers`, filtrarlos por cliente (`ssi_BusinessUnits`) y buscar
+por `ssiPN`. Cada `pn_id` tiene como máximo una configuración;
+el filtro de cliente **no** crea configuraciones adicionales.
+
+Cada nivel tiene su cantidad obligatoria de piezas (entero positivo).
+El total se calcula automáticamente como suma de niveles y se guarda
+junto con el detalle, en transacción serializable. Si el modelo ya estaba
+configurado, reemplaza sus niveles durante el mismo guardado.
+Incluye bandera activa/inactiva y actualización de `updated_at`.
+
+Se consulta nuevamente el rol activo en SQL para autorizar escrituras.
+No modifica los catálogos de Q-Wall. El editor aún requiere pruebas
+de compilación en Visual Studio y validación funcional contra SQL Server.
+
+Por ahora no contempla historial/versiones de configuración ni reglas
+de escaneo del pallet; se definirán con las operaciones de la estación.

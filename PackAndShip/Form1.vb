@@ -52,11 +52,14 @@ Public Class Form1
 
         Dim changeCustomer = setupMenu.Items.Add("Change default customer")
         AddHandler changeCustomer.Click, AddressOf ChangeDefaultCustomer
-        For Each titleText In {"Pallet Configuration (pending)", "Scan Rules (pending)",
-                               "Users & Roles (pending)", "General (pending)"}
-            Dim entry = setupMenu.Items.Add(titleText)
-            entry.Enabled = False
-        Next
+        Dim palletEntry = setupMenu.Items.Add("Pallet Configuration (pending)")
+        palletEntry.Enabled = False
+        Dim scanEntry = setupMenu.Items.Add("Scan Rules (pending)")
+        scanEntry.Enabled = False
+        Dim usersEntry = setupMenu.Items.Add("Users & Roles")
+        AddHandler usersEntry.Click, AddressOf OpenUsersSetup
+        Dim generalEntry = setupMenu.Items.Add("General (pending)")
+        generalEntry.Enabled = False
 
         loginPanel.Dock = DockStyle.Fill
         signedInPanel.Dock = DockStyle.Fill
@@ -207,6 +210,17 @@ Public Class Form1
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    Private Sub OpenUsersSetup(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
+            MessageBox.Show("Your role cannot modify Setup.", "Access denied",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+        Using dialog As New UsersSetupForm()
+            dialog.ShowDialog(Me)
+        End Using
     End Sub
 
     Private Sub ChangeDefaultCustomer(sender As Object, e As EventArgs)

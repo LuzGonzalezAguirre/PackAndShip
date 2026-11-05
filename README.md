@@ -257,3 +257,25 @@ or PackAndShip. A one-scan rule without a frameSN mapping, a model
 without a Client part number, or an unsupported extraction mode is
 rejected. Q-Wall PASS and global uniqueness validation must be integrated
 before accepting or saving any piece.
+
+## Q-Wall PASS: integración de consulta (read-only)
+
+El escáner consulta ahora `QWallPassValidator.Verify` **después de
+aprobar el formato del QR**. Busca exactamente una fila de `ssi_Products`
+con `pn_id`, `frameSN` (SSI completo) y `fpcaSN` (Client completo),
+como lo hace `GetOrCreateProductID()` de Q-Wall, pero **sin INSERT**.
+Exige una última inspección finalizada en `ssi_Inspections`, con
+`overall_result=1` y `is_scrap` no marcado. Si hay un registro en
+`ssi_PieceFlagRecords` para esa inspección, devuelve "Quality review"
+conservador hasta acordar los criterios de liberación.
+
+La UI cambia el estado `Q-Wall PASS` a VERIFIED o NOT VERIFIED, y lo
+restablece al cambiar un QR/contenedor. Aún no hay operación que
+incremente piezas o habilite Complete pallet; falta diseñar el control
+de duplicados y transacciones en `ssi_PaS_*`.
+
+Para revisar qué guarda Q-Wall para una pieza real, ejecutar
+`sql/007_qwall_pass_diagnostic.sql` (solo SELECT) cambiando el SSI y
+Client completos. Se debe validar en CCS con inspecciones reales,
+incluyendo FAIL, Scrap, flags y varios tipos de inspección, antes de
+considerar terminada la integración.

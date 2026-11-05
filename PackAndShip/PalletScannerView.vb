@@ -676,12 +676,29 @@ Public Class PalletScannerView
                 Return
             End If
 
-            scanStatus.ForeColor = Color.FromArgb(145, 89, 10)
-            scanStatus.Text = qwall.Message
             SetQWallStatus("VERIFIED")
             verifiedSsi = firstQr.Text.Trim()
             verifiedClient = fullClientCode
             UpdatePackingButtons()
+            If activeContainer Is Nothing Then
+                scanStatus.ForeColor = Color.DarkRed
+                scanStatus.Text = "Q-Wall PASS confirmed. Open / Load the container before recording."
+            ElseIf activeContainer.Status <> "OPEN" Then
+                scanStatus.ForeColor = Color.DarkRed
+                scanStatus.Text = "Q-Wall PASS confirmed. This container is " & activeContainer.Status & "."
+            ElseIf activeContainer.CurrentLevel Is Nothing Then
+                scanStatus.ForeColor = Color.DarkRed
+                scanStatus.Text = "Q-Wall PASS confirmed. No open level is available."
+            ElseIf activeContainer.CurrentLevel.ScannedPieces >= activeContainer.CurrentLevel.RequiredPieces Then
+                scanStatus.ForeColor = Color.FromArgb(145, 89, 10)
+                scanStatus.Text = "Q-Wall PASS confirmed. Close the completed level before continuing."
+            ElseIf recordButton.Enabled Then
+                scanStatus.ForeColor = Color.DarkGreen
+                scanStatus.Text = "Q-Wall PASS confirmed. Click Record piece to pack it."
+            Else
+                scanStatus.ForeColor = Color.DarkRed
+                scanStatus.Text = "Q-Wall PASS confirmed, but recording is unavailable. Reload the container."
+            End If
         Catch ex As Exception
             scanStatus.ForeColor = Color.DarkRed
             scanStatus.Text = "Verification unavailable: " & ex.Message

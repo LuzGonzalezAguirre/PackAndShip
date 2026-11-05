@@ -345,9 +345,9 @@ Public Class Form1
 
         Using dialog As New Form With {
             .Text = "PackAndShip | Customer Configuration",
-            .Size = New Size(550, 342),
-            .MinimumSize = New Size(550, 342),
-            .MaximumSize = New Size(550, 342),
+            .Size = New Size(550, 385),
+            .MinimumSize = New Size(550, 385),
+            .MaximumSize = New Size(550, 385),
             .StartPosition = FormStartPosition.CenterParent,
             .FormBorderStyle = FormBorderStyle.FixedDialog,
             .MaximizeBox = False, .MinimizeBox = False
@@ -378,13 +378,13 @@ Public Class Form1
             }
             Dim caption As New Label With {
                 .Text = "Customer",
-                .Location = New Point(24, 25),
+                .Location = New Point(24, 79),
                 .Size = New Size(460, 25),
                 .ForeColor = PaSTheme.TextPrimary,
                 .Font = New Font("Segoe UI", 10, FontStyle.Bold)
             }
             Dim picker As New ComboBox With {
-                .Location = New Point(24, 58),
+                .Location = New Point(24, 108),
                 .Size = New Size(476, 33),
                 .DropDownStyle = ComboBoxStyle.DropDownList,
                 .Font = New Font("Segoe UI", 11)

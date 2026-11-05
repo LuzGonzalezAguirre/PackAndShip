@@ -442,7 +442,7 @@ Public Class Form1
             MaximizeBox = True
             MinimumSize = New Size(800, 570)
             ClientSize = New Size(1100, 720)
-            appHeader.Visible = True
+            appHeader.Visible = False
             mainMenu.Visible = True
             Text = "Pack and Ship | SSI"
             CenterToScreen()

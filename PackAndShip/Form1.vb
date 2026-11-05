@@ -18,6 +18,7 @@ Public Class Form1
     Private ReadOnly appHeader As New Panel()
     Private ReadOnly loginPanel As New Panel()
     Private ReadOnly signedInPanel As New Panel()
+    Private ReadOnly scannerView As New PalletScannerView()
     Private units As New List(Of BusinessUnit)()
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -188,27 +189,7 @@ Public Class Form1
     End Sub
 
     Private Sub CreateSignedInContent()
-        Dim title As New Label With {
-            .Text = "Pallet Scanner", .Font = New Font("Segoe UI", 24, FontStyle.Bold),
-            .ForeColor = brandBlue, .AutoSize = True, .Location = New Point(35, 35)
-        }
-        signedInPanel.Controls.Add(title)
-        labelWelcome.Location = New Point(38, 100)
-        labelWelcome.Size = New Size(850, 90)
-        signedInPanel.Controls.Add(labelWelcome)
-        labelStatus.Text = "Pallet scanning rules are pending definition."
-        labelStatus.Location = New Point(38, 210)
-        labelStatus.Size = New Size(850, 45)
-        signedInPanel.Controls.Add(labelStatus)
-
-        buttonLogout.Text = "Log Out"
-        buttonLogout.BackColor = brandBlue
-        buttonLogout.ForeColor = Color.White
-        buttonLogout.FlatStyle = FlatStyle.Flat
-        buttonLogout.Location = New Point(38, 280)
-        buttonLogout.Size = New Size(160, 42)
-        AddHandler buttonLogout.Click, Sub() ResetLogin()
-        signedInPanel.Controls.Add(buttonLogout)
+        signedInPanel.Controls.Add(scannerView)
     End Sub
 
     Private Sub AddLabel(parent As Control, value As String, x As Integer, y As Integer,
@@ -273,6 +254,7 @@ Public Class Form1
             SessionContext.CanModifySetup = user.CanModifySetup
 
             SetAuthenticatedLayout()
+            scannerView.LoadStation()
             menuSetup.Enabled = SessionContext.CanModifySetup
             menuLogout.Enabled = True
             labelWelcome.Text = "Operator: " & user.Name & "  |  Role: " & user.RoleName &
@@ -425,10 +407,7 @@ Public Class Form1
             Try
                 StationSettings.SaveCustomerId(selected.Id)
                 RefreshCustomer()
-                labelWelcome.Text = "Operator: " & SessionContext.FullName &
-                    "  |  Role: " & SessionContext.RoleName &
-                    Environment.NewLine & "Customer: " & SessionContext.BusinessUnitName
-                labelStatus.Text = "Pallet scanning rules are pending definition."
+                scannerView.LoadStation()
             Catch ex As Exception
                 MessageBox.Show(ex.Message, "Station configuration error",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error)

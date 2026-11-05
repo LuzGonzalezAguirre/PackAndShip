@@ -53,8 +53,11 @@ Public NotInheritable Class ScanFormatValidator
         End If
         Dim internalSerial = extracted("frameSN")
         Dim clientSerial = extracted("volvoSerialNumber")
-        If rule.RequiresMatch AndAlso Not String.Equals(internalSerial, clientSerial, StringComparison.Ordinal) Then
-            Return Fail("Internal and client serial values do not match.")
+        ' Two-label PackAndShip flow: both extracted numeric serials must match,
+        ' regardless of the legacy requires_match flag in the shared Q-Wall rule.
+        If Not String.Equals(internalSerial, clientSerial, StringComparison.Ordinal) Then
+            Return Fail("Serial mismatch: SSI (" & internalSerial &
+                        ") and Client (" & clientSerial & ") must be identical.")
         End If
         Return New ScanFormatResult With {
             .Valid = True,

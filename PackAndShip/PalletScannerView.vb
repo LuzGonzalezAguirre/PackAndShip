@@ -292,7 +292,7 @@ Public Class PalletScannerView
         ruleSummary.Font = New Font("Segoe UI", 10)
         validationArea.Controls.Add(ruleSummary)
         Dim warning As New Label With {
-            .Text = "PACKING LOCKED" & Environment.NewLine &
+            .Text = "SQL VALIDATION ACTIVE" & Environment.NewLine &
                     "Packing actions use transactional SQL validation for PASS, duplicates, level quantities and container closure.",
             .Location = New Point(18, 246),
             .Size = New Size(334, 124),
@@ -310,7 +310,7 @@ Public Class PalletScannerView
         progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
         ruleSummary.Text = "Scan rule: Pending" & Environment.NewLine &
                            "Q-Wall PASS: Check on scan" & Environment.NewLine &
-                           "Duplicate prevention: Not connected" & Environment.NewLine &
+                           "Duplicate prevention: SQL unique product ID" & Environment.NewLine &
                            "Container format: General Settings"
         scanStatus.Text = "Enter a container and select a model."
         verifyButton.Enabled = False

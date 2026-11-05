@@ -453,10 +453,27 @@ Public Class PalletScannerView
             If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
                 secondQr.Text = If(result.Valid, result.GeneratedClientCode, "")
             End If
-            scanStatus.ForeColor = If(result.Valid, Color.FromArgb(145, 89, 10), Color.DarkRed)
-            scanStatus.Text = result.Message
-            ' Intentionally do NOT clear scans, increase counts, save a piece,
-            ' or enable closure. PASS and global uniqueness checks are not wired.
+            If Not result.Valid Then
+                scanStatus.ForeColor = Color.DarkRed
+                scanStatus.Text = result.Message
+                Return
+            End If
+
+            ' Check the exact full SSI and Client strings saved by Q-Wall,
+            ' not only the extracted numeric portion. This is read-only.
+            Dim fullClientCode As String = If(selectedRule.ScanCount = 1,
+                                              result.GeneratedClientCode, secondQr.Text.Trim())
+            Dim qwall = QWallPassValidator.Verify(selectedPart.Id, firstQr.Text.Trim(), fullClientCode)
+            If Not qwall.Verified Then
+                scanStatus.ForeColor = Color.DarkRed
+                scanStatus.Text = "QR format valid; " & qwall.Message
+                Return
+            End If
+
+            scanStatus.ForeColor = Color.FromArgb(145, 89, 10)
+            scanStatus.Text = qwall.Message
+            ' Do NOT record a piece or increment counters here.
+            ' Cross-container uniqueness and exact level completion are pending.
         Catch ex As Exception
             scanStatus.ForeColor = Color.DarkRed
             scanStatus.Text = "Verification unavailable: " & ex.Message

@@ -56,11 +56,11 @@ Public Class PalletScannerView
     Private ReadOnly headerPage As New Panel()
     Private ReadOnly bodyLeft As New Panel()
     Private ReadOnly bodyRight As New Panel()
-    Private ReadOnly scanArea As New Panel()
-    Private ReadOnly buildArea As New Panel()
-    Private ReadOnly piecesArea As New Panel()
-    Private ReadOnly progressArea As New Panel()
-    Private ReadOnly validationArea As New Panel()
+    Private scanArea As New Panel()
+    Private buildArea As New Panel()
+    Private piecesArea As New Panel()
+    Private progressArea As New Panel()
+    Private validationArea As New Panel()
     Private ReadOnly mainPage As New Panel()
 
     Private Function Card(title As String, parent As Control, x As Integer,

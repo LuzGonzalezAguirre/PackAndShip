@@ -33,7 +33,7 @@ Public Class GeneralSettingsForm
             .ForeColor = Color.White, .Location = New Point(22, 11)
         })
         header.Controls.Add(New Label With {
-            .Text = "Pallet ID format for this workstation",
+            .Text = "Global pallet ID format • Shared by all stations",
             .AutoSize = True, .ForeColor = Color.White, .Location = New Point(25, 59)
         })
         Controls.Add(header)
@@ -105,7 +105,7 @@ Public Class GeneralSettingsForm
         section.Controls.Add(New Label With {
             .Text = "This setting validates the pallet ID format only. It does not generate " &
                     "pallet numbers or change existing records." & Environment.NewLine &
-                    "Saved locally for all Windows users on this workstation.",
+                    "Saved in SQL Server and shared by all PackAndShip stations.",
             .Location = New Point(24, 316), .Size = New Size(595, 55),
             .ForeColor = Color.FromArgb(80, 85, 95)
         })
@@ -166,7 +166,7 @@ Public Class GeneralSettingsForm
             Dim format = BuildFormat()
             PalletIdSettings.Save(format.Prefix, format.DigitCount)
             saved = format
-            MessageBox.Show("Pallet ID format saved for this workstation.", "Saved",
+            MessageBox.Show("Global pallet ID format saved in SQL Server.", "Saved",
                             MessageBoxButtons.OK, MessageBoxIcon.Information)
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Cannot save general settings",

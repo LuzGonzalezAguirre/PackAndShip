@@ -191,3 +191,32 @@ fondo claro y botones creados mediante `PaSTheme`; mantiene la
 persistencia local del cliente predeterminado. El resto de los modales
 todavía requiere unificación visual. Validar compilación y navegación en
 Visual Studio.
+
+## Pallet Scanner — primer layout y controles de seguridad
+
+Se agregó `PalletScannerView.vb` en la pantalla autenticada. Muestra:
+contenedor, modelo SSI/Client filtrado por Customer, nombre grande del
+operador, fecha/hora local, cantidad de piezas y distribución de niveles
+del modelo seleccionado, y dos entradas de QR con avance Enter de Scan 1
+a Scan 2. Relee `ssi_PaS_GeneralSettings` para comprobar el identificador
+de contenedor antes de verificar el formato de los QR.
+
+`ScanFormatValidator.vb` interpreta únicamente reglas activas con
+dos escaneos y modo `por_separador` / `despues`, prefijo conocido,
+separador configurado y longitud numérica exacta; compara los números
+extraídos cuando `requires_match = 1`. Los modos distintos se bloquean
+explícitamente, no se interpretan aproximadamente.
+
+**Importante: sólo validación de formato. No acepta ni persiste piezas.**
+Se requiere leer PASS desde Q-Wall (según inspecciones y flags), definir
+las identidades de piezas, la restricción UNIQUE global para que no pueda
+existir una pieza en dos cajas, y un guardado transaccional con cierre de
+nivel/contendor únicamente con cantidades exactas. Hasta entonces la
+interfaz muestra "PACKING LOCKED" y no existen botones funcionales de
+cierre. No debe usarse para registrar producción. Para revisar el esquema
+Q-Wall se agregó `sql/006_qwall_pass_schema_review.sql` (solo lectura).
+
+En `Form1.vb` se ajustó también la ubicación del dropdown de Customer
+Configuration para separarlo del encabezado. Mantener el modelo
+y el cliente de la estación como filtros separados del formato global
+de contenedor.

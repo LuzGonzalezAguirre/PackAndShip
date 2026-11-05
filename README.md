@@ -124,3 +124,19 @@ separadores opcionales ni clientes sin representación comprobada en el parser.
 
 El editor y el script no sustituyen una prueba del escáner real. Las reglas
 compartidas pueden cambiar el comportamiento de Q-Wall.
+
+## Setup > General: formato de identificador de pallet
+
+El formulario `General` permite ajustar el prefijo (1–5 letras A-Z) y la
+cantidad de dígitos (1–12). El valor predeterminado es `P` + 6 dígitos
+(ejemplo `P000001`). Incluye una vista previa y una prueba de formato
+sin registrar pallets. El valor se almacena por estación en
+`%ProgramData%\PackAndShip\pallet_id_format.txt`, independiente del
+archivo `station_config.txt` que guarda el cliente predeterminado.
+No requiere migración SQL ni modifica ninguna tabla compartida.
+
+**Pendiente:** integrar `PalletIdSettings.IsValid()` al futuro flujo
+Pallet Scanner, definir los criterios de unicidad y la generación/asignación
+de identificadores reales. Cambiar el formato no renumera pallets existentes.
+Para guardar en `ProgramData`, el proceso debe tener permiso de escritura
+en la carpeta local.

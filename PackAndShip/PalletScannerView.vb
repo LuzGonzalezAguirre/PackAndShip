@@ -21,6 +21,12 @@ Public Class PalletScannerView
     Private ReadOnly palletSummary As New Label()
     Private ReadOnly ruleSummary As New Label()
     Private ReadOnly verifyButton As Button = PaSTheme.ActionButton("Verify QR format")
+    Private ReadOnly openButton As Button = PaSTheme.ActionButton("Open / Load", False)
+    Private ReadOnly recordButton As Button = PaSTheme.ActionButton("Record piece")
+    Private ReadOnly levelButton As Button = PaSTheme.ActionButton("Close level", False)
+    Private activeContainer As PaSPackedContainer
+    Private verifiedSsi As String = ""
+    Private verifiedClient As String = ""
     Private ReadOnly clockTimer As New Timer With {.Interval = 1000}
     Private parts As New List(Of PaSPart)()
     Private selectedConfiguration As PalletConfiguration
@@ -153,6 +159,10 @@ Public Class PalletScannerView
         strip.Controls.Add(HeaderCell("OPERATOR", operatorValue, 24), 2, 0)
         strip.Controls.Add(HeaderCell("CUSTOMER", customerValue, 13), 3, 0)
         strip.Controls.Add(HeaderCell("DATE / TIME", clockValue, 19), 4, 0)
+        openButton.SetBounds(20, 119, 142, 32)
+        openButton.Text = "Open / Load"
+        AddHandler openButton.Click, AddressOf OpenOrLoadContainer
+        mainPage.Controls.Add(openButton)
 
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
         AddHandler containerInput.TextChanged, Sub()
@@ -162,10 +172,10 @@ Public Class PalletScannerView
         AddHandler firstQr.TextChanged, Sub() SetQWallStatus("Check on scan")
         AddHandler secondQr.TextChanged, Sub() SetQWallStatus("Check on scan")
 
-        bodyLeft.Location = New Point(20, 136)
+        bodyLeft.Location = New Point(20, 158)
         bodyLeft.Size = New Size(630, 686)
         mainPage.Controls.Add(bodyLeft)
-        bodyRight.Location = New Point(668, 136)
+        bodyRight.Location = New Point(668, 158)
         bodyRight.Size = New Size(372, 686)
         mainPage.Controls.Add(bodyRight)
 
@@ -221,11 +231,16 @@ Public Class PalletScannerView
                                              VerifyQrFormat()
                                          End If
                                      End Sub
-        verifyButton.SetBounds(19, 235, 178, 39)
+        verifyButton.SetBounds(19, 235, 152, 39)
         verifyButton.Text = "Verify QR format"
         AddHandler verifyButton.Click, Sub() VerifyQrFormat()
         scanArea.Controls.Add(verifyButton)
-        scanStatus.SetBounds(207, 226, 397, 80)
+        recordButton.SetBounds(182, 235, 148, 39)
+        recordButton.Text = "Record piece"
+        recordButton.Enabled = False
+        AddHandler recordButton.Click, AddressOf RecordPiece
+        scanArea.Controls.Add(recordButton)
+        scanStatus.SetBounds(342, 224, 265, 88)
         scanStatus.Font = New Font("Segoe UI", 9)
         scanStatus.ForeColor = Color.DarkRed
         scanArea.Controls.Add(scanStatus)
@@ -249,9 +264,15 @@ Public Class PalletScannerView
         progressBar.Maximum = 100
         progressBar.Value = 0
         progressArea.Controls.Add(progressBar)
-        closePallet.SetBounds(18, 199, 334, 46)
+        levelButton.SetBounds(18, 189, 334, 37)
+        levelButton.Text = "Close level"
+        levelButton.Enabled = False
+        AddHandler levelButton.Click, AddressOf CloseLevel
+        progressArea.Controls.Add(levelButton)
+        closePallet.SetBounds(18, 233, 334, 36)
         closePallet.Text = "Complete pallet"
         closePallet.Enabled = False
+        AddHandler closePallet.Click, AddressOf CompletePallet
         progressArea.Controls.Add(closePallet)
 
         validationArea = Card("VALIDATION RULES", bodyRight, 0, 294, 372, 391)
@@ -260,7 +281,7 @@ Public Class PalletScannerView
         validationArea.Controls.Add(ruleSummary)
         Dim warning As New Label With {
             .Text = "PACKING LOCKED" & Environment.NewLine &
-                    "Q-Wall PASS, global duplicate checks, and exact level completion are not connected yet.",
+                    "Packing actions use transactional SQL validation for PASS, duplicates, level quantities and container closure.",
             .Location = New Point(18, 246),
             .Size = New Size(334, 124),
             .Font = New Font("Segoe UI", 9, FontStyle.Bold),
@@ -311,11 +332,12 @@ Public Class PalletScannerView
         buildState.Width = leftWidth - 35
         firstQr.Width = leftWidth - 39
         secondQr.Width = leftWidth - 39
-        scanStatus.Width = Math.Max(180, leftWidth - 220)
+        scanStatus.Width = Math.Max(160, leftWidth - 355)
         scannedList.Width = leftWidth - 38
         progressText.Width = rightWidth - 40
         progressBar.Width = rightWidth - 38
         closePallet.Width = rightWidth - 38
+        levelButton.Width = rightWidth - 38
         ruleSummary.Width = rightWidth - 38
     End Sub
 

@@ -491,6 +491,152 @@ Public Class PalletScannerView
         ruleSummary.Text = String.Join(Environment.NewLine, lines)
     End Sub
 
+    Private Sub ResetVerification()
+        verifiedSsi = ""
+        verifiedClient = ""
+        recordButton.Enabled = False
+    End Sub
+
+    Private Sub UpdatePackingButtons()
+        Dim openNow = activeContainer IsNot Nothing AndAlso activeContainer.Status = "OPEN"
+        Dim current As PaSPackedLevel = Nothing
+        If openNow Then current = activeContainer.CurrentLevel
+        recordButton.Enabled = openNow AndAlso current IsNot Nothing AndAlso
+            verifiedSsi <> "" AndAlso verifiedClient <> "" AndAlso
+            firstQr.Text.Trim() = verifiedSsi AndAlso
+            selectedRule IsNot Nothing AndAlso
+            (selectedRule.ScanCount = 1 OrElse secondQr.Text.Trim() = verifiedClient)
+        levelButton.Enabled = openNow AndAlso current IsNot Nothing AndAlso
+            current.ScannedPieces = current.RequiredPieces
+        closePallet.Enabled = openNow AndAlso current Is Nothing AndAlso
+            activeContainer.Levels.Count > 0 AndAlso
+            activeContainer.Levels.All(Function(l) l.Status = "CLOSED" AndAlso
+                                      l.ScannedPieces = l.RequiredPieces)
+    End Sub
+
+    Private Sub OpenOrLoadContainer(sender As Object, e As EventArgs)
+        Try
+            Dim part = TryCast(partPicker.SelectedItem, PaSPart)
+            If part Is Nothing Then Throw New InvalidOperationException("Select a model.")
+            Dim code = containerInput.Text.Trim().ToUpperInvariant()
+            If Not PalletIdSettings.Load().IsValid(code) Then
+                Throw New InvalidOperationException("Container format does not match General Settings.")
+            End If
+
+            Dim existing = PaSPackingData.FindContainer(code)
+            If existing Is Nothing Then
+                If selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
+                    Throw New InvalidOperationException("An active pallet configuration is required.")
+                End If
+                If MessageBox.Show("Create container " & code & " for " & part.Number & "?",
+                                   "Open container", MessageBoxButtons.YesNo,
+                                   MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+                Dim createdId = PaSPackingData.OpenContainer(code, part.Id)
+                activeContainer = PaSPackingData.ReadContainer(createdId)
+            Else
+                If existing.PartId <> part.Id Then
+                    Throw New InvalidOperationException("Container belongs to another model.")
+                End If
+                activeContainer = existing
+            End If
+            ResetVerification()
+            RefreshContainer()
+            scanStatus.Text = "Container " & code & " loaded."
+        Catch ex As Exception
+            ShowPackingError(ex)
+        End Try
+    End Sub
+
+    Private Sub RefreshContainer()
+        If activeContainer Is Nothing Then Return
+        activeContainer = PaSPackingData.ReadContainer(activeContainer.Id)
+        If activeContainer Is Nothing Then
+            Throw New InvalidOperationException("Container was not found.")
+        End If
+        Dim current = activeContainer.CurrentLevel
+        Dim actual = activeContainer.PieceTotal
+        Dim required = activeContainer.RequiredTotal
+        progressText.Text = actual & " / " & required & " pieces" & Environment.NewLine &
+            activeContainer.ClosedLevels & " / " & activeContainer.Levels.Count &
+            " levels closed" & Environment.NewLine &
+            If(current Is Nothing, "No open level",
+               "Level " & current.LevelNumber & ": " & current.ScannedPieces &
+               " / " & current.RequiredPieces)
+        progressBar.Value = If(required > 0,
+            Math.Min(100, CInt(Math.Truncate(CDbl(actual) * 100.0 / required))), 0)
+        buildState.Text = "Container: " & activeContainer.Code & "  |  " & activeContainer.Status
+        scannedList.Items.Clear()
+        If activeContainer.Pieces.Count = 0 Then
+            scannedList.Items.Add("No pieces recorded.")
+        Else
+            For Each piece In activeContainer.Pieces
+                scannedList.Items.Add("L" & piece.LevelNumber & " | " &
+                    piece.SsiCode & " | " & piece.ClientCode)
+            Next
+        End If
+        UpdatePackingButtons()
+    End Sub
+
+    Private Sub RecordPiece(sender As Object, e As EventArgs)
+        If Not recordButton.Enabled OrElse activeContainer Is Nothing Then Return
+        Try
+            Dim current = activeContainer.CurrentLevel
+            If current Is Nothing Then Throw New InvalidOperationException("No open level.")
+            ' SQL re-verifies PASS, global uniqueness and capacity atomically.
+            PaSPackingData.AddPiece(activeContainer.Id, current.LevelNumber, verifiedSsi, verifiedClient)
+            ResetVerification()
+            firstQr.Clear()
+            secondQr.Clear()
+            RefreshContainer()
+            SetQWallStatus("Check on scan")
+            scanStatus.ForeColor = Color.DarkGreen
+            scanStatus.Text = "Piece recorded in level " & current.LevelNumber & "."
+            firstQr.Focus()
+        Catch ex As Exception
+            ResetVerification()
+            ShowPackingError(ex)
+        End Try
+    End Sub
+
+    Private Sub CloseLevel(sender As Object, e As EventArgs)
+        If Not levelButton.Enabled OrElse activeContainer Is Nothing Then Return
+        Try
+            Dim current = activeContainer.CurrentLevel
+            If current Is Nothing Then Return
+            If MessageBox.Show("Close level " & current.LevelNumber & " with " &
+                               current.RequiredPieces & " pieces?", "Close level",
+                               MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+            PaSPackingData.CloseLevel(activeContainer.Id, current.LevelNumber)
+            ResetVerification()
+            RefreshContainer()
+            scanStatus.Text = "Level " & current.LevelNumber & " closed."
+        Catch ex As Exception
+            ShowPackingError(ex)
+        End Try
+    End Sub
+
+    Private Sub CompletePallet(sender As Object, e As EventArgs)
+        If Not closePallet.Enabled OrElse activeContainer Is Nothing Then Return
+        Try
+            If MessageBox.Show("Complete container " & activeContainer.Code & "?",
+                               "Complete pallet", MessageBoxButtons.YesNo,
+                               MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+            PaSPackingData.CloseContainer(activeContainer.Id)
+            ResetVerification()
+            RefreshContainer()
+            scanStatus.ForeColor = Color.DarkGreen
+            scanStatus.Text = "Pallet completed."
+        Catch ex As Exception
+            ShowPackingError(ex)
+        End Try
+    End Sub
+
+    Private Sub ShowPackingError(ex As Exception)
+        scanStatus.ForeColor = Color.DarkRed
+        scanStatus.Text = ex.Message
+        MessageBox.Show(ex.Message, "PackAndShip", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+    End Sub
+
     Private Sub VerifyQrFormat()
         ResetVerification()
         SetQWallStatus("NOT VERIFIED")

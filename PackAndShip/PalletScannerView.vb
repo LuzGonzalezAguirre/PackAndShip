@@ -166,11 +166,23 @@ Public Class PalletScannerView
 
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
         AddHandler containerInput.TextChanged, Sub()
+                                                  If activeContainer IsNot Nothing AndAlso
+                                                     Not String.Equals(activeContainer.Code, containerInput.Text.Trim(),
+                                                                       StringComparison.OrdinalIgnoreCase) Then
+                                                      activeContainer = Nothing
+                                                  End If
+                                                  ResetVerification()
                                                   SetQWallStatus("Check on scan")
                                                   UpdateScannerAvailability()
                                               End Sub
-        AddHandler firstQr.TextChanged, Sub() SetQWallStatus("Check on scan")
-        AddHandler secondQr.TextChanged, Sub() SetQWallStatus("Check on scan")
+        AddHandler firstQr.TextChanged, Sub()
+                                            ResetVerification()
+                                            SetQWallStatus("Check on scan")
+                                        End Sub
+        AddHandler secondQr.TextChanged, Sub()
+                                             ResetVerification()
+                                             SetQWallStatus("Check on scan")
+                                         End Sub
 
         bodyLeft.Location = New Point(20, 158)
         bodyLeft.Size = New Size(630, 686)
@@ -361,6 +373,10 @@ Public Class PalletScannerView
             buildState.Text = "Waiting for a container and model"
             progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
             progressBar.Value = 0
+            activeContainer = Nothing
+            ResetVerification()
+            scannedList.Items.Clear()
+            scannedList.Items.Add("Open or load a container to view its pieces.")
             ruleSummary.Text = "Container example: " & palletFormat.Example() &
                                Environment.NewLine & "Q-Wall PASS: Check on scan" &
                                Environment.NewLine & "Duplicate prevention: Not connected"
@@ -378,6 +394,8 @@ Public Class PalletScannerView
     End Sub
 
     Private Sub PartChanged(sender As Object, e As EventArgs)
+        activeContainer = Nothing
+        ResetVerification()
         selectedConfiguration = Nothing
         selectedRule = Nothing
         selectedFields.Clear()
@@ -456,9 +474,10 @@ Public Class PalletScannerView
         Else
             scanStatus.Text = If(selectedRule.ScanCount = 1,
                 "Ready for SSI scan; Client serial generated after format validation.",
-                "Ready for both label scans (format validation only).")
+                "Ready for both label scans.")
             scanStatus.ForeColor = navy
         End If
+        UpdatePackingButtons()
     End Sub
 
     Private Sub SetQWallStatus(value As String)
@@ -473,6 +492,7 @@ Public Class PalletScannerView
     End Sub
 
     Private Sub VerifyQrFormat()
+        ResetVerification()
         SetQWallStatus("NOT VERIFIED")
         If Not verifyButton.Enabled Then
             UpdateScannerAvailability()
@@ -513,8 +533,9 @@ Public Class PalletScannerView
             scanStatus.ForeColor = Color.FromArgb(145, 89, 10)
             scanStatus.Text = qwall.Message
             SetQWallStatus("VERIFIED")
-            ' Do NOT record a piece or increment counters here.
-            ' Cross-container uniqueness and exact level completion are pending.
+            verifiedSsi = firstQr.Text.Trim()
+            verifiedClient = fullClientCode
+            UpdatePackingButtons()
         Catch ex As Exception
             scanStatus.ForeColor = Color.DarkRed
             scanStatus.Text = "Verification unavailable: " & ex.Message

@@ -176,3 +176,18 @@ Next visual iteration: apply the shared theme to all dialogs and tables,
 then refine login and scanner layouts without changing business rules.
 Build and smoke-test from Visual Studio on Windows (no Windows build
 environment was available for this change).
+
+## Navegación superior (MenuStrip)
+
+La ventana principal utiliza un `MenuStrip` fijo sobre el header:
+**Setup** (Customer Configuration, Users & Roles, Pallet Configuration,
+Scan Rules y General Settings), **Ayuda** (About) y **Cerrar sesión**.
+Setup y Cerrar sesión permanecen deshabilitados antes del login; Setup
+respeta `can_modify_setup`. El botón anterior y el SetupDashboard dejan
+de utilizarse en la navegación principal.
+
+El modal **Customer Configuration** fue normalizado con encabezado azul,
+fondo claro y botones creados mediante `PaSTheme`; mantiene la
+persistencia local del cliente predeterminado. El resto de los modales
+todavía requiere unificación visual. Validar compilación y navegación en
+Visual Studio.

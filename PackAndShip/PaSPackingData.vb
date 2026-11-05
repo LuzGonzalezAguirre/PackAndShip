@@ -36,7 +36,7 @@ Public NotInheritable Class PaSPackedContainer
     End Property
     Public ReadOnly Property ClosedLevels As Integer
         Get
-            Return Levels.Count(Function(l) l.Status = "CLOSED")
+            Return Levels.Where(Function(l) l.Status = "CLOSED").Count()
         End Get
     End Property
     Public ReadOnly Property CurrentLevel As PaSPackedLevel

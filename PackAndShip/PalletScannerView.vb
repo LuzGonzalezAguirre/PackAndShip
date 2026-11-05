@@ -409,8 +409,9 @@ Public Class PalletScannerView
                 scanStatus.ForeColor = Color.DarkRed
                 Return
             End If
+            Dim selectedPart = TryCast(partPicker.SelectedItem, PaSPart)
             Dim result = ScanFormatValidator.CheckTwoLabels(
-                firstQr.Text, secondQr.Text, selectedRule, selectedFields)
+                firstQr.Text, secondQr.Text, selectedRule, selectedFields, selectedPart)
             scanStatus.ForeColor = If(result.Valid, Color.FromArgb(145, 89, 10), Color.DarkRed)
             scanStatus.Text = result.Message
             ' Intentionally do NOT clear scans, increase counts, save a piece,

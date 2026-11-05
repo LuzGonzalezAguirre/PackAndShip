@@ -86,14 +86,18 @@ Public NotInheritable Class ScanFormatValidator
                 separatorValue = "|"
             Case "custom"
                 separatorValue = field.SeparatorCustom
+                If String.IsNullOrEmpty(separatorValue) Then
+                    errorText = "Custom separator is empty."
+                    Return False
+                End If
+            Case "ninguno"
+                ' Some Q-Wall models print SSI PN directly beside the serial,
+                ' e.g. 43291.6 + 11 digits, without whitespace.
+                separatorValue = ""
             Case Else
                 errorText = "Separator '" & field.Separator & "' is not supported in split mode."
                 Return False
         End Select
-        If String.IsNullOrEmpty(separatorValue) Then
-            errorText = "Separator is empty."
-            Return False
-        End If
 
         Dim prefix = If(field.PrefixValue, "")
         If prefix = "" Then
@@ -102,7 +106,9 @@ Public NotInheritable Class ScanFormatValidator
         End If
         Dim expectedStart = prefix & separatorValue
         If Not raw.StartsWith(expectedStart, StringComparison.OrdinalIgnoreCase) Then
-            errorText = "The code must begin with the configured prefix followed by its separator."
+            errorText = If(field.Separator = "ninguno",
+                "The code must begin with the configured prefix (without a separator).",
+                "The code must begin with the configured prefix followed by its separator.")
             Return False
         End If
 

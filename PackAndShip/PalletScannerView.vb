@@ -46,80 +46,146 @@ Public Class PalletScannerView
         }
     End Function
 
+    Private ReadOnly activePartTitle As New Label()
+    Private ReadOnly buildState As New Label()
+    Private ReadOnly progressText As New Label()
+    Private ReadOnly progressBar As New ProgressBar()
+    Private ReadOnly scannedList As New ListBox()
+    Private ReadOnly closePallet As Button = PaSTheme.ActionButton("Complete pallet")
+    Private ReadOnly headerCards As New List(Of Panel)()
+    Private ReadOnly headerPage As New Panel()
+    Private ReadOnly bodyLeft As New Panel()
+    Private ReadOnly bodyRight As New Panel()
+    Private ReadOnly scanArea As New Panel()
+    Private ReadOnly buildArea As New Panel()
+    Private ReadOnly piecesArea As New Panel()
+    Private ReadOnly progressArea As New Panel()
+    Private ReadOnly validationArea As New Panel()
+    Private ReadOnly mainPage As New Panel()
+
+    Private Function Card(title As String, parent As Control, x As Integer,
+                          y As Integer, width As Integer, height As Integer) As Panel
+        Dim panel As New Panel With {
+            .Location = New Point(x, y),
+            .Size = New Size(width, height),
+            .BackColor = Color.White,
+            .BorderStyle = BorderStyle.FixedSingle
+        }
+        parent.Controls.Add(panel)
+        Dim label = PaSTheme.Heading(title, 13)
+        label.Location = New Point(18, 14)
+        panel.Controls.Add(label)
+        Return panel
+    End Function
+
+    Private Function HeaderCell(title As String, value As Control,
+                                portion As Single) As Panel
+        Dim cell As New Panel With {
+            .Dock = DockStyle.Fill,
+            .BackColor = Color.White,
+            .Margin = New Padding(2, 1, 2, 1),
+            .Padding = New Padding(10)
+        }
+        Dim caption = FieldCaption(title, 9, 7)
+        caption.Font = New Font("Segoe UI", 8.5F, FontStyle.Bold)
+        caption.Size = New Size(220, 22)
+        cell.Controls.Add(caption)
+        value.Location = New Point(9, 31)
+        value.Anchor = AnchorStyles.Left Or AnchorStyles.Top Or AnchorStyles.Right
+        value.Width = 210
+        cell.Controls.Add(value)
+        headerCards.Add(cell)
+        Return cell
+    End Function
+
     Private Sub BuildLayout()
-        Dim page As New Panel With {
-            .Dock = DockStyle.Fill, .AutoScroll = True,
-            .AutoScrollMinSize = New Size(1015, 760),
-            .BackColor = PaSTheme.Background
+        mainPage.Dock = DockStyle.Fill
+        mainPage.AutoScroll = True
+        mainPage.AutoScrollMinSize = New Size(1060, 860)
+        mainPage.BackColor = PaSTheme.Background
+        Controls.Add(mainPage)
+
+        ' Compact Q-Wall-style horizontal data strip, with the new app palette.
+        headerPage.Location = New Point(20, 16)
+        headerPage.Size = New Size(1020, 100)
+        headerPage.BackColor = PaSTheme.Border
+        mainPage.Controls.Add(headerPage)
+
+        Dim strip As New TableLayoutPanel With {
+            .Dock = DockStyle.Fill,
+            .ColumnCount = 5, .RowCount = 1,
+            .BackColor = PaSTheme.Border,
+            .Margin = New Padding(0),
+            .Padding = New Padding(1)
         }
-        Controls.Add(page)
+        strip.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
+        For Each weight As Single In {18.0F, 26.0F, 24.0F, 13.0F, 19.0F}
+            strip.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, weight))
+        Next
+        headerPage.Controls.Add(strip)
 
-        Dim top As New Panel With {
-            .Location = New Point(22, 18), .Size = New Size(970, 232),
-            .BackColor = PaSTheme.Surface,
-            .Padding = New Padding(18)
-        }
-        page.Controls.Add(top)
-        Dim title = PaSTheme.Heading("Pallet Scanner", 21)
-        title.Location = New Point(20, 11)
-        top.Controls.Add(title)
-
-        top.Controls.Add(FieldCaption("Operator", 22, 62))
-        operatorValue.SetBounds(22, 85, 490, 40)
-        operatorValue.Font = New Font("Segoe UI", 19, FontStyle.Bold)
-        operatorValue.ForeColor = navy
-        top.Controls.Add(operatorValue)
-
-        top.Controls.Add(FieldCaption("Date and time", 570, 60))
-        clockValue.SetBounds(570, 86, 300, 31)
-        clockValue.Font = New Font("Segoe UI", 13, FontStyle.Bold)
-        top.Controls.Add(clockValue)
-
-        top.Controls.Add(FieldCaption("Customer", 570, 124))
-        customerValue.SetBounds(570, 149, 345, 32)
-        customerValue.Font = New Font("Segoe UI", 15, FontStyle.Bold)
-        customerValue.ForeColor = navy
-        top.Controls.Add(customerValue)
-
-        top.Controls.Add(FieldCaption("Pallet / container ID", 22, 143))
-        containerInput.SetBounds(22, 170, 225, 33)
-        containerInput.Font = New Font("Segoe UI", 13, FontStyle.Bold)
         containerInput.CharacterCasing = CharacterCasing.Upper
         containerInput.MaxLength = 18
-        top.Controls.Add(containerInput)
-
-        top.Controls.Add(FieldCaption("Part number (SSI / Client)", 264, 143))
-        partPicker.SetBounds(264, 170, 285, 33)
+        containerInput.Font = New Font("Segoe UI", 12, FontStyle.Bold)
+        containerInput.Height = 31
         partPicker.DropDownStyle = ComboBoxStyle.DropDownList
         partPicker.DisplayMember = "DisplayName"
         partPicker.ValueMember = "Id"
-        top.Controls.Add(partPicker)
+        partPicker.Font = New Font("Segoe UI", 10)
+        partPicker.Height = 31
+
+        operatorValue.Font = New Font("Segoe UI", 16, FontStyle.Bold)
+        operatorValue.ForeColor = navy
+        operatorValue.AutoEllipsis = True
+        operatorValue.Height = 48
+        customerValue.Font = New Font("Segoe UI", 13, FontStyle.Bold)
+        customerValue.ForeColor = navy
+        customerValue.AutoEllipsis = True
+        customerValue.Height = 43
+        clockValue.Font = New Font("Segoe UI", 10, FontStyle.Bold)
+        clockValue.Height = 43
+        clockValue.TextAlign = ContentAlignment.MiddleLeft
+
+        strip.Controls.Add(HeaderCell("CONTAINER", containerInput, 18), 0, 0)
+        strip.Controls.Add(HeaderCell("PART NUMBER / MODEL", partPicker, 26), 1, 0)
+        strip.Controls.Add(HeaderCell("OPERATOR", operatorValue, 24), 2, 0)
+        strip.Controls.Add(HeaderCell("CUSTOMER", customerValue, 13), 3, 0)
+        strip.Controls.Add(HeaderCell("DATE / TIME", clockValue, 19), 4, 0)
+
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
         AddHandler containerInput.TextChanged, Sub() UpdateScannerAvailability()
 
-        Dim section As New Panel With {.Location = New Point(22, 264), .Size = New Size(970, 345),
-                                       .BackColor = PaSTheme.Background}
-        page.Controls.Add(section)
-        Dim scanCard As New Panel With {.BackColor = Color.White, .Location = New Point(0, 12),
-                                       .Size = New Size(600, 325)}
-        section.Controls.Add(scanCard)
+        bodyLeft.Location = New Point(20, 136)
+        bodyLeft.Size = New Size(630, 686)
+        mainPage.Controls.Add(bodyLeft)
+        bodyRight.Location = New Point(668, 136)
+        bodyRight.Size = New Size(372, 686)
+        mainPage.Controls.Add(bodyRight)
 
-        Dim scanTitle = PaSTheme.Heading("Scan both label QR codes", 15)
-        scanTitle.Location = New Point(19, 17)
-        scanCard.Controls.Add(scanTitle)
-        Dim subtitle = PaSTheme.Subtitle("The labels are checked against the selected model's scan rule.")
-        subtitle.Location = New Point(21, 51)
-        scanCard.Controls.Add(subtitle)
+        ' Active build summary, separate QR scanner, then recorded pieces.
+        buildArea = Card("ACTIVE BUILD", bodyLeft, 0, 0, 630, 145)
+        activePartTitle.SetBounds(18, 48, 470, 36)
+        activePartTitle.Font = New Font("Segoe UI", 16, FontStyle.Bold)
+        activePartTitle.ForeColor = PaSTheme.TextPrimary
+        activePartTitle.AutoEllipsis = True
+        buildArea.Controls.Add(activePartTitle)
+        buildState.SetBounds(18, 99, 580, 31)
+        buildState.ForeColor = PaSTheme.TextSecondary
+        buildArea.Controls.Add(buildState)
 
-        scanCard.Controls.Add(FieldCaption("Scan 1 — SSI / internal serial", 20, 88))
-        firstQr.SetBounds(20, 113, 540, 38)
-        firstQr.Font = New Font("Consolas", 13)
-        scanCard.Controls.Add(firstQr)
+        scanArea = Card("SCAN LABELS", bodyLeft, 0, 161, 630, 323)
+        Dim helpText = PaSTheme.Subtitle("Scan SSI first, then Client. Press Enter after each QR.")
+        helpText.Location = New Point(19, 46)
+        scanArea.Controls.Add(helpText)
+        scanArea.Controls.Add(FieldCaption("SCAN 1 — SSI SERIAL", 19, 77))
+        firstQr.SetBounds(19, 101, 590, 38)
+        firstQr.Font = New Font("Consolas", 12)
+        scanArea.Controls.Add(firstQr)
+        scanArea.Controls.Add(FieldCaption("SCAN 2 — CLIENT SERIAL", 19, 149))
+        secondQr.SetBounds(19, 173, 590, 38)
+        secondQr.Font = New Font("Consolas", 12)
+        scanArea.Controls.Add(secondQr)
 
-        scanCard.Controls.Add(FieldCaption("Scan 2 — Client serial", 20, 168))
-        secondQr.SetBounds(20, 193, 540, 38)
-        secondQr.Font = New Font("Consolas", 13)
-        scanCard.Controls.Add(secondQr)
         AddHandler firstQr.KeyDown, Sub(sender, e)
                                         If e.KeyCode = Keys.Enter Then
                                             e.SuppressKeyPress = True
@@ -132,60 +198,102 @@ Public Class PalletScannerView
                                              VerifyQrFormat()
                                          End If
                                      End Sub
-
-        verifyButton.SetBounds(20, 256, 180, 42)
+        verifyButton.SetBounds(19, 235, 178, 39)
+        verifyButton.Text = "Verify QR format"
         AddHandler verifyButton.Click, Sub() VerifyQrFormat()
-        scanCard.Controls.Add(verifyButton)
-        scanStatus.SetBounds(215, 254, 355, 55)
+        scanArea.Controls.Add(verifyButton)
+        scanStatus.SetBounds(207, 226, 397, 80)
         scanStatus.Font = New Font("Segoe UI", 9)
         scanStatus.ForeColor = Color.DarkRed
-        scanCard.Controls.Add(scanStatus)
+        scanArea.Controls.Add(scanStatus)
 
-        Dim side As New Panel With {.BackColor = Color.White, .Location = New Point(617, 12),
-                                   .Size = New Size(350, 325)}
-        section.Controls.Add(side)
-        Dim summaryHeading = PaSTheme.Heading("Pallet configuration", 14)
-        summaryHeading.Location = New Point(18, 15)
-        side.Controls.Add(summaryHeading)
-        palletSummary.SetBounds(18, 52, 316, 112)
-        palletSummary.Font = New Font("Segoe UI", 10)
-        side.Controls.Add(palletSummary)
+        piecesArea = Card("SCANNED PARTS", bodyLeft, 0, 500, 630, 185)
+        scannedList.SetBounds(18, 47, 592, 118)
+        scannedList.Font = New Font("Consolas", 10)
+        scannedList.BorderStyle = BorderStyle.None
+        scannedList.BackColor = Color.FromArgb(248, 250, 253)
+        scannedList.Items.Add("No accepted pieces yet — Q-Wall verification pending.")
+        scannedList.Enabled = False
+        piecesArea.Controls.Add(scannedList)
 
-        Dim ruleHeading = PaSTheme.Heading("Validation", 13)
-        ruleHeading.Location = New Point(18, 173)
-        side.Controls.Add(ruleHeading)
-        ruleSummary.SetBounds(18, 208, 316, 95)
-        ruleSummary.Font = New Font("Segoe UI", 9)
-        side.Controls.Add(ruleSummary)
+        progressArea = Card("PALLET PROGRESS", bodyRight, 0, 0, 372, 278)
+        progressText.SetBounds(18, 53, 326, 115)
+        progressText.Font = New Font("Segoe UI", 11)
+        progressText.ForeColor = PaSTheme.TextPrimary
+        progressArea.Controls.Add(progressText)
+        progressBar.SetBounds(18, 166, 334, 11)
+        progressBar.Minimum = 0
+        progressBar.Maximum = 100
+        progressBar.Value = 0
+        progressArea.Controls.Add(progressBar)
+        closePallet.SetBounds(18, 199, 334, 46)
+        closePallet.Text = "Complete pallet"
+        closePallet.Enabled = False
+        progressArea.Controls.Add(closePallet)
 
-        Dim footer As New Panel With {.Location = New Point(22, 625),
-                                      .Size = New Size(970, 90),
-                                      .BackColor = PaSTheme.Surface}
-        Dim notice As New Label With {
-            .Text = "PACKING LOCKED — Q-Wall PASS and cross-container duplicate checks must be integrated before recording pieces or closing levels.",
-            .Dock = DockStyle.Fill, .Padding = New Padding(20, 18, 20, 12),
+        validationArea = Card("VALIDATION RULES", bodyRight, 0, 294, 372, 391)
+        ruleSummary.SetBounds(18, 54, 334, 163)
+        ruleSummary.Font = New Font("Segoe UI", 10)
+        validationArea.Controls.Add(ruleSummary)
+        Dim warning As New Label With {
+            .Text = "PACKING LOCKED" & Environment.NewLine &
+                    "Q-Wall PASS, global duplicate checks, and exact level completion are not connected yet.",
+            .Location = New Point(18, 246),
+            .Size = New Size(334, 124),
+            .Font = New Font("Segoe UI", 9, FontStyle.Bold),
             .ForeColor = Color.DarkRed,
-            .Font = New Font("Segoe UI", 10, FontStyle.Bold)
+            .BackColor = Color.FromArgb(255, 246, 245),
+            .Padding = New Padding(10)
         }
-        footer.Controls.Add(notice)
-        page.Controls.Add(footer)
+        validationArea.Controls.Add(warning)
 
-        AddHandler page.Resize, Sub()
-                                    Dim available = Math.Max(900, page.ClientSize.Width - 44)
-                                    top.Width = available
-                                    section.Width = available
-                                    footer.Width = available
-                                    scanCard.Width = Math.Max(500, CInt(available * 0.61))
-                                    side.Left = scanCard.Right + 16
-                                    side.Width = Math.Max(280, available - side.Left)
-                                    firstQr.Width = scanCard.Width - 40
-                                    secondQr.Width = scanCard.Width - 40
-                                    scanStatus.Width = Math.Max(160, scanCard.Width - 225)
-                                End Sub
-        scanStatus.Text = "Select a container and an active part rule."
-        palletSummary.Text = "Select a part number to load its pallet levels."
-        ruleSummary.Text = "Format check only. No production records are written."
+        AddHandler mainPage.Resize, Sub() ResizeScannerLayout()
+        ResizeScannerLayout()
+        activePartTitle.Text = "Select a part number"
+        buildState.Text = "Waiting for a container and model"
+        progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
+        ruleSummary.Text = "Scan rule: Pending" & Environment.NewLine &
+                           "Q-Wall PASS: Not connected" & Environment.NewLine &
+                           "Duplicate prevention: Not connected" & Environment.NewLine &
+                           "Container format: General Settings"
+        scanStatus.Text = "Enter a container and select a model."
         verifyButton.Enabled = False
+    End Sub
+
+    Private Sub ResizeScannerLayout()
+        Dim totalWidth = Math.Max(1020, mainPage.ClientSize.Width - 40)
+        Dim rightWidth = Math.Max(330, CInt(totalWidth * 0.35))
+        Dim leftWidth = totalWidth - rightWidth - 18
+        headerPage.Width = totalWidth
+        bodyLeft.Width = leftWidth
+        bodyRight.Left = bodyLeft.Left + leftWidth + 18
+        bodyRight.Width = rightWidth
+        For i As Integer = 0 To headerCards.Count - 1
+            Dim cell = headerCards(i)
+            For Each ctl As Control In cell.Controls
+                If TypeOf ctl Is TextBox OrElse TypeOf ctl Is ComboBox OrElse
+                   (TypeOf ctl Is Label AndAlso ctl.Location.Y >= 30) Then
+                    ctl.Width = Math.Max(65, cell.ClientSize.Width - 18)
+                End If
+            Next
+        Next
+
+        For Each panel In {buildArea, scanArea, piecesArea}
+            panel.Width = leftWidth
+        Next
+        For Each panel In {progressArea, validationArea}
+            panel.Width = rightWidth
+        Next
+        activePartTitle.Width = Math.Max(250, leftWidth - 140)
+        buildState.Width = leftWidth - 35
+        firstQr.Width = leftWidth - 39
+        secondQr.Width = leftWidth - 39
+        scanStatus.Width = Math.Max(180, leftWidth - 220)
+        scannedList.Width = leftWidth - 38
+        progressText.Width = rightWidth - 40
+        progressBar.Width = rightWidth - 38
+        closePallet.Width = rightWidth - 38
+        ruleSummary.Width = rightWidth - 38
     End Sub
 
     Public Sub LoadStation()
@@ -204,8 +312,13 @@ Public Class PalletScannerView
             selectedConfiguration = Nothing
             selectedRule = Nothing
             selectedFields.Clear()
-            palletSummary.Text = "Select a part number to load its pallet levels."
-            ruleSummary.Text = "Expected container: " & palletFormat.Example()
+            activePartTitle.Text = "Select a part number"
+            buildState.Text = "Waiting for a container and model"
+            progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
+            progressBar.Value = 0
+            ruleSummary.Text = "Container example: " & palletFormat.Example() &
+                               Environment.NewLine & "Q-Wall PASS: Not connected" &
+                               Environment.NewLine & "Duplicate prevention: Not connected"
             containerInput.Clear()
             firstQr.Clear()
             secondQr.Clear()
@@ -236,18 +349,28 @@ Public Class PalletScannerView
                 selectedFields = ScanRulesData.ReadFields(selectedRule.Id)
             End If
             If selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
-                palletSummary.Text = "No active pallet configuration for " & part.Number
+                activePartTitle.Text = part.DisplayName
+                buildState.Text = "Pallet configuration missing or inactive"
+                progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
             Else
-                palletSummary.Text = "Model: " & part.Number & Environment.NewLine &
-                    "Total pieces: " & selectedConfiguration.TotalPieces & Environment.NewLine &
-                    "Levels: " & selectedConfiguration.Levels.Count & Environment.NewLine &
-                    "Per level: " & String.Join(" / ", selectedConfiguration.Levels)
+                activePartTitle.Text = part.DisplayName
+                buildState.Text = "Container: " & containerInput.Text.Trim().ToUpperInvariant() &
+                    "   |   " & selectedConfiguration.Levels.Count & " configured levels"
+                progressText.Text = "0 / " & selectedConfiguration.TotalPieces &
+                    " pieces" & Environment.NewLine &
+                    "0 / " & selectedConfiguration.Levels.Count & " levels complete" &
+                    Environment.NewLine & "Pieces per level: " &
+                    String.Join(" / ", selectedConfiguration.Levels)
+                progressBar.Value = 0
             End If
             ruleSummary.Text = If(selectedRule Is Nothing,
-                "No active scan rule.", "Configured scans: " & selectedRule.ScanCount &
-                Environment.NewLine & "Match required: " & If(selectedRule.RequiresMatch, "Yes", "No"))
+                "Scan rule: Inactive / missing", "Configured scans: " & selectedRule.ScanCount &
+                Environment.NewLine & "Match required: " & If(selectedRule.RequiresMatch, "Yes", "No")) &
+                Environment.NewLine & "Q-Wall PASS: Not connected" &
+                Environment.NewLine & "Duplicate prevention: Not connected" &
+                Environment.NewLine & "Container format: General Settings"
         Catch ex As Exception
-            palletSummary.Text = "Unable to read configuration."
+            buildState.Text = "Unable to read configuration."
             ruleSummary.Text = ex.Message
         End Try
         firstQr.Clear()

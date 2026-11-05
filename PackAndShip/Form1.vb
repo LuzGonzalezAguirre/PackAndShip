@@ -83,42 +83,107 @@ Public Class Form1
     End Sub
 
     Private Sub CreateLoginContent()
+        ' Q-Wall workOrder.Designer.vb visual reference:
+        ' 422x522, 50px navy header/footer, 394px fields, Segoe UI 9/11.
         Dim card As New Panel With {
-            .Width = 480, .Height = 375, .BackColor = Color.White,
+            .Width = 422, .Height = 522,
+            .BackColor = Color.White,
             .BorderStyle = BorderStyle.FixedSingle
         }
         AddHandler loginPanel.Resize, Sub() CenterCard(loginPanel, card)
         loginPanel.Controls.Add(card)
         CenterCard(loginPanel, card)
 
-        AddLabel(card, "Operator Login", 25, 20, 400, 32, True)
-        AddLabel(card, "Default customer", 25, 72, 410, 22, False)
-        labelCustomer.Location = New Point(25, 100)
-        labelCustomer.Size = New Size(420, 33)
-        labelCustomer.ForeColor = brandBlue
-        labelCustomer.Font = New Font("Segoe UI", 12, FontStyle.Bold)
-        card.Controls.Add(labelCustomer)
+        Dim cardHeader As New Panel With {
+            .Dock = DockStyle.Top, .Height = 50,
+            .BackColor = brandBlue
+        }
+        Dim cardTitle As New Label With {
+            .Text = "Pack and Ship",
+            .Dock = DockStyle.Fill,
+            .TextAlign = ContentAlignment.MiddleCenter,
+            .Font = New Font("Segoe UI", 13.0F, FontStyle.Bold),
+            .ForeColor = Color.White
+        }
+        cardHeader.Controls.Add(cardTitle)
 
-        AddLabel(card, "Barcode ID", 25, 145, 410, 25, False)
-        inputBarcode.Location = New Point(25, 175)
-        inputBarcode.Width = 420
-        inputBarcode.CharacterCasing = CharacterCasing.Upper
-        card.Controls.Add(inputBarcode)
-
-        AddLabel(card, "Password", 25, 220, 410, 25, False)
-        inputPassword.Location = New Point(25, 250)
-        inputPassword.Width = 420
-        inputPassword.UseSystemPasswordChar = True
-        card.Controls.Add(inputPassword)
-
-        buttonLogin.Text = "Log In"
+        Dim cardFooter As New Panel With {
+            .Dock = DockStyle.Bottom, .Height = 50,
+            .BackColor = brandBlue
+        }
+        buttonLogin.Text = "Iniciar sesión"
+        buttonLogin.Dock = DockStyle.Fill
         buttonLogin.BackColor = brandBlue
         buttonLogin.ForeColor = Color.White
         buttonLogin.FlatStyle = FlatStyle.Flat
-        buttonLogin.Location = New Point(25, 305)
-        buttonLogin.Size = New Size(420, 42)
+        buttonLogin.FlatAppearance.BorderSize = 0
+        buttonLogin.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
+        buttonLogin.Cursor = Cursors.Hand
         AddHandler buttonLogin.Click, AddressOf PerformLogin
-        card.Controls.Add(buttonLogin)
+        cardFooter.Controls.Add(buttonLogin)
+
+        Dim sectionLogin As New Label With {
+            .Text = "Inicio de sesión",
+            .Location = New Point(14, 60), .Size = New Size(394, 20),
+            .Font = New Font("Segoe UI", 9.0F, FontStyle.Bold),
+            .ForeColor = brandBlue
+        }
+        Dim barcodeLabel As New Label With {
+            .Text = "Credencial (Barcode ID)",
+            .Location = New Point(14, 84), .Size = New Size(394, 18),
+            .Font = New Font("Segoe UI", 9.0F),
+            .ForeColor = Color.FromArgb(80, 80, 80)
+        }
+        inputBarcode.Location = New Point(14, 104)
+        inputBarcode.Size = New Size(394, 27)
+        inputBarcode.Font = New Font("Segoe UI", 11.0F)
+        inputBarcode.BackColor = Color.White
+        inputBarcode.BorderStyle = BorderStyle.FixedSingle
+        inputBarcode.CharacterCasing = CharacterCasing.Upper
+        inputBarcode.TabIndex = 0
+
+        Dim passwordLabel As New Label With {
+            .Text = "Password",
+            .Location = New Point(14, 140), .Size = New Size(394, 18),
+            .Font = New Font("Segoe UI", 9.0F),
+            .ForeColor = Color.FromArgb(80, 80, 80)
+        }
+        inputPassword.Location = New Point(14, 160)
+        inputPassword.Size = New Size(394, 27)
+        inputPassword.Font = New Font("Segoe UI", 11.0F)
+        inputPassword.BackColor = Color.White
+        inputPassword.BorderStyle = BorderStyle.FixedSingle
+        inputPassword.UseSystemPasswordChar = True
+        inputPassword.TabIndex = 1
+
+        Dim sectionStation As New Label With {
+            .Text = "Estación de trabajo",
+            .Location = New Point(14, 206), .Size = New Size(394, 20),
+            .Font = New Font("Segoe UI", 9.0F, FontStyle.Bold),
+            .ForeColor = brandBlue
+        }
+        Dim customerLabel As New Label With {
+            .Text = "Cliente predeterminado",
+            .Location = New Point(14, 230), .Size = New Size(394, 18),
+            .Font = New Font("Segoe UI", 9.0F),
+            .ForeColor = Color.FromArgb(80, 80, 80)
+        }
+        labelCustomer.Location = New Point(14, 251)
+        labelCustomer.Size = New Size(394, 32)
+        labelCustomer.ForeColor = brandBlue
+        labelCustomer.BackColor = Color.FromArgb(242, 247, 252)
+        labelCustomer.BorderStyle = BorderStyle.FixedSingle
+        labelCustomer.TextAlign = ContentAlignment.MiddleLeft
+        labelCustomer.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
+
+        card.Controls.AddRange(New Control() {
+            sectionLogin, barcodeLabel, inputBarcode, passwordLabel,
+            inputPassword, sectionStation, customerLabel, labelCustomer
+        })
+        card.Controls.Add(cardFooter)
+        card.Controls.Add(cardHeader)
+        cardHeader.BringToFront()
+        cardFooter.BringToFront()
     End Sub
 
     Private Sub CreateSignedInContent()

@@ -15,14 +15,16 @@ Public Class Form1
     Private ReadOnly menuSetup As New ToolStripMenuItem("Setup")
     Private ReadOnly menuHelp As New ToolStripMenuItem("Ayuda")
     Private ReadOnly menuLogout As New ToolStripMenuItem("Cerrar sesión")
+    Private ReadOnly appHeader As New Panel()
     Private ReadOnly loginPanel As New Panel()
     Private ReadOnly signedInPanel As New Panel()
     Private units As New List(Of BusinessUnit)()
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.Text = "Pack and Ship | SSI"
-        Me.MinimumSize = New Size(740, 510)
-        Me.Size = New Size(1000, 650)
+        Me.AutoScaleMode = AutoScaleMode.Font
+        Me.MinimumSize = New Size(1, 1)
+        Me.ClientSize = New Size(422, 340)
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = backgroundColor
         Me.Font = New Font("Segoe UI", 11.0F)
@@ -32,12 +34,14 @@ Public Class Form1
     End Sub
 
     Private Sub CreateLayout()
-        Dim header As New Panel With {.Dock = DockStyle.Top, .Height = 84, .BackColor = brandBlue}
+        appHeader.Dock = DockStyle.Top
+        appHeader.Height = 84
+        appHeader.BackColor = brandBlue
         Dim title As New Label With {
             .Text = "PACK AND SHIP", .Font = New Font("Segoe UI", 23, FontStyle.Bold),
             .ForeColor = Color.White, .AutoSize = True, .Location = New Point(24, 19)
         }
-        header.Controls.Add(title)
+        appHeader.Controls.Add(title)
 
         ' Traditional fixed MenuStrip, matching the Q-Wall navigation layout.
         mainMenu.Dock = DockStyle.Top
@@ -78,21 +82,18 @@ Public Class Form1
 
         Me.Controls.Add(loginPanel)
         Me.Controls.Add(signedInPanel)
-        Me.Controls.Add(header)
+        Me.Controls.Add(appHeader)
         Me.Controls.Add(mainMenu)
     End Sub
 
     Private Sub CreateLoginContent()
-        ' Q-Wall workOrder.Designer.vb visual reference:
-        ' 422x522, 50px navy header/footer, 394px fields, Segoe UI 9/11.
+        ' Compact standalone login; the form itself is the card.
         Dim card As New Panel With {
-            .Width = 422, .Height = 522,
+            .Dock = DockStyle.Fill,
             .BackColor = Color.White,
-            .BorderStyle = BorderStyle.FixedSingle
+            .BorderStyle = BorderStyle.None
         }
-        AddHandler loginPanel.Resize, Sub() CenterCard(loginPanel, card)
         loginPanel.Controls.Add(card)
-        CenterCard(loginPanel, card)
 
         Dim cardHeader As New Panel With {
             .Dock = DockStyle.Top, .Height = 50,
@@ -124,17 +125,17 @@ Public Class Form1
 
         Dim sectionLogin As New Label With {
             .Text = "Inicio de sesión",
-            .Location = New Point(14, 60), .Size = New Size(394, 20),
+            .Location = New Point(14, 57), .Size = New Size(394, 20),
             .Font = New Font("Segoe UI", 9.0F, FontStyle.Bold),
             .ForeColor = brandBlue
         }
         Dim barcodeLabel As New Label With {
             .Text = "Credencial (Barcode ID)",
-            .Location = New Point(14, 84), .Size = New Size(394, 18),
+            .Location = New Point(14, 79), .Size = New Size(394, 18),
             .Font = New Font("Segoe UI", 9.0F),
             .ForeColor = Color.FromArgb(80, 80, 80)
         }
-        inputBarcode.Location = New Point(14, 104)
+        inputBarcode.Location = New Point(14, 99)
         inputBarcode.Size = New Size(394, 27)
         inputBarcode.Font = New Font("Segoe UI", 11.0F)
         inputBarcode.BackColor = Color.White
@@ -144,11 +145,11 @@ Public Class Form1
 
         Dim passwordLabel As New Label With {
             .Text = "Password",
-            .Location = New Point(14, 140), .Size = New Size(394, 18),
+            .Location = New Point(14, 133), .Size = New Size(394, 18),
             .Font = New Font("Segoe UI", 9.0F),
             .ForeColor = Color.FromArgb(80, 80, 80)
         }
-        inputPassword.Location = New Point(14, 160)
+        inputPassword.Location = New Point(14, 153)
         inputPassword.Size = New Size(394, 27)
         inputPassword.Font = New Font("Segoe UI", 11.0F)
         inputPassword.BackColor = Color.White
@@ -158,17 +159,17 @@ Public Class Form1
 
         Dim sectionStation As New Label With {
             .Text = "Estación de trabajo",
-            .Location = New Point(14, 206), .Size = New Size(394, 20),
+            .Location = New Point(14, 198), .Size = New Size(394, 20),
             .Font = New Font("Segoe UI", 9.0F, FontStyle.Bold),
             .ForeColor = brandBlue
         }
         Dim customerLabel As New Label With {
             .Text = "Cliente predeterminado",
-            .Location = New Point(14, 230), .Size = New Size(394, 18),
+            .Location = New Point(14, 222), .Size = New Size(394, 18),
             .Font = New Font("Segoe UI", 9.0F),
             .ForeColor = Color.FromArgb(80, 80, 80)
         }
-        labelCustomer.Location = New Point(14, 251)
+        labelCustomer.Location = New Point(14, 242)
         labelCustomer.Size = New Size(394, 32)
         labelCustomer.ForeColor = brandBlue
         labelCustomer.BackColor = Color.FromArgb(242, 247, 252)
@@ -271,8 +272,7 @@ Public Class Form1
             SessionContext.RoleName = user.RoleName
             SessionContext.CanModifySetup = user.CanModifySetup
 
-            loginPanel.Visible = False
-            signedInPanel.Visible = True
+            SetAuthenticatedLayout()
             menuSetup.Enabled = SessionContext.CanModifySetup
             menuLogout.Enabled = True
             labelWelcome.Text = "Operator: " & user.Name & "  |  Role: " & user.RoleName &
@@ -436,6 +436,42 @@ Public Class Form1
         End Using
     End Sub
 
+    Private Sub SetLoginLayout()
+        SuspendLayout()
+        Try
+            mainMenu.Visible = False
+            appHeader.Visible = False
+            signedInPanel.Visible = False
+            loginPanel.Visible = True
+            FormBorderStyle = FormBorderStyle.FixedDialog
+            MaximizeBox = False
+            MinimumSize = New Size(1, 1)
+            ClientSize = New Size(422, 340)
+            Text = "Pack and Ship | Login"
+            CenterToScreen()
+        Finally
+            ResumeLayout(True)
+        End Try
+    End Sub
+
+    Private Sub SetAuthenticatedLayout()
+        SuspendLayout()
+        Try
+            loginPanel.Visible = False
+            signedInPanel.Visible = True
+            FormBorderStyle = FormBorderStyle.Sizable
+            MaximizeBox = True
+            MinimumSize = New Size(800, 570)
+            ClientSize = New Size(1100, 720)
+            appHeader.Visible = True
+            mainMenu.Visible = True
+            Text = "Pack and Ship | SSI"
+            CenterToScreen()
+        Finally
+            ResumeLayout(True)
+        End Try
+    End Sub
+
     Private Sub LogoutFromMenu(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 Then Return
         ResetLogin()
@@ -446,8 +482,7 @@ Public Class Form1
         RefreshCustomer()
         inputBarcode.Clear()
         inputPassword.Clear()
-        signedInPanel.Visible = False
-        loginPanel.Visible = True
+        SetLoginLayout()
         menuSetup.Enabled = False
         menuLogout.Enabled = False
         Me.AcceptButton = buttonLogin

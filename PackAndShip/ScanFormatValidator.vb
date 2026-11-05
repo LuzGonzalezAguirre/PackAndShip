@@ -8,21 +8,22 @@ Public NotInheritable Class ScanFormatResult
     Public Property Message As String = ""
     Public Property InternalSerial As String = ""
     Public Property ClientSerial As String = ""
+    Public Property GeneratedClientCode As String = ""
 End Class
 
 Public NotInheritable Class ScanFormatValidator
     Private Sub New()
     End Sub
 
-    Public Shared Function CheckTwoLabels(firstRaw As String, secondRaw As String,
-                                          rule As ScanRuleRecord,
-                                          fields As List(Of ScanFieldRecord),
-                                          part As PaSPart) As ScanFormatResult
+    Public Shared Function CheckScans(firstRaw As String, secondRaw As String,
+                                      rule As ScanRuleRecord,
+                                      fields As List(Of ScanFieldRecord),
+                                      part As PaSPart) As ScanFormatResult
         If rule Is Nothing OrElse Not rule.IsActive Then
             Return Fail("No active scan rule for this part and customer.")
         End If
-        If rule.ScanCount <> 2 Then
-            Return Fail("This model does not use the two-label process. Its specific scan flow is pending.")
+        If rule.ScanCount <> 1 AndAlso rule.ScanCount <> 2 Then
+            Return Fail("Only one- or two-label scan formats are supported.")
         End If
         If fields Is Nothing Then Return Fail("No scan fields were found.")
         If part Is Nothing OrElse part.Id <> rule.PartId Then
@@ -30,7 +31,10 @@ Public NotInheritable Class ScanFormatValidator
         End If
 
         Dim extracted As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
-        For scanIndex As Integer = 0 To 1
+        If fields.Any(Function(f) f.ScanIndex < 0 OrElse f.ScanIndex >= rule.ScanCount) Then
+            Return Fail("Scan fields do not match the configured scan count.")
+        End If
+        For scanIndex As Integer = 0 To rule.ScanCount - 1
             Dim raw = If(scanIndex = 0, firstRaw, secondRaw)
             If String.IsNullOrWhiteSpace(raw) Then
                 Return Fail("Scan " & (scanIndex + 1) & " is required.")
@@ -58,6 +62,28 @@ Public NotInheritable Class ScanFormatValidator
                 End If
             Next
         Next
+        If rule.ScanCount = 1 Then
+            ' Q-Wall special Volvo models use a single SSI scan and build the
+            ' client serial from the catalog Client PN + space + extracted digits.
+            ' Never invent a serial when the SSI mapping or Client PN is missing.
+            If fields.Any(Function(f) f.FieldTarget = "volvoSerialNumber") Then
+                Return Fail("Single-scan auto-generation requires a frameSN mapping, not a second client mapping.")
+            End If
+            If Not extracted.ContainsKey("frameSN") Then
+                Return Fail("Single-scan rule must extract frameSN.")
+            End If
+            If String.IsNullOrWhiteSpace(part.ClientNumber) Then
+                Return Fail("Client part number is missing; automatic serial cannot be generated.")
+            End If
+            Dim serial = extracted("frameSN")
+            Return New ScanFormatResult With {
+                .Valid = True,
+                .InternalSerial = serial,
+                .ClientSerial = serial,
+                .GeneratedClientCode = part.ClientNumber.Trim() & " " & serial,
+                .Message = "QR format valid. Client serial generated. Q-Wall PASS and unique-container verification are still required."
+            }
+        End If
         If Not extracted.ContainsKey("frameSN") OrElse
            Not extracted.ContainsKey("volvoSerialNumber") Then
             Return Fail("Both internal and client serial fields must be configured.")
@@ -74,7 +100,8 @@ Public NotInheritable Class ScanFormatValidator
             .Valid = True,
             .Message = "QR format valid. Q-Wall PASS and unique-container verification are still required.",
             .InternalSerial = internalSerial,
-            .ClientSerial = clientSerial
+            .ClientSerial = clientSerial,
+            .GeneratedClientCode = part.ClientNumber.Trim() & " " & clientSerial
         }
     End Function
 

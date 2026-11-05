@@ -52,10 +52,11 @@ Public NotInheritable Class QWallPassValidator
             Dim passed As Boolean
             Dim scrap As Boolean
             Dim found As Boolean
+            Dim finished As Boolean
             Using cmd As New SqlCommand(
-                "SELECT TOP (1) inspection_id, overall_result, is_scrap " &
+                "SELECT TOP (1) inspection_id, overall_result, is_scrap, finished_at " &
                 "FROM dbo.ssi_Inspections WHERE product_id=@product " &
-                "ORDER BY finished_at DESC, inspection_id DESC", cn)
+                "ORDER BY COALESCE(finished_at, started_at) DESC, inspection_id DESC", cn)
                 cmd.Parameters.Add("@product", SqlDbType.Int).Value = productId
                 Using rd = cmd.ExecuteReader()
                     If rd.Read() Then
@@ -63,10 +64,12 @@ Public NotInheritable Class QWallPassValidator
                         inspectionId = Convert.ToInt32(rd("inspection_id"))
                         passed = Not rd.IsDBNull(1) AndAlso Convert.ToBoolean(rd("overall_result"))
                         scrap = Not rd.IsDBNull(2) AndAlso Convert.ToBoolean(rd("is_scrap"))
+                        finished = Not rd.IsDBNull(3)
                     End If
                 End Using
             End Using
             If Not found Then Return Refused("This product has no Q-Wall inspection.")
+            If Not finished Then Return Refused("The latest Q-Wall inspection is unfinished.")
             If scrap Then Return Refused("The latest Q-Wall inspection marks this piece as scrap.")
             If Not passed Then Return Refused("The latest Q-Wall inspection is not PASS.")
 

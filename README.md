@@ -239,3 +239,21 @@ que no hay piezas aceptadas. El botón Verify QR format **no registra**.
 Se mantienen pendientes PASS Q-Wall, duplicados globales y cierres
 por cantidades exactas. Requiere compilar y revisar distribución
 en Windows con el tamaño de monitor real.
+
+## Single-scan models and automatic Client serial preview
+
+The scanner now follows `quality_pn_scan_rules.scan_count`. For an
+active one-scan rule (for example, Volvo 43291.6), scan 1 extracts the
+internal numeric serial using its configured extraction field; the Client
+serial preview is generated from the selected model's
+`ssi_PartNumbers.volvoProductNumber` plus a space and the same serial.
+The second textbox is read-only in this mode. Press Enter on the first
+scan or click Verify QR format. When the rule requires two scans, the
+second QR remains required and the extracted numeric serial values
+must match.
+
+The generated Client serial is a **preview only**, not persisted to Q-Wall
+or PackAndShip. A one-scan rule without a frameSN mapping, a model
+without a Client part number, or an unsupported extraction mode is
+rejected. Q-Wall PASS and global uniqueness validation must be integrated
+before accepting or saving any piece.

@@ -2,8 +2,8 @@ Imports System.Drawing
 Imports System.Linq
 Imports System.Windows.Forms
 
-' First scanner UI iteration. No accepted-piece writes or closure operations
-' until Q-Wall PASS schema and container uniqueness are verified.
+' SQL-backed scanner: Q-Wall PASS and global duplicate checks execute before recording.
+' Production rollout still requires end-to-end and concurrency validation.
 Public Class PalletScannerView
     Inherits UserControl
 
@@ -379,7 +379,7 @@ Public Class PalletScannerView
             scannedList.Items.Add("Open or load a container to view its pieces.")
             ruleSummary.Text = "Container example: " & palletFormat.Example() &
                                Environment.NewLine & "Q-Wall PASS: Check on scan" &
-                               Environment.NewLine & "Duplicate prevention: Not connected"
+                               Environment.NewLine & "Duplicate prevention: SQL UNIQUE(product_id)"
             containerInput.Clear()
             firstQr.Clear()
             secondQr.Clear()
@@ -432,7 +432,7 @@ Public Class PalletScannerView
                 "Scan rule: Inactive / missing", "Configured scans: " & selectedRule.ScanCount &
                 Environment.NewLine & "Match required: " & If(selectedRule.RequiresMatch, "Yes", "No")) &
                 Environment.NewLine & "Q-Wall PASS: Check on scan" &
-                Environment.NewLine & "Duplicate prevention: Not connected" &
+                Environment.NewLine & "Duplicate prevention: SQL UNIQUE(product_id)" &
                 Environment.NewLine & "Container format: General Settings"
         Catch ex As Exception
             buildState.Text = "Unable to read configuration."

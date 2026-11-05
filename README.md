@@ -303,3 +303,32 @@ Direct table writes should be restricted to prevent bypassing the stored
 procedure validations. Further policy review is needed for cases where
 Q-Wall flags have been authorized or a new inspection is recorded after
 a piece is packed.
+
+## PackAndShip scanner: SQL-backed pilot (Nov 2026)
+
+The four stored procedures from `sql/009_packaging_procedures.sql` are now
+connected through `PaSPackingData.vb` to the WinForms scanner.
+
+Workflow: select a model, enter the container code, click **Open / Load**,
+scan the configured one or two QR labels, click **Verify QR format**, then
+explicitly click **Record piece**. This runs `ssi_PaS_AddPiece` which
+rechecks Q-Wall PASS and globally unique product assignment in a
+transaction. The UI reloads the container, levels and recorded pieces
+from SQL after every write. When a level has exactly its required quantity,
+**Close level** becomes available; **Complete pallet** requires all levels
+closed and exact quantities. Both call the corresponding SQL procedures.
+
+The operators' QR input is never automatically committed on Enter:
+verification and recording are separate intentional operations.
+An existing container can be loaded again by code, but must match the
+selected model. The same container code cannot be created twice.
+
+**Pilot/testing only until validated in Visual Studio and against test
+pallets in CCS.** Test one- and two-scan models, PASS/FAIL/Scrap/flags,
+duplicates in the same and different containers, full levels, resuming
+partially filled containers and concurrent stations. Database roles
+should be configured to EXECUTE procedures without unrestricted direct
+DML on `ssi_PaS_*`; the current stored procedures do not independently
+re-parse QR label format because they expect WinForms validation first.
+Do not grant arbitrary clients direct procedure execution without
+considering server-side QR validation and identity binding.

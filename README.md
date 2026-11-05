@@ -279,3 +279,27 @@ Para revisar qué guarda Q-Wall para una pieza real, ejecutar
 Client completos. Se debe validar en CCS con inspecciones reales,
 incluyendo FAIL, Scrap, flags y varios tipos de inspección, antes de
 considerar terminada la integración.
+
+## Stored procedures for operational packaging
+
+After installing `sql/008_packaging_tables.sql`, execute
+`sql/009_packaging_procedures.sql` in CCS. Four transactional procedures
+are available:
+
+- `ssi_PaS_OpenContainer`: checks active user, current global pallet
+  format, active part configuration and level totals; snapshots all levels.
+- `ssi_PaS_AddPiece`: holds container/level locks; checks Q-Wall product
+  match, most recent finalized PASS inspection, no scrap/flag, remaining
+  level capacity and the unique global product constraint; records the
+  piece and verified inspection.
+- `ssi_PaS_CloseLevel`: only allows closure at the exact required count.
+- `ssi_PaS_CloseContainer`: requires all levels CLOSED and exact counts
+  per level and across the container.
+
+**The WinForms scanner is not yet wired to these procedures and remains
+locked for production writes.** Procedures must be tested in a staging
+environment with representative Q-Wall records and parallel workstations.
+Direct table writes should be restricted to prevent bypassing the stored
+procedure validations. Further policy review is needed for cases where
+Q-Wall flags have been authorized or a new inspection is recorded after
+a piece is packed.

@@ -162,3 +162,17 @@ integración en Pallet Scanner.
 La primera instalación crea el formato `P` + 6 dígitos en SQL, y
 no importa automáticamente archivos locales previos. Se debe respaldar
 el valor local si alguna estación había personalizado el formato.
+
+## UI refresh — WinForms design foundation
+
+First visual refactor introduces `PaSTheme.vb` (reusable colors, typography,
+button factory) and `SetupDashboardForm.vb` (Setup navigation cards).
+The main `Setup` button opens the dashboard instead of the legacy
+dropdown. Existing Setup forms, database access, and authorization logic
+are unchanged. The old menu wiring is retained in Form1 for the time being
+to minimize change risk; it can be removed once the dashboard is verified.
+
+Next visual iteration: apply the shared theme to all dialogs and tables,
+then refine login and scanner layouts without changing business rules.
+Build and smoke-test from Visual Studio on Windows (no Windows build
+environment was available for this change).

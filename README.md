@@ -140,3 +140,25 @@ Pallet Scanner, definir los criterios de unicidad y la generación/asignación
 de identificadores reales. Cambiar el formato no renumera pallets existentes.
 Para guardar en `ProgramData`, el proceso debe tener permiso de escritura
 en la carpeta local.
+
+## General Settings en SQL Server (global)
+
+Ejecutar primero `sql/005_general_settings.sql` en la misma base CCS a la
+que apunta PackAndShip. Crea una única fila en
+`dbo.ssi_PaS_GeneralSettings` (settings_id=1), con
+`pallet_prefix='P'` y `pallet_digits=6`. Es idempotente: no sobrescribe
+una configuración ya guardada. Las columnas `updated_at` (UTC) y
+`updated_by_user_id` registran quién modificó la configuración.
+
+`Setup > General` lee y actualiza esta fila en SQL. Guardar requiere
+autorización `can_modify_setup`, revalidada en SQL. El archivo local
+`%ProgramData%\PackAndShip\pallet_id_format.txt` **ya no se usa**;
+el cliente predeterminado sigue siendo por estación en
+`station_config.txt`. Todas las estaciones consultan la misma
+configuración al cargarla; deben volver a leerla antes de validar un
+escaneo para evitar usar valores antiguos. Todavía no existe esa
+integración en Pallet Scanner.
+
+La primera instalación crea el formato `P` + 6 dígitos en SQL, y
+no importa automáticamente archivos locales previos. Se debe respaldar
+el valor local si alguna estación había personalizado el formato.

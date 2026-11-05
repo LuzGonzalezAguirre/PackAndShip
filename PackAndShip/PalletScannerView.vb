@@ -49,12 +49,13 @@ Public Class PalletScannerView
     Private Sub BuildLayout()
         Dim page As New Panel With {
             .Dock = DockStyle.Fill, .AutoScroll = True,
-            .Padding = New Padding(22), .BackColor = PaSTheme.Background
+            .AutoScrollMinSize = New Size(1015, 760),
+            .BackColor = PaSTheme.Background
         }
         Controls.Add(page)
 
         Dim top As New Panel With {
-            .Dock = DockStyle.Top, .Height = 232,
+            .Location = New Point(22, 18), .Size = New Size(970, 232),
             .BackColor = PaSTheme.Surface,
             .Padding = New Padding(18)
         }
@@ -96,10 +97,9 @@ Public Class PalletScannerView
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
         AddHandler containerInput.TextChanged, Sub() UpdateScannerAvailability()
 
-        Dim section As New Panel With {.Dock = DockStyle.Top, .Height = 345,
+        Dim section As New Panel With {.Location = New Point(22, 264), .Size = New Size(970, 345),
                                        .BackColor = PaSTheme.Background}
         page.Controls.Add(section)
-        section.BringToFront()
         Dim scanCard As New Panel With {.BackColor = Color.White, .Location = New Point(0, 12),
                                        .Size = New Size(600, 325)}
         section.Controls.Add(scanCard)
@@ -158,7 +158,8 @@ Public Class PalletScannerView
         ruleSummary.Font = New Font("Segoe UI", 9)
         side.Controls.Add(ruleSummary)
 
-        Dim footer As New Panel With {.Dock = DockStyle.Bottom, .Height = 90,
+        Dim footer As New Panel With {.Location = New Point(22, 625),
+                                      .Size = New Size(970, 90),
                                       .BackColor = PaSTheme.Surface}
         Dim notice As New Label With {
             .Text = "PACKING LOCKED — Q-Wall PASS and cross-container duplicate checks must be integrated before recording pieces or closing levels.",
@@ -173,6 +174,7 @@ Public Class PalletScannerView
                                     Dim available = Math.Max(900, page.ClientSize.Width - 44)
                                     top.Width = available
                                     section.Width = available
+                                    footer.Width = available
                                     scanCard.Width = Math.Max(500, CInt(available * 0.61))
                                     side.Left = scanCard.Right + 16
                                     side.Width = Math.Max(280, available - side.Left)

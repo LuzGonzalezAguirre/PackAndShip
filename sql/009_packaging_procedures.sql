@@ -178,7 +178,7 @@ BEGIN
         ORDER BY COALESCE(finished_at,started_at) DESC, inspection_id DESC;
 
         IF @inspection_id IS NULL OR @finished_at IS NULL
-           OR ISNULL(@inspection_result,0)<>1 OR ISNULL(@is_scrap,1)<>0
+           OR ISNULL(@inspection_result,0)<>1 OR ISNULL(@is_scrap,0)<>0
             THROW 51108, 'Latest Q-Wall inspection is not finished PASS.', 1;
 
         -- Conservative policy: any flag on the latest inspection needs Quality review.

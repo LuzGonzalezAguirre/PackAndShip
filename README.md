@@ -220,3 +220,22 @@ En `Form1.vb` se ajustó también la ubicación del dropdown de Customer
 Configuration para separarlo del encabezado. Mantener el modelo
 y el cliente de la estación como filtros separados del formato global
 de contenedor.
+
+## Layout operativo — Q-Wall + tarjetas (noviembre 2026)
+
+La vista `PalletScannerView.vb` conserva un **header horizontal
+compacto tipo Q-Wall** con cinco bloques: Container (entrada), Part Number
+(selector), Operator (nombre grande), Customer y Date/Time.
+
+Debajo: columna izquierda con **Active Build**, panel de **dos QR**
+independiente y **Scanned Parts**; derecha con **Pallet Progress**
+y **Validation Rules**. El diseño usa `PaSTheme`, paneles blancos y
+tipografía Segoe UI. Se adapta al ancho del formulario; si es demasiado
+estrecho habilita desplazamiento.
+
+Es un cambio visual sobre el escáner preliminar. `Complete pallet`
+sigue deshabilitado, el conteo indica 0 piezas y la lista muestra
+que no hay piezas aceptadas. El botón Verify QR format **no registra**.
+Se mantienen pendientes PASS Q-Wall, duplicados globales y cierres
+por cantidades exactas. Requiere compilar y revisar distribución
+en Windows con el tamaño de monitor real.

@@ -37,7 +37,7 @@ Public Class Form1
         }
         header.Controls.Add(title)
 
-        buttonSetup.Text = "Setup  ▾"
+        buttonSetup.Text = "Setup"
         buttonSetup.Size = New Size(135, 40)
         buttonSetup.Anchor = AnchorStyles.Right Or AnchorStyles.Top
         buttonSetup.BackColor = Color.White
@@ -47,7 +47,7 @@ Public Class Form1
         AddHandler header.Resize, Sub()
                                       buttonSetup.Left = header.ClientSize.Width - buttonSetup.Width - 24
                                   End Sub
-        AddHandler buttonSetup.Click, Sub() setupMenu.Show(buttonSetup, 0, buttonSetup.Height)
+        AddHandler buttonSetup.Click, AddressOf OpenSetupDashboard
         header.Controls.Add(buttonSetup)
 
         Dim changeCustomer = setupMenu.Items.Add("Change default customer")
@@ -210,6 +210,22 @@ Public Class Form1
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    Private Sub OpenSetupDashboard(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
+            MessageBox.Show("Your role cannot access Setup.", "Access denied",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+        Using dashboard As New SetupDashboardForm(
+            Sub() ChangeDefaultCustomer(Nothing, EventArgs.Empty),
+            Sub() OpenUsersSetup(Nothing, EventArgs.Empty),
+            Sub() OpenPalletConfiguration(Nothing, EventArgs.Empty),
+            Sub() OpenScanRules(Nothing, EventArgs.Empty),
+            Sub() OpenGeneralSettings(Nothing, EventArgs.Empty))
+            dashboard.ShowDialog(Me)
+        End Using
     End Sub
 
     Private Sub OpenScanRules(sender As Object, e As EventArgs)

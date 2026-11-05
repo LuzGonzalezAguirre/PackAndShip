@@ -16,7 +16,8 @@ Public NotInheritable Class ScanFormatValidator
 
     Public Shared Function CheckTwoLabels(firstRaw As String, secondRaw As String,
                                           rule As ScanRuleRecord,
-                                          fields As List(Of ScanFieldRecord)) As ScanFormatResult
+                                          fields As List(Of ScanFieldRecord),
+                                          part As PaSPart) As ScanFormatResult
         If rule Is Nothing OrElse Not rule.IsActive Then
             Return Fail("No active scan rule for this part and customer.")
         End If
@@ -24,6 +25,9 @@ Public NotInheritable Class ScanFormatValidator
             Return Fail("This model does not use the two-label process. Its specific scan flow is pending.")
         End If
         If fields Is Nothing Then Return Fail("No scan fields were found.")
+        If part Is Nothing OrElse part.Id <> rule.PartId Then
+            Return Fail("The scan rule does not belong to the selected model.")
+        End If
 
         Dim extracted As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
         For scanIndex As Integer = 0 To 1
@@ -36,7 +40,14 @@ Public NotInheritable Class ScanFormatValidator
             For Each mapping In mappings
                 Dim value As String = Nothing
                 Dim errorText As String = Nothing
-                If Not TryExtract(raw.Trim(), mapping, value, errorText) Then
+                Dim expectedPartPrefix As String = ""
+                Select Case mapping.FieldTarget
+                    Case "frameSN"
+                        expectedPartPrefix = part.Number
+                    Case "volvoSerialNumber"
+                        expectedPartPrefix = part.ClientNumber
+                End Select
+                If Not TryExtract(raw.Trim(), mapping, expectedPartPrefix, value, errorText) Then
                     Return Fail("Scan " & (scanIndex + 1) & ": " & errorText)
                 End If
                 If mapping.FieldTarget <> "descartado" Then
@@ -68,6 +79,7 @@ Public NotInheritable Class ScanFormatValidator
     End Function
 
     Private Shared Function TryExtract(raw As String, field As ScanFieldRecord,
+                                       expectedPartPrefix As String,
                                        ByRef result As String, ByRef errorText As String) As Boolean
         ' Fail closed: do not approximate unimplemented parser modes.
         If field.ExtractionMode <> "por_separador" OrElse
@@ -102,9 +114,19 @@ Public NotInheritable Class ScanFormatValidator
                 Return False
         End Select
 
-        Dim prefix = If(field.PrefixValue, "")
+        Dim prefix = If(field.PrefixValue, "").Trim()
+        Dim catalogPrefix = If(expectedPartPrefix, "").Trim()
+        If catalogPrefix = "" Then
+            errorText = "The selected model has no SSI/Client part prefix in the catalog."
+            Return False
+        End If
+        ' Existing Q-Wall rules may leave prefix_value empty.
+        ' Only in that case, derive it from the selected model's catalog.
+        ' A populated rule prefix must match that same catalog part number.
         If prefix = "" Then
-            errorText = "Known prefix is missing. This rule cannot be verified safely."
+            prefix = catalogPrefix
+        ElseIf Not String.Equals(prefix, catalogPrefix, StringComparison.OrdinalIgnoreCase) Then
+            errorText = "The configured prefix does not match the selected model's part number."
             Return False
         End If
         Dim expectedStart = prefix & separatorValue

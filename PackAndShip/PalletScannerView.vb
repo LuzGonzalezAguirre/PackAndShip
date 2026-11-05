@@ -15,6 +15,8 @@ Public Class PalletScannerView
     Private ReadOnly clockValue As New Label()
     Private ReadOnly firstQr As New TextBox()
     Private ReadOnly secondQr As New TextBox()
+    Private ReadOnly scanHelp As New Label()
+    Private ReadOnly clientScanLabel As New Label()
     Private ReadOnly scanStatus As New Label()
     Private ReadOnly palletSummary As New Label()
     Private ReadOnly ruleSummary As New Label()
@@ -174,22 +176,38 @@ Public Class PalletScannerView
         buildArea.Controls.Add(buildState)
 
         scanArea = Card("SCAN LABELS", bodyLeft, 0, 161, 630, 323)
-        Dim helpText = PaSTheme.Subtitle("Scan SSI first, then Client. Press Enter after each QR.")
-        helpText.Location = New Point(19, 46)
-        scanArea.Controls.Add(helpText)
+        scanHelp.Text = "Scan SSI first, then Client. Press Enter after each QR."
+        scanHelp.Location = New Point(19, 46)
+        scanHelp.AutoSize = True
+        scanHelp.ForeColor = PaSTheme.TextSecondary
+        scanArea.Controls.Add(scanHelp)
         scanArea.Controls.Add(FieldCaption("SCAN 1 — SSI SERIAL", 19, 77))
         firstQr.SetBounds(19, 101, 590, 38)
         firstQr.Font = New Font("Consolas", 12)
         scanArea.Controls.Add(firstQr)
-        scanArea.Controls.Add(FieldCaption("SCAN 2 — CLIENT SERIAL", 19, 149))
+        clientScanLabel.Text = "SCAN 2 — CLIENT SERIAL"
+        clientScanLabel.Location = New Point(19, 149)
+        clientScanLabel.Size = New Size(310, 22)
+        clientScanLabel.ForeColor = PaSTheme.TextSecondary
+        clientScanLabel.Font = New Font("Segoe UI", 9, FontStyle.Bold)
+        scanArea.Controls.Add(clientScanLabel)
         secondQr.SetBounds(19, 173, 590, 38)
         secondQr.Font = New Font("Consolas", 12)
         scanArea.Controls.Add(secondQr)
+        AddHandler firstQr.TextChanged, Sub()
+                                            If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
+                                                secondQr.Clear()
+                                            End If
+                                        End Sub
 
         AddHandler firstQr.KeyDown, Sub(sender, e)
                                         If e.KeyCode = Keys.Enter Then
                                             e.SuppressKeyPress = True
-                                            secondQr.Focus()
+                                            If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
+                                                VerifyQrFormat()
+                                            Else
+                                                secondQr.Focus()
+                                            End If
                                         End If
                                     End Sub
         AddHandler secondQr.KeyDown, Sub(sender, e)
@@ -322,6 +340,7 @@ Public Class PalletScannerView
             containerInput.Clear()
             firstQr.Clear()
             secondQr.Clear()
+            ConfigureScanMode()
             UpdateScannerAvailability()
             containerInput.Focus()
         Catch ex As Exception
@@ -337,6 +356,7 @@ Public Class PalletScannerView
         selectedFields.Clear()
         Dim part = TryCast(partPicker.SelectedItem, PaSPart)
         If part Is Nothing Then
+            ConfigureScanMode()
             UpdateScannerAvailability()
             Return
         End If
@@ -375,7 +395,21 @@ Public Class PalletScannerView
         End Try
         firstQr.Clear()
         secondQr.Clear()
+        ConfigureScanMode()
         UpdateScannerAvailability()
+    End Sub
+
+    Private Sub ConfigureScanMode()
+        Dim singleScan = selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1
+        scanHelp.Text = If(singleScan,
+            "Scan SSI once. Client serial is generated from the selected model.",
+            "Scan SSI first, then Client. Press Enter after each QR.")
+        clientScanLabel.Text = If(singleScan,
+            "CLIENT SERIAL — AUTOMATIC PREVIEW", "SCAN 2 — CLIENT SERIAL")
+        secondQr.ReadOnly = singleScan
+        secondQr.TabStop = Not singleScan
+        secondQr.BackColor = If(singleScan, Color.FromArgb(242, 247, 252), Color.White)
+        secondQr.Clear()
     End Sub
 
     Private Sub UpdateScannerAvailability()
@@ -383,15 +417,19 @@ Public Class PalletScannerView
         Dim validContainer = palletFormat IsNot Nothing AndAlso palletFormat.IsValid(containerInput.Text)
         verifyButton.Enabled = validContainer AndAlso part IsNot Nothing AndAlso
                                selectedConfiguration IsNot Nothing AndAlso selectedConfiguration.IsActive AndAlso
-                               selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 2
+                               selectedRule IsNot Nothing AndAlso
+                               (selectedRule.ScanCount = 1 OrElse selectedRule.ScanCount = 2)
         If Not validContainer Then
             scanStatus.Text = "Enter a container ID matching General Settings."
-        ElseIf selectedRule Is Nothing OrElse selectedRule.ScanCount <> 2 Then
-            scanStatus.Text = "Two-label rule is not available for this part."
+        ElseIf selectedRule Is Nothing OrElse
+               (selectedRule.ScanCount <> 1 AndAlso selectedRule.ScanCount <> 2) Then
+            scanStatus.Text = "An active one- or two-scan rule is required for this part."
         ElseIf selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
             scanStatus.Text = "Pallet configuration is missing or inactive."
         Else
-            scanStatus.Text = "Ready for both label scans (format validation only)."
+            scanStatus.Text = If(selectedRule.ScanCount = 1,
+                "Ready for SSI scan; Client serial generated after format validation.",
+                "Ready for both label scans (format validation only).")
             scanStatus.ForeColor = navy
         End If
     End Sub
@@ -410,8 +448,11 @@ Public Class PalletScannerView
                 Return
             End If
             Dim selectedPart = TryCast(partPicker.SelectedItem, PaSPart)
-            Dim result = ScanFormatValidator.CheckTwoLabels(
+            Dim result = ScanFormatValidator.CheckScans(
                 firstQr.Text, secondQr.Text, selectedRule, selectedFields, selectedPart)
+            If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
+                secondQr.Text = If(result.Valid, result.GeneratedClientCode, "")
+            End If
             scanStatus.ForeColor = If(result.Valid, Color.FromArgb(145, 89, 10), Color.DarkRed)
             scanStatus.Text = result.Message
             ' Intentionally do NOT clear scans, increase counts, save a piece,

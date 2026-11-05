@@ -155,7 +155,12 @@ Public Class PalletScannerView
         strip.Controls.Add(HeaderCell("DATE / TIME", clockValue, 19), 4, 0)
 
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
-        AddHandler containerInput.TextChanged, Sub() UpdateScannerAvailability()
+        AddHandler containerInput.TextChanged, Sub()
+                                                  SetQWallStatus("Check on scan")
+                                                  UpdateScannerAvailability()
+                                              End Sub
+        AddHandler firstQr.TextChanged, Sub() SetQWallStatus("Check on scan")
+        AddHandler secondQr.TextChanged, Sub() SetQWallStatus("Check on scan")
 
         bodyLeft.Location = New Point(20, 136)
         bodyLeft.Size = New Size(630, 686)
@@ -434,7 +439,15 @@ Public Class PalletScannerView
         End If
     End Sub
 
+    Private Sub SetQWallStatus(value As String)
+        For Each previous In {"Check on scan", "NOT VERIFIED", "VERIFIED"}
+            ruleSummary.Text = ruleSummary.Text.Replace("Q-Wall PASS: " & previous,
+                                                       "Q-Wall PASS: " & value)
+        Next
+    End Sub
+
     Private Sub VerifyQrFormat()
+        SetQWallStatus("NOT VERIFIED")
         If Not verifyButton.Enabled Then
             UpdateScannerAvailability()
             Return
@@ -467,15 +480,13 @@ Public Class PalletScannerView
             If Not qwall.Verified Then
                 scanStatus.ForeColor = Color.DarkRed
                 scanStatus.Text = "QR format valid; " & qwall.Message
-                ruleSummary.Text = ruleSummary.Text.Replace("Q-Wall PASS: Check on scan",
-                                                           "Q-Wall PASS: NOT VERIFIED")
+                SetQWallStatus("NOT VERIFIED")
                 Return
             End If
 
             scanStatus.ForeColor = Color.FromArgb(145, 89, 10)
             scanStatus.Text = qwall.Message
-            ruleSummary.Text = ruleSummary.Text.Replace("Q-Wall PASS: Check on scan",
-                                                       "Q-Wall PASS: VERIFIED")
+            SetQWallStatus("VERIFIED")
             ' Do NOT record a piece or increment counters here.
             ' Cross-container uniqueness and exact level completion are pending.
         Catch ex As Exception

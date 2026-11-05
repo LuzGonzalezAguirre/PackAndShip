@@ -58,8 +58,8 @@ Public Class Form1
         AddHandler scanEntry.Click, AddressOf OpenScanRules
         Dim usersEntry = setupMenu.Items.Add("Users & Roles")
         AddHandler usersEntry.Click, AddressOf OpenUsersSetup
-        Dim generalEntry = setupMenu.Items.Add("General (pending)")
-        generalEntry.Enabled = False
+        Dim generalEntry = setupMenu.Items.Add("General")
+        AddHandler generalEntry.Click, AddressOf OpenGeneralSettings
 
         loginPanel.Dock = DockStyle.Fill
         signedInPanel.Dock = DockStyle.Fill
@@ -241,6 +241,17 @@ Public Class Form1
             Return
         End If
         Using dialog As New UsersSetupForm()
+            dialog.ShowDialog(Me)
+        End Using
+    End Sub
+
+    Private Sub OpenGeneralSettings(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
+            MessageBox.Show("Your role cannot modify Setup.", "Access denied",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+        Using dialog As New GeneralSettingsForm()
             dialog.ShowDialog(Me)
         End Using
     End Sub

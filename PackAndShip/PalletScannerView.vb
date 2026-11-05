@@ -440,10 +440,14 @@ Public Class PalletScannerView
     End Sub
 
     Private Sub SetQWallStatus(value As String)
-        For Each previous In {"Check on scan", "NOT VERIFIED", "VERIFIED"}
-            ruleSummary.Text = ruleSummary.Text.Replace("Q-Wall PASS: " & previous,
-                                                       "Q-Wall PASS: " & value)
+        Dim lines = ruleSummary.Text.Split(New String() {Environment.NewLine},
+                                          StringSplitOptions.None)
+        For index As Integer = 0 To lines.Length - 1
+            If lines(index).StartsWith("Q-Wall PASS:", StringComparison.Ordinal) Then
+                lines(index) = "Q-Wall PASS: " & value
+            End If
         Next
+        ruleSummary.Text = String.Join(Environment.NewLine, lines)
     End Sub
 
     Private Sub VerifyQrFormat()

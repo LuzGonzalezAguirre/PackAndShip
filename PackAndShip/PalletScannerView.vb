@@ -271,7 +271,7 @@ Public Class PalletScannerView
         buildState.Text = "Waiting for a container and model"
         progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
         ruleSummary.Text = "Scan rule: Pending" & Environment.NewLine &
-                           "Q-Wall PASS: Not connected" & Environment.NewLine &
+                           "Q-Wall PASS: Check on scan" & Environment.NewLine &
                            "Duplicate prevention: Not connected" & Environment.NewLine &
                            "Container format: General Settings"
         scanStatus.Text = "Enter a container and select a model."
@@ -335,7 +335,7 @@ Public Class PalletScannerView
             progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
             progressBar.Value = 0
             ruleSummary.Text = "Container example: " & palletFormat.Example() &
-                               Environment.NewLine & "Q-Wall PASS: Not connected" &
+                               Environment.NewLine & "Q-Wall PASS: Check on scan" &
                                Environment.NewLine & "Duplicate prevention: Not connected"
             containerInput.Clear()
             firstQr.Clear()
@@ -386,7 +386,7 @@ Public Class PalletScannerView
             ruleSummary.Text = If(selectedRule Is Nothing,
                 "Scan rule: Inactive / missing", "Configured scans: " & selectedRule.ScanCount &
                 Environment.NewLine & "Match required: " & If(selectedRule.RequiresMatch, "Yes", "No")) &
-                Environment.NewLine & "Q-Wall PASS: Not connected" &
+                Environment.NewLine & "Q-Wall PASS: Check on scan" &
                 Environment.NewLine & "Duplicate prevention: Not connected" &
                 Environment.NewLine & "Container format: General Settings"
         Catch ex As Exception
@@ -467,11 +467,15 @@ Public Class PalletScannerView
             If Not qwall.Verified Then
                 scanStatus.ForeColor = Color.DarkRed
                 scanStatus.Text = "QR format valid; " & qwall.Message
+                ruleSummary.Text = ruleSummary.Text.Replace("Q-Wall PASS: Check on scan",
+                                                           "Q-Wall PASS: NOT VERIFIED")
                 Return
             End If
 
             scanStatus.ForeColor = Color.FromArgb(145, 89, 10)
             scanStatus.Text = qwall.Message
+            ruleSummary.Text = ruleSummary.Text.Replace("Q-Wall PASS: Check on scan",
+                                                       "Q-Wall PASS: VERIFIED")
             ' Do NOT record a piece or increment counters here.
             ' Cross-container uniqueness and exact level completion are pending.
         Catch ex As Exception

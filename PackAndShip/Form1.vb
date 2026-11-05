@@ -11,8 +11,10 @@ Public Class Form1
     Private ReadOnly labelWelcome As New Label()
     Private ReadOnly buttonLogin As New Button()
     Private ReadOnly buttonLogout As New Button()
-    Private ReadOnly buttonSetup As New Button()
-    Private ReadOnly setupMenu As New ContextMenuStrip()
+    Private ReadOnly mainMenu As New MenuStrip()
+    Private ReadOnly menuSetup As New ToolStripMenuItem("Setup")
+    Private ReadOnly menuHelp As New ToolStripMenuItem("Ayuda")
+    Private ReadOnly menuLogout As New ToolStripMenuItem("Cerrar sesión")
     Private ReadOnly loginPanel As New Panel()
     Private ReadOnly signedInPanel As New Panel()
     Private units As New List(Of BusinessUnit)()
@@ -37,29 +39,37 @@ Public Class Form1
         }
         header.Controls.Add(title)
 
-        buttonSetup.Text = "Setup"
-        buttonSetup.Size = New Size(135, 40)
-        buttonSetup.Anchor = AnchorStyles.Right Or AnchorStyles.Top
-        buttonSetup.BackColor = Color.White
-        buttonSetup.ForeColor = brandBlue
-        buttonSetup.FlatStyle = FlatStyle.Flat
-        buttonSetup.Location = New Point(Width - 190, 23)
-        AddHandler header.Resize, Sub()
-                                      buttonSetup.Left = header.ClientSize.Width - buttonSetup.Width - 24
-                                  End Sub
-        AddHandler buttonSetup.Click, AddressOf OpenSetupDashboard
-        header.Controls.Add(buttonSetup)
+        ' Traditional fixed MenuStrip, matching the Q-Wall navigation layout.
+        mainMenu.Dock = DockStyle.Top
+        mainMenu.AutoSize = False
+        mainMenu.Height = 34
+        mainMenu.BackColor = PaSTheme.Surface
+        mainMenu.ForeColor = PaSTheme.TextPrimary
+        mainMenu.Font = New Font("Segoe UI", 10.0F)
+        mainMenu.Padding = New Padding(9, 3, 0, 3)
 
-        Dim changeCustomer = setupMenu.Items.Add("Change default customer")
+        Dim changeCustomer = menuSetup.DropDownItems.Add("Customer Configuration")
         AddHandler changeCustomer.Click, AddressOf ChangeDefaultCustomer
-        Dim palletEntry = setupMenu.Items.Add("Pallet Configuration")
-        AddHandler palletEntry.Click, AddressOf OpenPalletConfiguration
-        Dim scanEntry = setupMenu.Items.Add("Scan Rules")
-        AddHandler scanEntry.Click, AddressOf OpenScanRules
-        Dim usersEntry = setupMenu.Items.Add("Users & Roles")
+        Dim usersEntry = menuSetup.DropDownItems.Add("Users & Roles")
         AddHandler usersEntry.Click, AddressOf OpenUsersSetup
-        Dim generalEntry = setupMenu.Items.Add("General")
+        Dim palletEntry = menuSetup.DropDownItems.Add("Pallet Configuration")
+        AddHandler palletEntry.Click, AddressOf OpenPalletConfiguration
+        Dim scanEntry = menuSetup.DropDownItems.Add("Scan Rules")
+        AddHandler scanEntry.Click, AddressOf OpenScanRules
+        Dim generalEntry = menuSetup.DropDownItems.Add("General Settings")
         AddHandler generalEntry.Click, AddressOf OpenGeneralSettings
+
+        Dim aboutEntry = menuHelp.DropDownItems.Add("About PackAndShip")
+        AddHandler aboutEntry.Click, Sub()
+                                         MessageBox.Show("PackAndShip" & Environment.NewLine &
+                                                         "Manufacturing pallet scanning and configuration.",
+                                                         "About", MessageBoxButtons.OK,
+                                                         MessageBoxIcon.Information)
+                                     End Sub
+        AddHandler menuLogout.Click, AddressOf LogoutFromMenu
+
+        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHelp, menuLogout})
+        MainMenuStrip = mainMenu
 
         loginPanel.Dock = DockStyle.Fill
         signedInPanel.Dock = DockStyle.Fill
@@ -69,6 +79,7 @@ Public Class Form1
         Me.Controls.Add(loginPanel)
         Me.Controls.Add(signedInPanel)
         Me.Controls.Add(header)
+        Me.Controls.Add(mainMenu)
     End Sub
 
     Private Sub CreateLoginContent()
@@ -197,7 +208,8 @@ Public Class Form1
 
             loginPanel.Visible = False
             signedInPanel.Visible = True
-            buttonSetup.Enabled = SessionContext.CanModifySetup
+            menuSetup.Enabled = SessionContext.CanModifySetup
+            menuLogout.Enabled = True
             labelWelcome.Text = "Operator: " & user.Name & "  |  Role: " & user.RoleName &
                                 Environment.NewLine & "Customer: " &
                                 If(SessionContext.BusinessUnitId = 0, "Not configured",
@@ -210,22 +222,6 @@ Public Class Form1
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-    End Sub
-
-    Private Sub OpenSetupDashboard(sender As Object, e As EventArgs)
-        If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Your role cannot access Setup.", "Access denied",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            Return
-        End If
-        Using dashboard As New SetupDashboardForm(
-            Sub() ChangeDefaultCustomer(Nothing, EventArgs.Empty),
-            Sub() OpenUsersSetup(Nothing, EventArgs.Empty),
-            Sub() OpenPalletConfiguration(Nothing, EventArgs.Empty),
-            Sub() OpenScanRules(Nothing, EventArgs.Empty),
-            Sub() OpenGeneralSettings(Nothing, EventArgs.Empty))
-            dashboard.ShowDialog(Me)
-        End Using
     End Sub
 
     Private Sub OpenScanRules(sender As Object, e As EventArgs)
@@ -283,23 +279,54 @@ Public Class Form1
         End If
 
         Using dialog As New Form With {
-            .Text = "Station customer configuration",
-            .Size = New Size(500, 230),
+            .Text = "PackAndShip | Customer Configuration",
+            .Size = New Size(550, 342),
+            .MinimumSize = New Size(550, 342),
+            .MaximumSize = New Size(550, 342),
             .StartPosition = FormStartPosition.CenterParent,
             .FormBorderStyle = FormBorderStyle.FixedDialog,
             .MaximizeBox = False, .MinimizeBox = False
         }
+            PaSTheme.ConfigureForm(dialog)
+
+            Dim topPanel As New Panel With {
+                .Dock = DockStyle.Top, .Height = 82,
+                .BackColor = PaSTheme.Navy
+            }
+            topPanel.Controls.Add(New Label With {
+                .Text = "Customer Configuration",
+                .Location = New Point(23, 12), .AutoSize = True,
+                .Font = New Font("Segoe UI", 19, FontStyle.Bold),
+                .ForeColor = Color.White
+            })
+            topPanel.Controls.Add(New Label With {
+                .Text = "Default customer for this workstation",
+                .Location = New Point(25, 53), .AutoSize = True,
+                .ForeColor = Color.FromArgb(220, 233, 247)
+            })
+            dialog.Controls.Add(topPanel)
+
+            Dim contentPanel As New Panel With {
+                .Dock = DockStyle.Fill,
+                .BackColor = PaSTheme.Background,
+                .Padding = New Padding(24)
+            }
             Dim caption As New Label With {
-                .Text = "Default customer for this computer",
-                .Location = New Point(22, 22), .Size = New Size(435, 30)
+                .Text = "Customer",
+                .Location = New Point(24, 25),
+                .Size = New Size(460, 25),
+                .ForeColor = PaSTheme.TextPrimary,
+                .Font = New Font("Segoe UI", 10, FontStyle.Bold)
             }
             Dim picker As New ComboBox With {
-                .Location = New Point(22, 62), .Width = 435,
-                .DropDownStyle = ComboBoxStyle.DropDownList
+                .Location = New Point(24, 58),
+                .Size = New Size(476, 33),
+                .DropDownStyle = ComboBoxStyle.DropDownList,
+                .Font = New Font("Segoe UI", 11)
             }
-            ' Bind only after the ComboBox has a handle. This avoids a zero-count
-            ' Items collection when SelectedIndex is set before Controls.Add.
-            dialog.Controls.AddRange(New Control() {caption, picker})
+            contentPanel.Controls.AddRange(New Control() {caption, picker})
+            dialog.Controls.Add(contentPanel)
+
             picker.DisplayMember = "Name"
             picker.ValueMember = "Id"
             picker.DataSource = New List(Of BusinessUnit)(units)
@@ -307,12 +334,25 @@ Public Class Form1
                 Dim savedCustomer = units.Find(Function(u) u.Id = SessionContext.BusinessUnitId)
                 If savedCustomer IsNot Nothing Then picker.SelectedValue = savedCustomer.Id
             End If
-            Dim save As New Button With {
-                .Text = "Save", .DialogResult = DialogResult.OK,
-                .Location = New Point(327, 115), .Size = New Size(130, 35)
+
+            Dim footer As New Panel With {
+                .Dock = DockStyle.Bottom, .Height = 78,
+                .BackColor = PaSTheme.Surface
             }
-            dialog.Controls.Add(save)
+            Dim save = PaSTheme.ActionButton("Save", True)
+            save.Location = New Point(365, 18)
+            save.Size = New Size(145, 40)
+            save.DialogResult = DialogResult.OK
+            Dim cancel = PaSTheme.ActionButton("Cancel", False)
+            cancel.Location = New Point(215, 18)
+            cancel.Size = New Size(135, 40)
+            cancel.DialogResult = DialogResult.Cancel
+            footer.Controls.AddRange(New Control() {cancel, save})
+            dialog.Controls.Add(footer)
+            footer.BringToFront()
+            topPanel.BringToFront()
             dialog.AcceptButton = save
+            dialog.CancelButton = cancel
 
             If dialog.ShowDialog(Me) <> DialogResult.OK Then Return
             Dim selected = TryCast(picker.SelectedItem, BusinessUnit)
@@ -331,6 +371,11 @@ Public Class Form1
         End Using
     End Sub
 
+    Private Sub LogoutFromMenu(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 Then Return
+        ResetLogin()
+    End Sub
+
     Private Sub ResetLogin()
         SessionContext.Clear()
         RefreshCustomer()
@@ -338,7 +383,8 @@ Public Class Form1
         inputPassword.Clear()
         signedInPanel.Visible = False
         loginPanel.Visible = True
-        buttonSetup.Enabled = False
+        menuSetup.Enabled = False
+        menuLogout.Enabled = False
         Me.AcceptButton = buttonLogin
         inputBarcode.Focus()
     End Sub

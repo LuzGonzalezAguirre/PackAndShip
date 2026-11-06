@@ -628,6 +628,12 @@ Public Class PalletScannerView
         cancelEmptyButton.Enabled = Not pending AndAlso openNow AndAlso
             activeContainer.PieceTotal = 0 AndAlso
             activeContainer.ClosedLevels = 0
+        confirmAgain.Enabled = levelButton.Enabled
+        confirmAgain.Visible = levelButton.Enabled
+        confirmAgain.Text = If(current IsNot Nothing AndAlso
+                               current.LevelNumber = activeContainer.Levels.Count,
+                               "Review final pallet completion",
+                               "Review packed level")
     End Sub
 
     Private Sub ReviewPendingSql(sender As Object, e As EventArgs)
@@ -707,9 +713,8 @@ Public Class PalletScannerView
                 If selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
                     Throw New InvalidOperationException("An active pallet configuration is required.")
                 End If
-                If MessageBox.Show("Create container " & code & " for " & part.Number & "?",
-                                   "Open container", MessageBoxButtons.YesNo,
-                                   MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+                ' Container scan + Enter is the operator's explicit open action.
+                ' No additional message box interrupts barcode scanning.
                 Dim createdId = PaSPackingData.OpenContainer(code, part.Id)
                 activeContainer = PaSPackingData.ReadContainer(createdId)
             Else
@@ -723,7 +728,9 @@ Public Class PalletScannerView
             End If
             ResetVerification()
             RefreshContainer()
-            scanStatus.Text = "Container " & code & " loaded."
+            scanStatus.ForeColor = Color.DarkGreen
+            scanStatus.Text = "Ready to scan SSI serial."
+            firstQr.Focus()
         Catch ex As Exception
             ShowPackingError(ex)
         End Try
@@ -756,8 +763,20 @@ Public Class PalletScannerView
             If(current Is Nothing, "No open level",
                "Level " & current.LevelNumber & ": " & current.ScannedPieces &
                " / " & current.RequiredPieces)
-        progressBar.Value = If(required > 0,
+        Dim percentage = If(required > 0,
             Math.Min(100, CInt(Math.Truncate(CDbl(actual) * 100.0 / required))), 0)
+        progressBar.Value = percentage
+        progressPercent.Text = percentage.ToString() & "%"
+        progressState.Text = If(activeContainer.Status <> "OPEN",
+                                activeContainer.Status,
+                                If(current Is Nothing, "READY FOR PALLET CLOSURE",
+                                   If(current.ScannedPieces = current.RequiredPieces,
+                                      "LEVEL FULL — CONFIRM TO CONTINUE",
+                                      "PACKING IN PROGRESS")))
+        progressState.ForeColor = If(current IsNot Nothing AndAlso
+                                     current.ScannedPieces = current.RequiredPieces,
+                                     Color.FromArgb(28, 113, 83), PaSTheme.Navy)
+        progressIcon.Text = If(activeContainer.Status = "OPEN", "▣", "✓")
         buildState.Text = "Container: " & activeContainer.Code & "  |  " & activeContainer.Status
         If activeContainer.Status <> "OPEN" Then
             StationSettings.UnlockPallet(activeContainer.Code)
@@ -786,6 +805,9 @@ Public Class PalletScannerView
         scannedList.Items.Clear()
         scannedList.Items.Add("No active pallet. Enter or scan the next container.")
         progressBar.Value = 0
+        progressPercent.Text = "0%"
+        progressState.Text = "READY FOR NEXT PALLET"
+        progressIcon.Text = "▣"
         If selectedConfiguration IsNot Nothing Then
             progressText.Text = "0 / " & selectedConfiguration.TotalPieces &
                 " pieces" & Environment.NewLine & "0 levels complete"
@@ -871,9 +893,47 @@ Public Class PalletScannerView
             scanStatus.ForeColor = Color.DarkGreen
             scanStatus.Text = "Piece recorded in level " & current.LevelNumber & "."
             firstQr.Focus()
+            If levelButton.Enabled Then PromptCompletedLevel()
         Catch ex As Exception
             ResetVerification()
             ShowPackingError(ex)
+        End Try
+    End Sub
+
+    Private Sub PromptCompletedLevel()
+        If autoConfirmVisible OrElse Not levelButton.Enabled OrElse
+           activeContainer Is Nothing Then Return
+        autoConfirmVisible = True
+        Try
+            ' Refresh SQL counts before showing physical packing confirmation.
+            RefreshContainer()
+            If Not levelButton.Enabled Then Return
+            Dim current = activeContainer.CurrentLevel
+            If current Is Nothing Then Return
+            Dim isLast = current.LevelNumber = activeContainer.Levels.Count
+            Using dialog As New PackingConfirmationForm(
+                activeContainer.Code, current.LevelNumber, activeContainer.Levels.Count,
+                current.RequiredPieces, isLast)
+                If dialog.ShowDialog(FindForm()) <> DialogResult.OK Then
+                    scanStatus.ForeColor = Color.FromArgb(149, 94, 13)
+                    scanStatus.Text = "Level is full. Confirm physical packing to continue."
+                    Return
+                End If
+            End Using
+            CloseLevel(Me, EventArgs.Empty)
+            If ConnectionRecovery.Pending() IsNot Nothing Then Return
+            If isLast AndAlso closePallet.Enabled Then
+                CompletePallet(Me, EventArgs.Empty)
+            ElseIf activeContainer IsNot Nothing AndAlso
+                   activeContainer.Status = "OPEN" Then
+                scanStatus.ForeColor = Color.DarkGreen
+                scanStatus.Text = "Level confirmed. Scan the next level."
+                firstQr.Focus()
+            End If
+        Catch ex As Exception
+            ShowPackingError(ex)
+        Finally
+            autoConfirmVisible = False
         End Try
     End Sub
 
@@ -882,9 +942,6 @@ Public Class PalletScannerView
         Try
             Dim current = activeContainer.CurrentLevel
             If current Is Nothing Then Return
-            If MessageBox.Show("Close level " & current.LevelNumber & " with " &
-                               current.RequiredPieces & " pieces?", "Close level",
-                               MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Return
             ConnectionRecovery.SaveBeforeSend("CLOSE_LEVEL", activeContainer.Id,
                 current.LevelNumber, "", "", SessionContext.UserId)
             PaSPackingData.CloseLevel(activeContainer.Id, current.LevelNumber)
@@ -900,9 +957,6 @@ Public Class PalletScannerView
     Private Sub CompletePallet(sender As Object, e As EventArgs)
         If Not closePallet.Enabled OrElse activeContainer Is Nothing Then Return
         Try
-            If MessageBox.Show("Complete container " & activeContainer.Code & "?",
-                               "Complete pallet", MessageBoxButtons.YesNo,
-                               MessageBoxIcon.Question) <> DialogResult.Yes Then Return
             ConnectionRecovery.SaveBeforeSend("CLOSE_PALLET", activeContainer.Id,
                 0, "", "", SessionContext.UserId)
             PaSPackingData.CloseContainer(activeContainer.Id)

@@ -17,19 +17,21 @@ Public NotInheritable Class PaSHistoryData
             " JOIN dbo.ssi_PaS_ContainerLevels cl ON cl.container_level_id=cp.container_level_id " &
             " WHERE cl.container_id=c.container_id) AS Packed, " &
             "creator.name AS CreatedBy, c.created_at AS CreatedAt, " &
-            "closer.name AS ClosedBy, c.closed_at AS ClosedAt " &
+            "closer.name AS ClosedBy, c.closed_at AS ClosedAt, " &
+            "pc.actual_pieces AS PartialPieces, pc.reason AS PartialReason " &
             "FROM dbo.ssi_PaS_Containers c " &
             "JOIN dbo.ssi_PaS_PalletConfigurations cfg ON cfg.configuration_id=c.configuration_id " &
             "JOIN dbo.ssi_PartNumbers pn ON pn.pn_id=cfg.pn_id " &
             "JOIN dbo.ssi_PaS_Users creator ON creator.user_id=c.created_by_user_id " &
             "LEFT JOIN dbo.ssi_PaS_Users closer ON closer.user_id=c.closed_by_user_id " &
+            "LEFT JOIN dbo.ssi_PaS_PartialClosures pc ON pc.container_id=c.container_id " &
             "JOIN dbo.ssi_PaS_ContainerLevels l ON l.container_id=c.container_id " &
             "WHERE (@code='' OR c.container_code LIKE '%' + @code + '%') " &
             "AND (@part='' OR pn.ssiPN LIKE '%' + @part + '%') " &
             "AND (@status='' OR c.status=@status) " &
             "AND c.created_at>=@fromDate AND c.created_at<@toDate " &
             "GROUP BY c.container_id,c.container_code,pn.ssiPN,c.status, " &
-            "creator.name,c.created_at,closer.name,c.closed_at " &
+            "creator.name,c.created_at,closer.name,c.closed_at,pc.actual_pieces,pc.reason " &
             "ORDER BY c.created_at DESC, c.container_id DESC"
         Using cn = PackAndShipData.CreateConnection()
             Using cmd As New SqlCommand(sql, cn)

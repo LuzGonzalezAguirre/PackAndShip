@@ -22,6 +22,7 @@ Public Class PalletScannerView
     Private ReadOnly ruleSummary As New Label()
     Private ReadOnly verifyButton As Button = PaSTheme.ActionButton("Verify QR format")
     Private ReadOnly openButton As Button = PaSTheme.ActionButton("Open / Load", False)
+    Private ReadOnly pendingButton As Button = PaSTheme.ActionButton("Review pending SQL", False)
     Private ReadOnly recordButton As Button = PaSTheme.ActionButton("Record piece")
     Private ReadOnly levelButton As Button = PaSTheme.ActionButton("Close level", False)
     Private ReadOnly partialButton As Button = PaSTheme.ActionButton("Partial pallet", False)
@@ -165,6 +166,11 @@ Public Class PalletScannerView
         openButton.Text = "Open / Load"
         AddHandler openButton.Click, AddressOf OpenOrLoadContainer
         mainPage.Controls.Add(openButton)
+        pendingButton.SetBounds(177, 119, 188, 32)
+        pendingButton.Text = "Review pending SQL"
+        pendingButton.Visible = False
+        AddHandler pendingButton.Click, AddressOf ReviewPendingSql
+        mainPage.Controls.Add(pendingButton)
 
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
         AddHandler containerInput.TextChanged, Sub()
@@ -545,13 +551,29 @@ Public Class PalletScannerView
         Dim openNow = activeContainer IsNot Nothing AndAlso activeContainer.Status = "OPEN"
         Dim current As PaSPackedLevel = Nothing
         If openNow Then current = activeContainer.CurrentLevel
-        Dim pending = ConnectionRecovery.Pending() IsNot Nothing
+        Dim pendingOp = ConnectionRecovery.Pending()
+        Dim pending = pendingOp IsNot Nothing
+        pendingButton.Visible = pending
+        If pending Then
+            pendingButton.Text = If(pendingOp.ReviewRequired,
+                                    "Review blocked SQL action", "Check pending SQL action")
+            pendingButton.Enabled = True
+            scanStatus.ForeColor = Color.DarkRed
+            scanStatus.Text = "Packing is blocked by pending SQL action: " &
+                pendingOp.Kind & " (Container ID " & pendingOp.ContainerId & "). " &
+                "Click Review pending SQL."
+        End If
         Dim lockedCode = StationSettings.ReadLockedPallet()
         Dim locked = openNow OrElse lockedCode <> ""
         containerInput.ReadOnly = locked
         partPicker.Enabled = Not locked
         openButton.Enabled = Not pending AndAlso Not openNow AndAlso lockedCode = ""
-        verifyButton.Enabled = verifyButton.Enabled AndAlso Not pending
+        Dim part = TryCast(partPicker.SelectedItem, PaSPart)
+        verifyButton.Enabled = Not pending AndAlso
+            palletFormat IsNot Nothing AndAlso palletFormat.IsValid(containerInput.Text) AndAlso
+            part IsNot Nothing AndAlso selectedConfiguration IsNot Nothing AndAlso
+            selectedConfiguration.IsActive AndAlso selectedRule IsNot Nothing AndAlso
+            (selectedRule.ScanCount = 1 OrElse selectedRule.ScanCount = 2)
         recordButton.Enabled = Not pending AndAlso openNow AndAlso current IsNot Nothing AndAlso
             verifiedSsi <> "" AndAlso verifiedClient <> "" AndAlso
             firstQr.Text.Trim() = verifiedSsi AndAlso
@@ -569,6 +591,58 @@ Public Class PalletScannerView
         cancelEmptyButton.Enabled = Not pending AndAlso openNow AndAlso
             activeContainer.PieceTotal = 0 AndAlso
             activeContainer.ClosedLevels = 0
+    End Sub
+
+    Private Sub ReviewPendingSql(sender As Object, e As EventArgs)
+        Try
+            Dim p = ConnectionRecovery.Pending()
+            If p Is Nothing Then
+                AfterRecovery()
+                Return
+            End If
+            Dim description = ConnectionRecovery.DescribePending()
+            Dim result = ConnectionRecovery.CheckAndRecover()
+            If ConnectionRecovery.Pending() Is Nothing Then
+                AfterRecovery(result)
+                MessageBox.Show(
+                    description & Environment.NewLine & Environment.NewLine &
+                    "CCS result: " & result & Environment.NewLine &
+                    "No pending action remains. Packing controls are available again.",
+                    "SQL action reconciled", MessageBoxButtons.OK,
+                    MessageBoxIcon.Information)
+                Return
+            End If
+            Dim current = ConnectionRecovery.Pending()
+            If current IsNot Nothing AndAlso current.ReviewRequired Then
+                If MessageBox.Show(
+                    description & Environment.NewLine & Environment.NewLine &
+                    "CCS does not contain this rejected operation. " &
+                    "Discard ONLY this rejected attempt (no pieces in CCS will be deleted)?" &
+                    Environment.NewLine &
+                    "If the piece still needs packing, scan and verify it again.",
+                    "SQL rejection requires acknowledgement",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) = DialogResult.Yes Then
+                    ConnectionRecovery.DismissRejectedAfterCheck()
+                    AfterRecovery()
+                    MessageBox.Show(
+                        "Rejected attempt cleared after CCS verification. " &
+                        "No SQL packing records were changed.",
+                        "Scanner unlocked", MessageBoxButtons.OK,
+                        MessageBoxIcon.Information)
+                End If
+            Else
+                MessageBox.Show(
+                    description & Environment.NewLine &
+                    "The operation is unresolved. The scanner stays locked.",
+                    "Waiting for SQL", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+        Catch ex As Exception
+            MessageBox.Show(
+                "Unable to reconcile the SQL operation. The scanner remains locked." &
+                Environment.NewLine & ex.Message,
+                "SQL reconciliation failed", MessageBoxButtons.OK,
+                MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub OpenOrLoadContainer(sender As Object, e As EventArgs)

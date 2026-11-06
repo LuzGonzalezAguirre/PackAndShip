@@ -100,8 +100,8 @@ Public Class PartialPalletAuthorizationForm
                 Throw New UnauthorizedAccessException("A second user must authorize the partial pallet.")
             End If
             Dim role = user.RoleName.Trim()
-            If String.Equals(role, "Operator", StringComparison.OrdinalIgnoreCase) OrElse
-               String.Equals(role, "Operador", StringComparison.OrdinalIgnoreCase) Then
+            If role.IndexOf("Operator", StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+               role.IndexOf("Operador", StringComparison.OrdinalIgnoreCase) >= 0 Then
                 Throw New UnauthorizedAccessException("Operators cannot authorize partial pallets.")
             End If
             _authorizedUserId = user.Id

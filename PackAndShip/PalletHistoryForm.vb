@@ -19,6 +19,7 @@ Public Class PalletHistoryForm
     Private ReadOnly levels As New DataGridView()
     Private ReadOnly audit As New DataGridView()
     Private ReadOnly packingReport As New DataGridView()
+    Private ReadOnly transfers As New DataGridView()
     Private ReadOnly summary As New Label With {.AutoSize = True}
     Private ReadOnly removeButton As New Button With {.Text = "Remove selected piece", .AutoSize = True}
     Private ReadOnly cancelButton As New Button With {.Text = "Cancel pallet", .AutoSize = True}
@@ -49,7 +50,7 @@ Public Class PalletHistoryForm
     End Sub
 
     Private Sub BuildLayout()
-        statusPicker.Items.AddRange(New Object() {"All", "OPEN", "CLOSED", "PARTIAL", "CANCELLED"})
+        statusPicker.Items.AddRange(New Object() {"All", "OPEN", "CLOSED", "PARTIAL", "TRANSFERRED", "CANCELLED"})
         statusPicker.SelectedIndex = 0
         fromPicker.Value = DateTime.Today.AddMonths(-3)
         toPicker.Value = DateTime.Today
@@ -92,13 +93,14 @@ Public Class PalletHistoryForm
         ConfigureGrid(levels)
         ConfigureGrid(audit)
         ConfigureGrid(packingReport)
+        ConfigureGrid(transfers)
         AddHandler grid.SelectionChanged, AddressOf SelectedPalletChanged
 
         Dim upper As New GroupBox With {.Text = "Pallets", .Dock = DockStyle.Fill, .Padding = New Padding(8)}
         upper.Controls.Add(grid)
 
-        Dim names = New String() {"Pieces and Q-Wall Inspection IDs", "Levels", "Audit history", "Packing report by model/operator/day"}
-        Dim detailGrids = New DataGridView() {pieces, levels, audit, packingReport}
+        Dim names = New String() {"Pieces and Q-Wall Inspection IDs", "Levels", "Audit history", "Packing report by model/operator/day", "Pallet transfers"}
+        Dim detailGrids = New DataGridView() {pieces, levels, audit, packingReport, transfers}
         For index As Integer = 0 To names.Length - 1
             Dim tab As New TabPage(names(index))
             Dim target As DataGridView = detailGrids(index)
@@ -130,6 +132,7 @@ Public Class PalletHistoryForm
             End If
             Dim status = If(statusPicker.SelectedIndex <= 0, "", statusPicker.Text)
             packingReport.DataSource = PaSHistoryData.PackingReport(fromPicker.Value, toPicker.Value)
+            transfers.DataSource = PaSHistoryData.ReadTransfers()
             Dim data = PaSHistoryData.SearchContainers(
                 searchCode.Text, searchModel.Text, status, fromPicker.Value, toPicker.Value)
             grid.DataSource = data

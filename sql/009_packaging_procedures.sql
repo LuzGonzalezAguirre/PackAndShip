@@ -181,12 +181,20 @@ BEGIN
            OR ISNULL(@inspection_result,0)<>1 OR ISNULL(@is_scrap,0)<>0
             THROW 51108, 'Latest Q-Wall inspection is not finished PASS.', 1;
 
-        -- Conservative policy: any flag on the latest inspection needs Quality review.
+        -- Confirmed Q-Wall policy: a flag is released when its record
+        -- contains authorized_by_user_id and authorized_at. Authorization
+        -- is stored on the flag, not necessarily on ssi_Inspections.
+        -- Past inspection flags do not automatically block a newer PASS.
+        -- Every flag belonging to the latest inspection must be authorized
+        -- and tied to this same Q-Wall product.
         IF EXISTS (
-            SELECT 1 FROM dbo.ssi_PieceFlagRecords
+            SELECT 1 FROM dbo.ssi_PieceFlagRecords WITH (HOLDLOCK)
             WHERE inspection_id=@inspection_id
+              AND (product_id<>@product_id
+                   OR authorized_by_user_id IS NULL
+                   OR authorized_at IS NULL)
         )
-            THROW 51109, 'Latest Q-Wall inspection contains a Quality flag.', 1;
+            THROW 51109, 'Latest Q-Wall inspection has a Quality flag without valid authorization.', 1;
 
         INSERT INTO dbo.ssi_PaS_ContainerPieces
             (container_level_id, product_id, verified_inspection_id, scanned_by_user_id)

@@ -14,15 +14,19 @@ Public Class Form1
     Private ReadOnly mainMenu As New MenuStrip()
     Private ReadOnly menuSetup As New ToolStripMenuItem("Setup")
     Private ReadOnly menuHistory As New ToolStripMenuItem("Pallet History")
-    Private ReadOnly menuOffline As New ToolStripMenuItem("Offline Packing")
     Private ReadOnly menuHelp As New ToolStripMenuItem("Ayuda")
     Private ReadOnly menuLogout As New ToolStripMenuItem("Cerrar sesión")
     Private ReadOnly appHeader As New Panel()
     Private ReadOnly loginPanel As New Panel()
     Private ReadOnly signedInPanel As New Panel()
     Private ReadOnly scannerView As New PalletScannerView()
-    Private ReadOnly offlineSyncTimer As New Timer With {.Interval = 30000}
-    Private offlineSyncBusy As Boolean
+    Private ReadOnly connectionTimer As New Timer With {.Interval = 5000}
+    Private ReadOnly connectionStatus As New StatusStrip()
+    Private ReadOnly connectionLabel As New ToolStripStatusLabel("CCS: checking connection")
+    Private connectionBusy As Boolean
+    Private connectionFailed As Boolean
+    Private connectionChecked As Boolean
+    Private failureCount As Integer
     Private units As New List(Of BusinessUnit)()
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -34,7 +38,7 @@ Public Class Form1
         Me.BackColor = backgroundColor
         Me.Font = New Font("Segoe UI", 11.0F)
         CreateLayout()
-        AddHandler offlineSyncTimer.Tick, AddressOf OfflineSyncTick
+        AddHandler connectionTimer.Tick, AddressOf ConnectionTimerTick
         ReloadCustomers()
         ResetLogin()
     End Sub
@@ -77,10 +81,9 @@ Public Class Form1
                                                          MessageBoxIcon.Information)
                                      End Sub
         AddHandler menuHistory.Click, AddressOf OpenPalletHistory
-        AddHandler menuOffline.Click, AddressOf OpenOfflinePacking
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu
 
-        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuOffline, menuHelp, menuLogout})
+        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuHelp, menuLogout})
         MainMenuStrip = mainMenu
 
         loginPanel.Dock = DockStyle.Fill
@@ -91,6 +94,10 @@ Public Class Form1
         Me.Controls.Add(loginPanel)
         Me.Controls.Add(signedInPanel)
         Me.Controls.Add(appHeader)
+        connectionStatus.Items.Add(connectionLabel)
+        connectionStatus.SizingGrip = False
+        connectionStatus.Dock = DockStyle.Bottom
+        Me.Controls.Add(connectionStatus)
         Me.Controls.Add(mainMenu)
     End Sub
 
@@ -262,7 +269,11 @@ Public Class Form1
 
             SetAuthenticatedLayout()
             scannerView.LoadStation()
-            offlineSyncTimer.Start()
+            connectionFailed = False
+            connectionChecked = False
+            failureCount = 0
+            connectionTimer.Interval = 5000
+            connectionTimer.Start()
             menuSetup.Enabled = SessionContext.CanModifySetup
             menuLogout.Enabled = True
             labelWelcome.Text = "Operator: " & user.Name & "  |  Role: " & user.RoleName &
@@ -279,31 +290,52 @@ Public Class Form1
         End Try
     End Sub
 
-    Private Async Sub OfflineSyncTick(sender As Object, e As EventArgs)
-        If offlineSyncBusy OrElse SessionContext.UserId <= 0 Then Return
-        offlineSyncBusy = True
+    ' Bounded exponential backoff: 5, 10, 20, 40, 80, 160, 300 s.
+    ' Probes run off the UI thread, never overlap, and only query CCS.
+    Private Async Sub ConnectionTimerTick(sender As Object, e As EventArgs)
+        If connectionBusy OrElse SessionContext.UserId <= 0 Then Return
+        connectionBusy = True
+        connectionTimer.Stop()
         Try
-            Await System.Threading.Tasks.Task.Run(Function() OfflineSynchronizer.SyncAll())
-        Catch
-            ' Connection lost or disk unavailable: queue remains on disk.
-            ' Open Offline Packing to view individual sync errors and retry.
+            Dim result = Await System.Threading.Tasks.Task.Run(
+                Function() ConnectionRecovery.CheckAndRecover())
+            Dim restored = connectionChecked AndAlso connectionFailed
+            connectionChecked = True
+            connectionFailed = False
+            failureCount = 0
+            connectionLabel.ForeColor = If(result.StartsWith("REVIEW REQUIRED"),
+                                           Color.DarkRed, Color.DarkGreen)
+            connectionLabel.Text = "CCS: CONNECTED | " & result
+            If result.StartsWith("RECOVERED") Then
+                scannerView.AfterRecovery()
+            ElseIf result = "CONNECTED" AndAlso restored Then
+                scannerView.AfterRecovery()
+            End If
+            If restored Then
+                MessageBox.Show("SQL Server connection restored." & Environment.NewLine &
+                                result, "PackAndShip connection",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information)
+            End If
+            connectionTimer.Interval = 30000
+        Catch ex As Exception
+            Dim sqlError = TryCast(ex, Microsoft.Data.SqlClient.SqlException)
+            If sqlError IsNot Nothing AndAlso
+               (sqlError.Number >= 50000 OrElse sqlError.Number = 2601 OrElse
+                sqlError.Number = 2627) Then
+                ConnectionRecovery.FlagReview(ex.Message)
+            End If
+            connectionChecked = True
+            connectionFailed = True
+            failureCount += 1
+            Dim seconds = CInt(Math.Min(300, 5 * Math.Pow(2, Math.Min(6, failureCount - 1))))
+            connectionTimer.Interval = seconds * 1000
+            connectionLabel.ForeColor = Color.DarkRed
+            connectionLabel.Text = "CCS: DISCONNECTED | Retry in " & seconds &
+                                   "s | " & If(ConnectionRecovery.Pending() Is Nothing,
+                                               "No pending SQL action", "Last action saved locally")
         Finally
-            offlineSyncBusy = False
-        End Try
-    End Sub
-
-    Private Sub OpenOfflinePacking(sender As Object, e As EventArgs)
-        If SessionContext.UserId <= 0 Then
-            MessageBox.Show("Sign in first.", "Access denied")
-            Return
-        End If
-        Using dialog As New OfflinePackingForm()
-            dialog.ShowDialog(Me)
-        End Using
-        Try
-            scannerView.RefreshAfterHistory()
-        Catch
-            ' Reconnect might not yet be available. Offline queue remains saved.
+            connectionBusy = False
+            If SessionContext.UserId > 0 Then connectionTimer.Start()
         End Try
     End Sub
 
@@ -509,8 +541,10 @@ Public Class Form1
     End Sub
 
     Private Sub ResetLogin()
-        offlineSyncTimer.Stop()
+        connectionTimer.Stop()
         SessionContext.Clear()
+        connectionLabel.Text = "CCS: signed out"
+        connectionLabel.ForeColor = Color.DimGray
         RefreshCustomer()
         inputBarcode.Clear()
         inputPassword.Clear()

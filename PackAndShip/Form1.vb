@@ -281,8 +281,12 @@ Public Class Form1
         Using dialog As New PalletHistoryForm()
             dialog.ShowDialog(Me)
         End Using
-        ' Corrections may have changed a previously loaded pallet.
-        scannerView.LoadStation()
+        ' Corrections may have changed the active pallet; do not clear model selection.
+        Try
+            scannerView.RefreshAfterHistory()
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Pallet refresh", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
     End Sub
 
     Private Sub OpenScanRules(sender As Object, e As EventArgs)

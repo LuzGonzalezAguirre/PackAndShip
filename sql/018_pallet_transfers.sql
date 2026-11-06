@@ -61,6 +61,9 @@ BEGIN TRY
             transfer_id BIGINT NOT NULL,
             container_piece_id BIGINT NOT NULL,
             product_id INT NOT NULL,
+            verified_inspection_id INT NOT NULL,
+            original_scanned_by_user_id INT NOT NULL,
+            original_scanned_at DATETIME2(3) NOT NULL,
             source_level_id INT NOT NULL,
             destination_level_id INT NOT NULL,
             CONSTRAINT PK_ssi_PaS_PalletTransferPieces
@@ -99,8 +102,9 @@ BEGIN
     DECLARE @source_closed_user INT,@source_closed_at DATETIME2(3);
     DECLARE @movement TABLE (
         piece_id BIGINT NOT NULL PRIMARY KEY, product_id INT NOT NULL,
-        inspection_id INT NOT NULL, from_level_id INT NOT NULL,
-        to_level_id INT NOT NULL
+        inspection_id INT NOT NULL, scanned_by_user_id INT NOT NULL,
+        scanned_at DATETIME2(3) NOT NULL,
+        from_level_id INT NOT NULL, to_level_id INT NOT NULL
     );
 
     BEGIN TRY
@@ -199,6 +203,7 @@ BEGIN
         -- Map pieces sequentially into the new pallet's level snapshot.
         ;WITH SourceOrdered AS (
             SELECT cp.container_piece_id,cp.product_id,cp.verified_inspection_id,
+                   cp.scanned_by_user_id,cp.scanned_at,
                    cp.container_level_id AS source_level_id,
                    ROW_NUMBER() OVER(ORDER BY sl.level_number,cp.scanned_at,cp.container_piece_id) AS rn
             FROM dbo.ssi_PaS_ContainerPieces cp
@@ -212,9 +217,10 @@ BEGIN
             FROM dbo.ssi_PaS_ContainerLevels
             WHERE container_id=@destination_id
         )
-        INSERT @movement(piece_id,product_id,inspection_id,from_level_id,to_level_id)
+        INSERT @movement(piece_id,product_id,inspection_id,scanned_by_user_id,scanned_at,
+                         from_level_id,to_level_id)
         SELECT s.container_piece_id,s.product_id,s.verified_inspection_id,
-               s.source_level_id,d.container_level_id
+               s.scanned_by_user_id,s.scanned_at,s.source_level_id,d.container_level_id
         FROM SourceOrdered s
         JOIN DestLevels d ON s.rn > d.end_piece-d.required_pieces AND s.rn<=d.end_piece;
 
@@ -227,8 +233,11 @@ BEGIN
         SET @transfer_id=CONVERT(BIGINT,SCOPE_IDENTITY());
 
         INSERT dbo.ssi_PaS_PalletTransferPieces
-            (transfer_id,container_piece_id,product_id,source_level_id,destination_level_id)
-        SELECT @transfer_id,piece_id,product_id,from_level_id,to_level_id
+            (transfer_id,container_piece_id,product_id,verified_inspection_id,
+             original_scanned_by_user_id,original_scanned_at,
+             source_level_id,destination_level_id)
+        SELECT @transfer_id,piece_id,product_id,inspection_id,scanned_by_user_id,
+               scanned_at,from_level_id,to_level_id
         FROM @movement;
 
         UPDATE cp SET container_level_id=m.to_level_id

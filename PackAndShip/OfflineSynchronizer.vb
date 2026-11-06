@@ -49,25 +49,25 @@ Public NotInheritable Class OfflineSynchronizer
 
         Dim containerId As Integer = p.ServerId
         If containerId = 0 Then
-            ' If this code was created online, or a previous Open committed
-            ' but its acknowledgement was lost, do not merge blindly.
-            Dim existing = PaSPackingData.FindContainer(p.Code)
-            If existing IsNot Nothing Then
-                Throw New InvalidOperationException(
-                    "Container code already exists in CCS. Manual reconciliation required: " & p.Code)
-            End If
-            Try
-                containerId = OpenForActor(p)
-            Catch
-                ' No automatic retry as OPEN may have committed before the
-                ' connection dropped. Leave for a human to reconcile safely.
-                Throw
-            End Try
+            ' Atomic SQL mapping by GUID makes retry safe after response loss.
+            ' A pre-existing unrelated pallet code is rejected by SQL.
+            containerId = OpenForActor(p)
             OfflineStore.UpdateSync(id, Sub(x)
                 x.ServerId = containerId
                 x.SyncStatus = "UPLOADING"
                 x.SyncError = ""
             End Sub)
+        End If
+
+        ' Cached pallet layouts are authoritative for offline scans; if Setup
+        ' changed before upload, block instead of misplacing any pieces.
+        Dim initial = PaSPackingData.ReadContainer(containerId)
+        If initial Is Nothing OrElse initial.PartId <> p.PartId OrElse initial.Code <> p.Code OrElse
+           initial.Levels.Count <> p.Levels.Count OrElse
+           Not initial.Levels.OrderBy(Function(x) x.LevelNumber).
+               Select(Function(x) x.RequiredPieces).SequenceEqual(p.Levels) Then
+            Throw New InvalidOperationException(
+                "Pallet model or levels differ from offline snapshot. Manual review required.")
         End If
 
         For i As Integer = 0 To p.Pieces.Count - 1
@@ -126,8 +126,9 @@ Public NotInheritable Class OfflineSynchronizer
 
     Private Shared Function OpenForActor(p As OfflinePallet) As Integer
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_OpenContainer", cn)
+            Using cmd As New SqlCommand("dbo.ssi_PaS_OfflineOpen", cn)
                 cmd.CommandType = CommandType.StoredProcedure
+                cmd.Parameters.Add("@local_id", SqlDbType.Char, 32).Value = p.LocalId
                 cmd.Parameters.Add("@container_code", SqlDbType.VarChar, 18).Value = p.Code
                 cmd.Parameters.Add("@pn_id", SqlDbType.Int).Value = p.PartId
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = p.ActorUserId

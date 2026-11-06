@@ -24,6 +24,7 @@ Public Class PalletScannerView
     Private ReadOnly openButton As Button = PaSTheme.ActionButton("Open / Load", False)
     Private ReadOnly recordButton As Button = PaSTheme.ActionButton("Record piece")
     Private ReadOnly levelButton As Button = PaSTheme.ActionButton("Close level", False)
+    Private ReadOnly partialButton As Button = PaSTheme.ActionButton("Partial pallet", False)
     Private activeContainer As PaSPackedContainer
     Private verifiedSsi As String = ""
     Private verifiedClient As String = ""
@@ -166,7 +167,10 @@ Public Class PalletScannerView
 
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
         AddHandler containerInput.TextChanged, Sub()
+                                                  ' An OPEN pallet stays selected until completed or
+                                                  ' closed with authorized partial approval.
                                                   If activeContainer IsNot Nothing AndAlso
+                                                     activeContainer.Status <> "OPEN" AndAlso
                                                      Not String.Equals(activeContainer.Code, containerInput.Text.Trim(),
                                                                        StringComparison.OrdinalIgnoreCase) Then
                                                       activeContainer = Nothing
@@ -266,7 +270,7 @@ Public Class PalletScannerView
         scannedList.Enabled = False
         piecesArea.Controls.Add(scannedList)
 
-        progressArea = Card("PALLET PROGRESS", bodyRight, 0, 0, 372, 278)
+        progressArea = Card("PALLET PROGRESS", bodyRight, 0, 0, 372, 322)
         progressText.SetBounds(18, 53, 326, 115)
         progressText.Font = New Font("Segoe UI", 11)
         progressText.ForeColor = PaSTheme.TextPrimary
@@ -286,16 +290,21 @@ Public Class PalletScannerView
         closePallet.Enabled = False
         AddHandler closePallet.Click, AddressOf CompletePallet
         progressArea.Controls.Add(closePallet)
+        partialButton.SetBounds(18, 277, 334, 36)
+        partialButton.Text = "Partial pallet (authorization)"
+        partialButton.Enabled = False
+        AddHandler partialButton.Click, AddressOf ClosePartialPallet
+        progressArea.Controls.Add(partialButton)
 
-        validationArea = Card("VALIDATION RULES", bodyRight, 0, 294, 372, 391)
+        validationArea = Card("VALIDATION RULES", bodyRight, 0, 338, 372, 347)
         ruleSummary.SetBounds(18, 54, 334, 163)
         ruleSummary.Font = New Font("Segoe UI", 10)
         validationArea.Controls.Add(ruleSummary)
         Dim warning As New Label With {
             .Text = "SQL VALIDATION ACTIVE" & Environment.NewLine &
                     "Packing actions use transactional SQL validation for PASS, duplicates, level quantities and container closure.",
-            .Location = New Point(18, 246),
-            .Size = New Size(334, 124),
+            .Location = New Point(18, 207),
+            .Size = New Size(334, 120),
             .Font = New Font("Segoe UI", 9, FontStyle.Bold),
             .ForeColor = Color.DarkRed,
             .BackColor = Color.FromArgb(255, 246, 245),
@@ -350,6 +359,7 @@ Public Class PalletScannerView
         progressBar.Width = rightWidth - 38
         closePallet.Width = rightWidth - 38
         levelButton.Width = rightWidth - 38
+        partialButton.Width = rightWidth - 38
         ruleSummary.Width = rightWidth - 38
     End Sub
 
@@ -385,6 +395,33 @@ Public Class PalletScannerView
             secondQr.Clear()
             ConfigureScanMode()
             UpdateScannerAvailability()
+
+            ' Restore the workstation's active pallet after logout/restart.
+            Dim lockedCode = StationSettings.ReadLockedPallet()
+            If lockedCode <> "" Then
+                Dim saved = PaSPackingData.FindContainer(lockedCode)
+                If saved Is Nothing Then
+                    Throw New InvalidOperationException(
+                        "Workstation is locked to pallet " & lockedCode &
+                        ", but CCS cannot find it. IT review is required.")
+                End If
+                If saved.Status = "OPEN" Then
+                    Dim model = parts.FirstOrDefault(Function(x) x.Id = saved.PartId)
+                    If model Is Nothing Then
+                        Throw New InvalidOperationException(
+                            "Open pallet " & lockedCode &
+                            " belongs to another customer/model. Finish it before changing station setup.")
+                    End If
+                    partPicker.SelectedItem = model
+                    containerInput.Text = lockedCode
+                    activeContainer = saved
+                    RefreshContainer()
+                    scanStatus.Text = "Resumed locked pallet " & lockedCode &
+                                      ". Finish or authorize partial closure before switching."
+                Else
+                    StationSettings.UnlockPallet(lockedCode)
+                End If
+            End If
             containerInput.Focus()
         Catch ex As Exception
             verifyButton.Enabled = False
@@ -502,7 +539,11 @@ Public Class PalletScannerView
         Dim current As PaSPackedLevel = Nothing
         If openNow Then current = activeContainer.CurrentLevel
         Dim pending = ConnectionRecovery.Pending() IsNot Nothing
-        openButton.Enabled = Not pending
+        Dim lockedCode = StationSettings.ReadLockedPallet()
+        Dim locked = openNow OrElse lockedCode <> ""
+        containerInput.ReadOnly = locked
+        partPicker.Enabled = Not locked
+        openButton.Enabled = Not pending AndAlso Not openNow AndAlso lockedCode = ""
         verifyButton.Enabled = verifyButton.Enabled AndAlso Not pending
         recordButton.Enabled = Not pending AndAlso openNow AndAlso current IsNot Nothing AndAlso
             verifiedSsi <> "" AndAlso verifiedClient <> "" AndAlso
@@ -515,6 +556,9 @@ Public Class PalletScannerView
             activeContainer.Levels.Count > 0 AndAlso
             activeContainer.Levels.All(Function(l) l.Status = "CLOSED" AndAlso
                                       l.ScannedPieces = l.RequiredPieces)
+        partialButton.Enabled = Not pending AndAlso openNow AndAlso
+            activeContainer.PieceTotal > 0 AndAlso
+            activeContainer.PieceTotal < activeContainer.RequiredTotal
     End Sub
 
     Private Sub OpenOrLoadContainer(sender As Object, e As EventArgs)
@@ -522,6 +566,17 @@ Public Class PalletScannerView
             Dim part = TryCast(partPicker.SelectedItem, PaSPart)
             If part Is Nothing Then Throw New InvalidOperationException("Select a model.")
             Dim code = containerInput.Text.Trim().ToUpperInvariant()
+            Dim lockedCode = StationSettings.ReadLockedPallet()
+            If lockedCode <> "" AndAlso Not String.Equals(code, lockedCode,
+                                                          StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException(
+                    "Finish pallet " & lockedCode & " before opening a different pallet.")
+            End If
+            If activeContainer IsNot Nothing AndAlso activeContainer.Status = "OPEN" AndAlso
+               Not String.Equals(activeContainer.Code, code, StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException(
+                    "Complete or partially close the current pallet before switching.")
+            End If
             If Not PalletIdSettings.Load().IsValid(code) Then
                 Throw New InvalidOperationException("Container format does not match General Settings.")
             End If
@@ -541,6 +596,9 @@ Public Class PalletScannerView
                     Throw New InvalidOperationException("Container belongs to another model.")
                 End If
                 activeContainer = existing
+            End If
+            If activeContainer.Status = "OPEN" Then
+                StationSettings.LockPallet(code)
             End If
             ResetVerification()
             RefreshContainer()
@@ -575,6 +633,9 @@ Public Class PalletScannerView
         progressBar.Value = If(required > 0,
             Math.Min(100, CInt(Math.Truncate(CDbl(actual) * 100.0 / required))), 0)
         buildState.Text = "Container: " & activeContainer.Code & "  |  " & activeContainer.Status
+        If activeContainer.Status <> "OPEN" Then
+            StationSettings.UnlockPallet(activeContainer.Code)
+        End If
         scannedList.Items.Clear()
         If activeContainer.Pieces.Count = 0 Then
             scannedList.Items.Add("No pieces recorded.")
@@ -658,6 +719,52 @@ Public Class PalletScannerView
             RefreshContainer()
             scanStatus.ForeColor = Color.DarkGreen
             scanStatus.Text = "Pallet completed."
+        Catch ex As Exception
+            ShowPackingError(ex)
+        End Try
+    End Sub
+
+    Private Sub ClosePartialPallet(sender As Object, e As EventArgs)
+        If Not partialButton.Enabled OrElse activeContainer Is Nothing Then Return
+        Try
+            ' Refresh from CCS immediately before requesting approval.
+            RefreshContainer()
+            If activeContainer.Status <> "OPEN" OrElse activeContainer.PieceTotal <= 0 OrElse
+               activeContainer.PieceTotal >= activeContainer.RequiredTotal Then
+                Throw New InvalidOperationException("Partial close requires a nonempty, incomplete OPEN pallet.")
+            End If
+            Using authorization As New PartialPalletAuthorizationForm(
+                activeContainer.Code, activeContainer.PieceTotal, activeContainer.RequiredTotal)
+                If authorization.ShowDialog(FindForm()) <> DialogResult.OK Then Return
+                If MessageBox.Show(
+                    "Close pallet " & activeContainer.Code & " as PARTIAL with " &
+                    activeContainer.PieceTotal & " of " & activeContainer.RequiredTotal &
+                    " pieces? This cannot be reopened.", "Confirm partial pallet",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
+
+                ' Only the operation identity is persisted; credentials are
+                ' never stored locally or replayed after a network outage.
+                ConnectionRecovery.SaveBeforeSend(
+                    "CLOSE_PARTIAL", activeContainer.Id, 0, "", "", SessionContext.UserId)
+                Try
+                    PaSPackingData.ClosePartialContainer(
+                        activeContainer.Id, authorization.AuthorizedUserId,
+                        authorization.AuthorizedBarcode, authorization.AuthorizedPassword,
+                        authorization.Reason)
+                    ConnectionRecovery.MarkDelivered()
+                Catch ex As Microsoft.Data.SqlClient.SqlException
+                    If ex.Number >= 50000 OrElse ex.Number = 2601 OrElse ex.Number = 2627 Then
+                        ' SQL rejected it transactionally: credentials/reason/etc.
+                        ' Retrying requires a fresh explicit approval.
+                        ConnectionRecovery.MarkDelivered()
+                    End If
+                    Throw
+                End Try
+            End Using
+            ResetVerification()
+            RefreshContainer()
+            scanStatus.ForeColor = Color.DarkGreen
+            scanStatus.Text = "Partial pallet closed and authorized. You may start another pallet."
         Catch ex As Exception
             ShowPackingError(ex)
         End Try

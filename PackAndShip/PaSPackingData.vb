@@ -174,6 +174,23 @@ Public NotInheritable Class PaSPackingData
         End Using
     End Sub
 
+    Public Shared Sub ClosePartialContainer(containerId As Integer,
+                                             authorizedBy As Integer, barcode As String,
+                                             password As String, reason As String)
+        Using cn = PackAndShipData.CreateConnection()
+            Using cmd As New SqlCommand("dbo.ssi_PaS_ClosePartialContainer", cn)
+                cmd.CommandType = CommandType.StoredProcedure
+                cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
+                cmd.Parameters.Add("@packing_user_id", SqlDbType.Int).Value = SessionContext.UserId
+                cmd.Parameters.Add("@authorized_by_user_id", SqlDbType.Int).Value = authorizedBy
+                cmd.Parameters.Add("@authorized_barcode", SqlDbType.VarChar, 50).Value = barcode
+                cmd.Parameters.Add("@authorized_password", SqlDbType.VarChar, 50).Value = password
+                cmd.Parameters.Add("@reason", SqlDbType.NVarChar, 500).Value = reason
+                cmd.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
     Public Shared Sub CloseContainer(containerId As Integer)
         Using cn = PackAndShipData.CreateConnection()
             Using cmd As New SqlCommand("dbo.ssi_PaS_CloseContainer", cn)

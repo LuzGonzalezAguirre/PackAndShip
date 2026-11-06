@@ -105,6 +105,67 @@ Public NotInheritable Class OfflineStore
         End SyncLock
     End Sub
 
+    ' Snapshot a live OPEN pallet after a successful SQL read. Allows an
+    ' interrupted pallet to be completed offline without creating a new code.
+    ' Never overwrite locally pending work with an older SQL snapshot.
+    Public Shared Sub CaptureOnlineContainer(container As PaSPackedContainer,
+                                             actorId As Integer)
+        If container Is Nothing OrElse container.Code = "" OrElse actorId <= 0 Then Return
+        SyncLock gate
+            Dim db = ReadUnsafe()
+            Dim known = db.Pallets.FirstOrDefault(
+                Function(x) String.Equals(x.Code, container.Code, StringComparison.OrdinalIgnoreCase))
+            If known IsNot Nothing Then
+                If known.Pieces.Any(Function(x) Not x.Uploaded) OrElse
+                   known.Completed AndAlso known.SyncStatus <> "SYNCED" Then
+                    Return
+                End If
+            End If
+            If container.Status = "CLOSED" Then
+                If known IsNot Nothing AndAlso known.ServerId = container.Id Then
+                    known.Completed = True
+                    known.ClosedLevels = known.Levels.Count
+                    known.SyncStatus = "SYNCED"
+                    known.SyncError = ""
+                    WriteUnsafe(db)
+                End If
+                Return
+            End If
+            If container.Status <> "OPEN" Then Return
+            Dim levels = container.Levels.OrderBy(Function(x) x.LevelNumber).ToList()
+            If levels.Count = 0 OrElse
+               levels.Select(Function(x) x.LevelNumber).SequenceEqual(
+                   Enumerable.Range(1, levels.Count)) = False Then Return
+            Dim closed = levels.TakeWhile(Function(x) x.Status = "CLOSED").Count()
+            If levels.Skip(closed).Any(Function(x) x.Status <> "OPEN") Then Return
+            Dim p As OfflinePallet = known
+            If p Is Nothing Then
+                p = New OfflinePallet With {
+                    .Code = container.Code,
+                    .PartId = container.PartId,
+                    .Model = db.Models.Where(Function(x) x.Part.Id = container.PartId).
+                        Select(Function(x) x.Part.Number).FirstOrDefault(),
+                    .ActorUserId = actorId
+                }
+                db.Pallets.Add(p)
+            ElseIf p.ServerId <> 0 AndAlso p.ServerId <> container.Id Then
+                Return
+            End If
+            p.ServerId = container.Id
+            p.Levels = levels.Select(Function(x) x.RequiredPieces).ToList()
+            p.ClosedLevels = closed
+            p.Pieces = container.Pieces.Select(Function(x) New OfflinePiece With {
+                .SsiCode = x.SsiCode, .ClientCode = x.ClientCode,
+                .LevelNumber = x.LevelNumber, .ActorUserId = actorId,
+                .RecordedAtUtc = x.ScannedAt, .Uploaded = True
+            }).ToList()
+            p.Completed = False
+            p.SyncStatus = "PENDING"
+            p.SyncError = ""
+            WriteUnsafe(db)
+        End SyncLock
+    End Sub
+
     Public Shared Function CreatePallet(code As String, model As OfflinePartSnapshot,
                                         actor As Integer) As OfflinePallet
         If actor <= 0 Then Throw New UnauthorizedAccessException("Sign in before offline work.")

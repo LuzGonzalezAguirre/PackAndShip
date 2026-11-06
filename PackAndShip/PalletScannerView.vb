@@ -359,6 +359,7 @@ Public Class PalletScannerView
         clockValue.Text = DateTime.Now.ToString("dd/MM/yyyy  HH:mm:ss")
         Try
             palletFormat = PalletIdSettings.Load()
+            OfflineStore.CacheFormat(palletFormat)
             parts = PalletConfigurationData.GetParts().
                 Where(Function(p) p.BusinessUnitId.HasValue AndAlso
                        p.BusinessUnitId.Value = SessionContext.BusinessUnitId).
@@ -413,6 +414,9 @@ Public Class PalletScannerView
             If selectedRule IsNot Nothing Then
                 selectedFields = ScanRulesData.ReadFields(selectedRule.Id)
             End If
+            ' Save the exact approved model/levels/scan rules while connected.
+            ' Offline work must use this snapshot, not invented defaults.
+            OfflineStore.CacheModel(part, selectedConfiguration, selectedRule, selectedFields)
             If selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
                 activePartTitle.Text = part.DisplayName
                 buildState.Text = "Pallet configuration missing or inactive"

@@ -13,6 +13,7 @@ Public Class Form1
     Private ReadOnly buttonLogout As New Button()
     Private ReadOnly mainMenu As New MenuStrip()
     Private ReadOnly menuSetup As New ToolStripMenuItem("Setup")
+    Private ReadOnly menuHistory As New ToolStripMenuItem("Pallet History")
     Private ReadOnly menuHelp As New ToolStripMenuItem("Ayuda")
     Private ReadOnly menuLogout As New ToolStripMenuItem("Cerrar sesión")
     Private ReadOnly appHeader As New Panel()
@@ -71,9 +72,10 @@ Public Class Form1
                                                          "About", MessageBoxButtons.OK,
                                                          MessageBoxIcon.Information)
                                      End Sub
+        AddHandler menuHistory.Click, AddressOf OpenPalletHistory
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu
 
-        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHelp, menuLogout})
+        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuHelp, menuLogout})
         MainMenuStrip = mainMenu
 
         loginPanel.Dock = DockStyle.Fill
@@ -269,6 +271,18 @@ Public Class Form1
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    Private Sub OpenPalletHistory(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 Then
+            MessageBox.Show("Sign in to view pallet history.", "Access denied")
+            Return
+        End If
+        Using dialog As New PalletHistoryForm()
+            dialog.ShowDialog(Me)
+        End Using
+        ' Corrections may have changed a previously loaded pallet.
+        scannerView.LoadStation()
     End Sub
 
     Private Sub OpenScanRules(sender As Object, e As EventArgs)

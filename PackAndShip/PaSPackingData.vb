@@ -53,6 +53,24 @@ Public NotInheritable Class PaSPackingData
     Private Sub New()
     End Sub
 
+    Public Shared Function TransferPartial(sourceCode As String,
+                                            destinationCode As String) As Integer
+        Using cn = PackAndShipData.CreateConnection()
+            Using cmd As New SqlCommand("dbo.ssi_PaS_TransferPartialPallet", cn)
+                cmd.CommandType = CommandType.StoredProcedure
+                cmd.Parameters.Add("@source_code", SqlDbType.VarChar, 18).Value = sourceCode.Trim()
+                cmd.Parameters.Add("@destination_code", SqlDbType.VarChar, 18).Value = destinationCode.Trim()
+                cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
+                Using reader = cmd.ExecuteReader()
+                    If Not reader.Read() Then
+                        Throw New InvalidOperationException("SQL did not confirm the pallet transfer.")
+                    End If
+                    Return Convert.ToInt32(reader("destination_container_id"))
+                End Using
+            End Using
+        End Using
+    End Function
+
     Public Shared Function OpenContainer(code As String, partId As Integer) As Integer
         Using cn = PackAndShipData.CreateConnection()
             Using cmd As New SqlCommand("dbo.ssi_PaS_OpenContainer", cn)

@@ -71,6 +71,8 @@ CREATE OR ALTER PROCEDURE dbo.ssi_PaS_ClosePartialContainer
     @container_id INT,
     @packing_user_id INT,
     @authorized_by_user_id INT,
+    @authorized_barcode VARCHAR(50),
+    @authorized_password VARCHAR(50),
     @reason NVARCHAR(500)
 AS
 BEGIN
@@ -89,8 +91,10 @@ BEGIN
             SELECT 1 FROM dbo.ssi_PaS_Users u
             INNER JOIN dbo.ssi_PaS_Roles r ON r.role_id=u.role_id
             WHERE u.user_id=@authorized_by_user_id AND u.is_active=1
+              AND u.barcode_id=@authorized_barcode
+              AND u.password_hash=HASHBYTES('SHA2_256',CAST(@authorized_password AS VARCHAR(50)))
               AND LOWER(LTRIM(RTRIM(r.role_name))) NOT IN ('operator','operador')
-        ) THROW 51703,'A non-Operator role must authorize this partial pallet.',1;
+        ) THROW 51703,'Invalid authorizer credentials or Operator role is not permitted.',1;
         IF LEN(@note)<10 THROW 51704,'Provide a reason of at least 10 characters.',1;
 
         IF NOT EXISTS (

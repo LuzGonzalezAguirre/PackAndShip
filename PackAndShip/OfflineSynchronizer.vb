@@ -132,7 +132,13 @@ Public NotInheritable Class OfflineSynchronizer
                 cmd.Parameters.Add("@container_code", SqlDbType.VarChar, 18).Value = p.Code
                 cmd.Parameters.Add("@pn_id", SqlDbType.Int).Value = p.PartId
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = p.ActorUserId
-                Return Convert.ToInt32(cmd.ExecuteScalar())
+                Dim serverId = cmd.Parameters.Add("@server_container_id", SqlDbType.Int)
+                serverId.Direction = ParameterDirection.Output
+                cmd.ExecuteNonQuery()
+                If serverId.Value Is Nothing OrElse serverId.Value Is DBNull.Value Then
+                    Throw New InvalidOperationException("Server did not confirm offline pallet creation.")
+                End If
+                Return Convert.ToInt32(serverId.Value)
             End Using
         End Using
     End Function

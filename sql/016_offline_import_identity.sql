@@ -27,7 +27,8 @@ CREATE OR ALTER PROCEDURE dbo.ssi_PaS_OfflineOpen
     @local_id CHAR(32),
     @container_code VARCHAR(18),
     @pn_id INT,
-    @actor_user_id INT
+    @actor_user_id INT,
+    @server_container_id INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -57,6 +58,7 @@ BEGIN
         BEGIN
             IF @existing_code<>@container_code OR @existing_part<>@pn_id
                 THROW 51603,'Offline ID was previously associated with another pallet.',1;
+            SET @server_container_id=@existing_id;
             COMMIT TRANSACTION;
             SELECT @existing_id AS container_id;
             RETURN;
@@ -80,6 +82,7 @@ BEGIN
         INSERT dbo.ssi_PaS_OfflineImports(local_id,container_id,created_by_user_id)
         VALUES(@local_id,@existing_id,@actor_user_id);
 
+        SET @server_container_id=@existing_id;
         COMMIT TRANSACTION;
         SELECT @existing_id AS container_id;
     END TRY

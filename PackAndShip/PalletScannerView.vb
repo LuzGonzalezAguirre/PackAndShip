@@ -648,7 +648,7 @@ Public Class PalletScannerView
         UpdatePackingButtons()
     End Sub
 
-    Public Sub AfterRecovery()
+    Public Sub AfterRecovery(Optional recoveryResult As String = "")
         ResetVerification()
         Try
             If activeContainer IsNot Nothing Then RefreshContainer()
@@ -657,8 +657,13 @@ Public Class PalletScannerView
             Return
         End Try
         UpdateScannerAvailability()
-        scanStatus.ForeColor = Color.DarkGreen
-        scanStatus.Text = "Connection restored. Pending SQL action reconciled."
+        If recoveryResult.StartsWith("NOT CLOSED", StringComparison.OrdinalIgnoreCase) Then
+            scanStatus.ForeColor = Color.DarkRed
+            scanStatus.Text = "Partial pallet was not closed. Request authorization again."
+        Else
+            scanStatus.ForeColor = Color.DarkGreen
+            scanStatus.Text = "Connection restored. Pending SQL action reconciled."
+        End If
     End Sub
 
     Private Sub RecordPiece(sender As Object, e As EventArgs)

@@ -49,7 +49,7 @@ Public Class PalletHistoryForm
     End Sub
 
     Private Sub BuildLayout()
-        statusPicker.Items.AddRange(New Object() {"All", "OPEN", "CLOSED", "CANCELLED"})
+        statusPicker.Items.AddRange(New Object() {"All", "OPEN", "CLOSED", "PARTIAL", "CANCELLED"})
         statusPicker.SelectedIndex = 0
         fromPicker.Value = DateTime.Today.AddMonths(-3)
         toPicker.Value = DateTime.Today

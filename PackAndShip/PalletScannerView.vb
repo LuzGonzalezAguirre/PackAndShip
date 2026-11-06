@@ -730,7 +730,10 @@ Public Class PalletScannerView
             Return
         End Try
         UpdateScannerAvailability()
-        If recoveryResult.StartsWith("NOT CLOSED", StringComparison.OrdinalIgnoreCase) Then
+        If recoveryResult.StartsWith("NOT CANCELLED", StringComparison.OrdinalIgnoreCase) Then
+            scanStatus.ForeColor = Color.DarkRed
+            scanStatus.Text = "Empty pallet was not cancelled. Request authorization again."
+        ElseIf recoveryResult.StartsWith("NOT CLOSED", StringComparison.OrdinalIgnoreCase) Then
             scanStatus.ForeColor = Color.DarkRed
             scanStatus.Text = "Partial pallet was not closed. Request authorization again."
         Else

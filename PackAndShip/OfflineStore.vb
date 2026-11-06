@@ -209,7 +209,7 @@ Public NotInheritable Class OfflineStore
                 Throw New InvalidOperationException("This serial is already present in the local offline queue.")
             End If
             Dim level = p.ClosedLevels + 1
-            If p.Pieces.Count(Function(x) x.LevelNumber = level) >= p.Levels(level - 1) Then
+            If p.Pieces.Where(Function(x) x.LevelNumber = level).Count() >= p.Levels(level - 1) Then
                 Throw New InvalidOperationException("Close the full level before adding another piece.")
             End If
             p.Pieces.Add(New OfflinePiece With {
@@ -229,7 +229,7 @@ Public NotInheritable Class OfflineStore
                 Throw New InvalidOperationException("There is no open level.")
             End If
             Dim level = p.ClosedLevels + 1
-            If p.Pieces.Count(Function(x) x.LevelNumber = level) <> p.Levels(level - 1) Then
+            If p.Pieces.Where(Function(x) x.LevelNumber = level).Count() <> p.Levels(level - 1) Then
                 Throw New InvalidOperationException("Level must have its exact required quantity.")
             End If
             p.ClosedLevels += 1

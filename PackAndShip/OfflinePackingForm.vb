@@ -54,7 +54,7 @@ Public Class OfflinePackingForm
             x.Part.BusinessUnitId.Value = SessionContext.BusinessUnitId).
             OrderBy(Function(x) x.Part.Number).ToList()
         modelPicker.DataSource = modelChoices
-        modelPicker.DisplayMember = "Model"
+        modelPicker.DisplayMember = "Part"
         AddHandler modelPicker.Format, Sub(sender, e)
             Dim item = TryCast(e.ListItem, OfflinePartSnapshot)
             If item IsNot Nothing Then e.Value = item.Part.DisplayName

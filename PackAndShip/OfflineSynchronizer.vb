@@ -18,6 +18,7 @@ Public NotInheritable Class OfflineSynchronizer
             Dim outstanding = OfflineStore.Snapshot().Pallets.
                 Where(Function(p) p.SyncStatus <> "SYNCED").ToList()
             For Each pending In outstanding
+                If Not pending.Completed Then Continue For
                 Try
                     SyncOne(pending.LocalId)
                     ok += 1

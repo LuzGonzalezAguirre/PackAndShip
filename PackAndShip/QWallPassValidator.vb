@@ -2,7 +2,7 @@ Imports System.Data
 Imports Microsoft.Data.SqlClient
 
 ' Read-only Q-Wall verification: no product or inspection is created here.
-' Production packing remains locked until unique-container persistence is built.
+' Packing authorization is rechecked transactionally by ssi_PaS_AddPiece.
 Public NotInheritable Class QWallPassResult
     Public Property Verified As Boolean
     Public Property Message As String = ""
@@ -73,21 +73,36 @@ Public NotInheritable Class QWallPassValidator
             If scrap Then Return Refused("The latest Q-Wall inspection marks this piece as scrap.")
             If Not passed Then Return Refused("The latest Q-Wall inspection is not PASS.")
 
-            ' An authorized flag can coexist with PASS in Q-Wall. Hold for Quality
-            ' until the release/authorization policy has been defined.
+            ' Q-Wall authorizes flags independently of the inspection fields.
+            ' A past flag does not block a newer completed PASS inspection.
+            ' Every flag on the latest inspection must have an explicit
+            ' authorization and must belong to this product.
+            Dim currentFlagCount As Integer
             Using cmd As New SqlCommand(
-                "SELECT COUNT(*) FROM dbo.ssi_PieceFlagRecords WHERE inspection_id=@id", cn)
+                "SELECT COUNT(*) AS total_flags, " &
+                "COALESCE(SUM(CASE WHEN product_id<>@product OR " &
+                "authorized_by_user_id IS NULL OR authorized_at IS NULL " &
+                "THEN 1 ELSE 0 END),0) AS unauthorized_flags " &
+                "FROM dbo.ssi_PieceFlagRecords WHERE inspection_id=@id", cn)
                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = inspectionId
-                If Convert.ToInt32(cmd.ExecuteScalar()) > 0 Then
-                    Return Refused("Latest inspection has a Quality flag. Release criteria must be reviewed.")
-                End If
+                cmd.Parameters.Add("@product", SqlDbType.Int).Value = productId
+                Using rd = cmd.ExecuteReader()
+                    If rd.Read() Then
+                        currentFlagCount = Convert.ToInt32(rd("total_flags"))
+                        If Convert.ToInt32(rd("unauthorized_flags")) <> 0 Then
+                            Return Refused("Latest inspection has a Quality flag without valid authorization.")
+                        End If
+                    End If
+                End Using
             End Using
 
             Return New QWallPassResult With {
                 .Verified = True,
                 .ProductId = productId,
                 .InspectionId = inspectionId,
-                .Message = "Q-Wall PASS confirmed (read-only). Global duplicate check is still required."
+                .Message = If(currentFlagCount > 0,
+                    "Q-Wall PASS with authorized Quality flag confirmed. Duplicate check occurs on record.",
+                    "Q-Wall PASS confirmed. Duplicate check occurs on record.")
             }
         End Using
     End Function

@@ -1,4 +1,5 @@
 Imports System.Drawing
+Imports System.Linq
 Imports System.Windows.Forms
 
 ' Two scanned pallet codes. The server performs the entire transfer atomically.
@@ -103,6 +104,13 @@ Public Class PalletTransferForm
         If found.Status <> "PARTIAL" Then
             Throw New InvalidOperationException(
                 "Source must have PARTIAL status. Actual status: " & found.Status)
+        End If
+        Dim part = PalletConfigurationData.GetParts().
+            FirstOrDefault(Function(x) x.Id = found.PartId)
+        If part Is Nothing OrElse Not part.BusinessUnitId.HasValue OrElse
+           part.BusinessUnitId.Value <> SessionContext.BusinessUnitId Then
+            Throw New InvalidOperationException(
+                "Source pallet model belongs to another station customer. Transfer is blocked.")
         End If
         If found.PieceTotal <= 0 OrElse found.PieceTotal >= found.RequiredTotal Then
             Throw New InvalidOperationException("Original pallet does not have a valid partial quantity.")

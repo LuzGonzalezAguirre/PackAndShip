@@ -21,6 +21,8 @@ Public Class Form1
     Private ReadOnly loginPanel As New Panel()
     Private ReadOnly signedInPanel As New Panel()
     Private ReadOnly scannerView As New PalletScannerView()
+    Private ReadOnly offlineSyncTimer As New Timer With {.Interval = 30000}
+    Private offlineSyncBusy As Boolean
     Private units As New List(Of BusinessUnit)()
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -32,6 +34,7 @@ Public Class Form1
         Me.BackColor = backgroundColor
         Me.Font = New Font("Segoe UI", 11.0F)
         CreateLayout()
+        AddHandler offlineSyncTimer.Tick, AddressOf OfflineSyncTick
         ReloadCustomers()
         ResetLogin()
     End Sub
@@ -259,6 +262,7 @@ Public Class Form1
 
             SetAuthenticatedLayout()
             scannerView.LoadStation()
+            offlineSyncTimer.Start()
             menuSetup.Enabled = SessionContext.CanModifySetup
             menuLogout.Enabled = True
             labelWelcome.Text = "Operator: " & user.Name & "  |  Role: " & user.RoleName &
@@ -272,6 +276,19 @@ Public Class Form1
             End If
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Async Sub OfflineSyncTick(sender As Object, e As EventArgs)
+        If offlineSyncBusy OrElse SessionContext.UserId <= 0 Then Return
+        offlineSyncBusy = True
+        Try
+            Await System.Threading.Tasks.Task.Run(Function() OfflineSynchronizer.SyncAll())
+        Catch
+            ' Connection lost or disk unavailable: queue remains on disk.
+            ' Open Offline Packing to view individual sync errors and retry.
+        Finally
+            offlineSyncBusy = False
         End Try
     End Sub
 
@@ -492,6 +509,7 @@ Public Class Form1
     End Sub
 
     Private Sub ResetLogin()
+        offlineSyncTimer.Stop()
         SessionContext.Clear()
         RefreshCustomer()
         inputBarcode.Clear()

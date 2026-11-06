@@ -14,6 +14,7 @@ Public Class Form1
     Private ReadOnly mainMenu As New MenuStrip()
     Private ReadOnly menuSetup As New ToolStripMenuItem("Setup")
     Private ReadOnly menuHistory As New ToolStripMenuItem("Pallet History")
+    Private ReadOnly menuTransfer As New ToolStripMenuItem("Pallet Transfers")
     Private ReadOnly menuHelp As New ToolStripMenuItem("Ayuda")
     Private ReadOnly menuLogout As New ToolStripMenuItem("Cerrar sesión")
     Private ReadOnly appHeader As New Panel()
@@ -81,9 +82,10 @@ Public Class Form1
                                                          MessageBoxIcon.Information)
                                      End Sub
         AddHandler menuHistory.Click, AddressOf OpenPalletHistory
+        AddHandler menuTransfer.Click, AddressOf OpenPalletTransfers
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu
 
-        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuHelp, menuLogout})
+        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuTransfer, menuHelp, menuLogout})
         MainMenuStrip = mainMenu
 
         loginPanel.Dock = DockStyle.Fill
@@ -344,6 +346,42 @@ Public Class Form1
             connectionBusy = False
             If SessionContext.UserId > 0 Then connectionTimer.Start()
         End Try
+    End Sub
+
+    Private Sub OpenPalletTransfers(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 Then
+            MessageBox.Show("Sign in to transfer a partial pallet.", "Access denied")
+            Return
+        End If
+        If ConnectionRecovery.Pending() IsNot Nothing Then
+            MessageBox.Show("Resolve the pending SQL operation before transferring pallets.",
+                            "Pending operation", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+        Dim locked = StationSettings.ReadLockedPallet()
+        If locked <> "" Then
+            MessageBox.Show("Finish current pallet " & locked &
+                            " before transferring another pallet.",
+                            "Active pallet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        Using dialog As New PalletTransferForm()
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then Return
+            Try
+                ' Transfer has already committed in SQL. If local loading fails,
+                ' the new pallet can be restored with Open / Load.
+                scannerView.LoadTransferredPallet(dialog.DestinationCode)
+            Catch ex As Exception
+                MessageBox.Show("Transfer saved in SQL. New pallet: " &
+                                dialog.DestinationCode & Environment.NewLine &
+                                "Automatic loading failed: " & ex.Message &
+                                Environment.NewLine &
+                                "Load the new pallet from the scanner manually.",
+                                "Pallet transferred", MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning)
+            End Try
+        End Using
     End Sub
 
     Private Sub OpenPalletHistory(sender As Object, e As EventArgs)

@@ -86,7 +86,7 @@ Public Class PalletHistoryForm
         AddHandler removeButton.Click, AddressOf RemoveSelectedPiece
         AddHandler cancelButton.Click, AddressOf CancelSelectedPallet
         removeButton.Visible = SessionContext.CanModifySetup
-        cancelButton.Visible = SessionContext.CanModifySetup
+        cancelButton.Visible = SessionContext.UserId > 0
 
         ConfigureGrid(grid)
         ConfigureGrid(pieces)
@@ -178,7 +178,10 @@ Public Class PalletHistoryForm
         Dim openState = grid.SelectedRows.Count > 0 AndAlso
             Convert.ToString(grid.SelectedRows(0).Cells("Status").Value) = "OPEN"
         removeButton.Enabled = authorized AndAlso openState AndAlso pieces.Rows.Count > 0
-        cancelButton.Enabled = authorized AndAlso openState
+        cancelButton.Enabled = SessionContext.UserId > 0 AndAlso openState AndAlso
+            pieces.Rows.Count = 0 AndAlso
+            Not levels.Rows.Cast(Of DataGridViewRow)().Any(
+                Function(row) Convert.ToString(row.Cells("Status").Value) = "CLOSED")
     End Sub
 
     Private Function ReasonDialog(action As String) As String
@@ -228,18 +231,26 @@ Public Class PalletHistoryForm
     End Sub
 
     Private Sub CancelSelectedPallet(sender As Object, e As EventArgs)
-        If selectedId <= 0 Then Return
-        Dim reason = ReasonDialog("Cancel pallet")
-        If reason Is Nothing Then Return
-        If MessageBox.Show("Cancel selected empty OPEN pallet? This cannot be undone.",
-                           "Confirm cancellation", MessageBoxButtons.YesNo,
-                           MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
-        Try
-            PaSHistoryData.CancelContainer(selectedId, reason)
-            RefreshHistory()
-        Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cancellation blocked", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-        End Try
+        If selectedId <= 0 OrElse Not cancelButton.Enabled OrElse
+           grid.SelectedRows.Count = 0 Then Return
+        Dim code = Convert.ToString(grid.SelectedRows(0).Cells("Pallet").Value)
+        Dim required = Convert.ToInt32(grid.SelectedRows(0).Cells("Required").Value)
+        Using auth As New PartialPalletAuthorizationForm(code, 0, required, True)
+            If auth.ShowDialog(Me) <> DialogResult.OK Then Return
+            If MessageBox.Show(
+                "Cancel empty pallet " & code & "? The code cannot be reused.",
+                "Confirm cancellation", MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
+            Try
+                PaSPackingData.CancelEmptyPallet(
+                    selectedId, auth.AuthorizedUserId, auth.AuthorizedBarcode,
+                    auth.AuthorizedPassword, auth.Reason)
+                RefreshHistory()
+            Catch ex As Exception
+                MessageBox.Show(ex.Message, "Cancellation blocked",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End Try
+        End Using
     End Sub
 
     Private Shared Function CsvField(value As Object) As String

@@ -612,7 +612,12 @@ Public Class PalletScannerView
         ' A correction may have changed the active pallet. Preserve selection,
         ' reload authoritative SQL state, and invalidate any pre-verified QR.
         ResetVerification()
-        If activeContainer IsNot Nothing Then RefreshContainer()
+        If activeContainer IsNot Nothing Then
+            RefreshContainer()
+            If activeContainer.Status <> "OPEN" Then
+                ResetAfterPalletClosed(activeContainer.Code)
+            End If
+        End If
     End Sub
 
     Private Sub RefreshContainer()
@@ -648,10 +653,68 @@ Public Class PalletScannerView
         UpdatePackingButtons()
     End Sub
 
+    Private Sub ResetAfterPalletClosed(closedCode As String)
+        ' The source has already reached a terminal SQL status; unlock the
+        ' station and clear the visible Container field for the next pallet.
+        StationSettings.UnlockPallet(closedCode)
+        activeContainer = Nothing
+        ResetVerification()
+        firstQr.Clear()
+        secondQr.Clear()
+        containerInput.Clear()
+        scannedList.Items.Clear()
+        scannedList.Items.Add("No active pallet. Enter or scan the next container.")
+        progressBar.Value = 0
+        If selectedConfiguration IsNot Nothing Then
+            progressText.Text = "0 / " & selectedConfiguration.TotalPieces &
+                " pieces" & Environment.NewLine & "0 levels complete"
+        Else
+            progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
+        End If
+        buildState.Text = "Ready for next pallet"
+        SetQWallStatus("Check on scan")
+        UpdateScannerAvailability()
+        containerInput.Focus()
+    End Sub
+
+    Public Sub LoadTransferredPallet(destinationCode As String)
+        If ConnectionRecovery.Pending() IsNot Nothing Then
+            Throw New InvalidOperationException("Resolve the pending SQL operation before loading a transfer.")
+        End If
+        Dim locked = StationSettings.ReadLockedPallet()
+        If locked <> "" AndAlso Not String.Equals(locked, destinationCode,
+                                                   StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidOperationException(
+                "Finish pallet " & locked & " before loading the transferred pallet.")
+        End If
+        Dim pallet = PaSPackingData.FindContainer(destinationCode)
+        If pallet Is Nothing OrElse pallet.Status <> "OPEN" Then
+            Throw New InvalidOperationException("Transferred destination is not an OPEN pallet.")
+        End If
+        Dim part = parts.FirstOrDefault(Function(x) x.Id = pallet.PartId)
+        If part Is Nothing Then
+            Throw New InvalidOperationException(
+                "Destination pallet model is not available for this station's customer.")
+        End If
+        partPicker.SelectedItem = part
+        containerInput.Text = pallet.Code
+        activeContainer = pallet
+        StationSettings.LockPallet(pallet.Code)
+        ResetVerification()
+        RefreshContainer()
+        scanStatus.ForeColor = Color.DarkGreen
+        scanStatus.Text = "Pallet transfer loaded. Continue scanning remaining pieces."
+    End Sub
+
     Public Sub AfterRecovery(Optional recoveryResult As String = "")
         ResetVerification()
         Try
-            If activeContainer IsNot Nothing Then RefreshContainer()
+            If activeContainer IsNot Nothing Then
+                RefreshContainer()
+                If activeContainer.Status <> "OPEN" Then
+                    ResetAfterPalletClosed(activeContainer.Code)
+                End If
+            End If
         Catch ex As Exception
             scanStatus.Text = "Reconnected, but pallet refresh failed: " & ex.Message
             Return
@@ -722,8 +785,10 @@ Public Class PalletScannerView
             ConnectionRecovery.MarkDelivered()
             ResetVerification()
             RefreshContainer()
+            Dim closedCode = activeContainer.Code
+            ResetAfterPalletClosed(closedCode)
             scanStatus.ForeColor = Color.DarkGreen
-            scanStatus.Text = "Pallet completed."
+            scanStatus.Text = "Pallet " & closedCode & " completed. Ready for next container."
         Catch ex As Exception
             ShowPackingError(ex)
         End Try
@@ -768,8 +833,10 @@ Public Class PalletScannerView
             End Using
             ResetVerification()
             RefreshContainer()
+            Dim closedCode = activeContainer.Code
+            ResetAfterPalletClosed(closedCode)
             scanStatus.ForeColor = Color.DarkGreen
-            scanStatus.Text = "Partial pallet closed and authorized. You may start another pallet."
+            scanStatus.Text = "Partial pallet " & closedCode & " closed. Ready for next container."
         Catch ex As Exception
             ShowPackingError(ex)
         End Try

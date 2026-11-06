@@ -586,6 +586,9 @@ Public Class PalletScannerView
             Next
         End If
         UpdatePackingButtons()
+        ' Capture a connected snapshot for seamless offline continuation.
+        ' Never overwrite unsynced local scans in the durable outbox.
+        OfflineStore.CaptureOnlineContainer(activeContainer, SessionContext.UserId)
     End Sub
 
     Private Sub RecordPiece(sender As Object, e As EventArgs)

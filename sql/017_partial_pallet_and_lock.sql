@@ -93,7 +93,8 @@ BEGIN
             WHERE u.user_id=@authorized_by_user_id AND u.is_active=1
               AND u.barcode_id=@authorized_barcode
               AND u.password_hash=HASHBYTES('SHA2_256',CAST(@authorized_password AS VARCHAR(50)))
-              AND LOWER(LTRIM(RTRIM(r.role_name))) NOT IN ('operator','operador')
+              AND LOWER(LTRIM(RTRIM(r.role_name))) NOT LIKE '%operator%'
+              AND LOWER(LTRIM(RTRIM(r.role_name))) NOT LIKE '%operador%'
         ) THROW 51703,'Invalid authorizer credentials or Operator role is not permitted.',1;
         IF LEN(@note)<10 THROW 51704,'Provide a reason of at least 10 characters.',1;
 

@@ -323,6 +323,13 @@ Public Class Form1
                (sqlError.Number >= 50000 OrElse sqlError.Number = 2601 OrElse
                 sqlError.Number = 2627) Then
                 ConnectionRecovery.FlagReview(ex.Message)
+                connectionChecked = True
+                connectionFailed = False
+                failureCount = 0
+                connectionLabel.ForeColor = Color.DarkRed
+                connectionLabel.Text = "CCS: CONNECTED | Last action requires review: " & ex.Message
+                connectionTimer.Interval = 30000
+                Return
             End If
             connectionChecked = True
             connectionFailed = True

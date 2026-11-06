@@ -308,7 +308,8 @@ Public Class Form1
             connectionLabel.ForeColor = If(result.StartsWith("REVIEW REQUIRED"),
                                            Color.DarkRed, Color.DarkGreen)
             connectionLabel.Text = "CCS: CONNECTED | " & result
-            If result.StartsWith("RECOVERED") OrElse result.StartsWith("NOT CLOSED") Then
+            If result.StartsWith("RECOVERED") OrElse result.StartsWith("NOT CLOSED") OrElse
+               result.StartsWith("NOT CANCELLED") Then
                 scannerView.AfterRecovery(result)
             ElseIf result = "CONNECTED" AndAlso restored Then
                 scannerView.AfterRecovery()

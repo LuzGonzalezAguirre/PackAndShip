@@ -37,7 +37,8 @@ Public NotInheritable Class ConnectionRecovery
         If result Is Nothing OrElse String.IsNullOrWhiteSpace(result.Id) OrElse
            result.ContainerId <= 0 OrElse result.ActorUserId <= 0 OrElse
            Not (result.Kind = "ADD_PIECE" OrElse result.Kind = "CLOSE_LEVEL" OrElse
-                result.Kind = "CLOSE_PALLET" OrElse result.Kind = "CLOSE_PARTIAL") Then
+                result.Kind = "CLOSE_PALLET" OrElse result.Kind = "CLOSE_PARTIAL" OrElse
+                result.Kind = "CANCEL_EMPTY") Then
             Throw New InvalidDataException("Pending database operation is corrupt. Do not remove it; contact IT.")
         End If
         Return result
@@ -135,6 +136,16 @@ Public NotInheritable Class ConnectionRecovery
                     End If
                 ElseIf p.Kind = "CLOSE_PALLET" Then
                     If actual.Status <> "CLOSED" Then ExecutePending(p, cn)
+                ElseIf p.Kind = "CANCEL_EMPTY" Then
+                    ' No authorizer credentials are saved. Check whether CCS
+                    ' committed cancellation; otherwise require fresh approval.
+                    If actual.Status = "OPEN" Then
+                        MarkDelivered()
+                        Return "NOT CANCELLED: pallet is still OPEN. Reauthorize cancellation."
+                    ElseIf actual.Status <> "CANCELLED" Then
+                        FlagReview("Cancellation has unexpected SQL status " & actual.Status)
+                        Return "REVIEW REQUIRED: cancellation status mismatch"
+                    End If
                 ElseIf p.Kind = "CLOSE_PARTIAL" Then
                     ' Authorizer password is never written to disk. Do not replay
                     ' a privileged operation without a fresh second approval.

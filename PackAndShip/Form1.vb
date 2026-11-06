@@ -307,7 +307,7 @@ Public Class Form1
                                            Color.DarkRed, Color.DarkGreen)
             connectionLabel.Text = "CCS: CONNECTED | " & result
             If result.StartsWith("RECOVERED") OrElse result.StartsWith("NOT CLOSED") Then
-                scannerView.AfterRecovery()
+                scannerView.AfterRecovery(result)
             ElseIf result = "CONNECTED" AndAlso restored Then
                 scannerView.AfterRecovery()
             End If

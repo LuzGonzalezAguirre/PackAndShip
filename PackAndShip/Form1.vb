@@ -14,6 +14,7 @@ Public Class Form1
     Private ReadOnly mainMenu As New MenuStrip()
     Private ReadOnly menuSetup As New ToolStripMenuItem("Setup")
     Private ReadOnly menuHistory As New ToolStripMenuItem("Pallet History")
+    Private ReadOnly menuOffline As New ToolStripMenuItem("Offline Packing")
     Private ReadOnly menuHelp As New ToolStripMenuItem("Ayuda")
     Private ReadOnly menuLogout As New ToolStripMenuItem("Cerrar sesión")
     Private ReadOnly appHeader As New Panel()
@@ -73,9 +74,10 @@ Public Class Form1
                                                          MessageBoxIcon.Information)
                                      End Sub
         AddHandler menuHistory.Click, AddressOf OpenPalletHistory
+        AddHandler menuOffline.Click, AddressOf OpenOfflinePacking
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu
 
-        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuHelp, menuLogout})
+        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuOffline, menuHelp, menuLogout})
         MainMenuStrip = mainMenu
 
         loginPanel.Dock = DockStyle.Fill
@@ -270,6 +272,21 @@ Public Class Form1
             End If
         Catch ex As Exception
             MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Sub OpenOfflinePacking(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 Then
+            MessageBox.Show("Sign in first.", "Access denied")
+            Return
+        End If
+        Using dialog As New OfflinePackingForm()
+            dialog.ShowDialog(Me)
+        End Using
+        Try
+            scannerView.RefreshAfterHistory()
+        Catch
+            ' Reconnect might not yet be available. Offline queue remains saved.
         End Try
     End Sub
 

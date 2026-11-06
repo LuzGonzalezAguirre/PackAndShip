@@ -103,7 +103,18 @@ Public NotInheritable Class ConnectionRecovery
             Dim p = ReadPending()
             Using cn = PackAndShipData.CreateConnection()
                 If p Is Nothing Then Return "CONNECTED"
-                If p.ReviewRequired Then Return "REVIEW REQUIRED: " & p.LastError
+                If p.ReviewRequired Then
+                    ' A business rejection never auto-replays. However, a dropped
+                    ' acknowledgement can leave an operation flagged REVIEW after
+                    ' the server actually committed it. Check for that exact
+                    ' server-side result before keeping the scanner blocked.
+                    Dim confirmed = IsPendingCommitted(p)
+                    If confirmed Then
+                        MarkDelivered()
+                        Return "RECOVERED: server already confirmed " & p.Kind
+                    End If
+                    Return "REVIEW REQUIRED: " & p.LastError
+                End If
                 Dim actual = PaSPackingData.ReadContainer(p.ContainerId)
                 If actual Is Nothing Then
                     FlagReview("Original pallet is missing in CCS.")
@@ -162,6 +173,65 @@ Public NotInheritable Class ConnectionRecovery
             End Using
         End SyncLock
     End Function
+
+    Public Shared Function DescribePending() As String
+        SyncLock gate
+            Dim p = ReadPending()
+            If p Is Nothing Then Return "No pending SQL operation."
+            Dim detail = "Pending SQL operation: " & p.Kind &
+                Environment.NewLine & "Container ID: " & p.ContainerId &
+                If(p.LevelNumber > 0, Environment.NewLine & "Level: " & p.LevelNumber, "")
+            If p.Kind = "ADD_PIECE" Then
+                detail &= Environment.NewLine & "SSI: " & p.Ssi
+            End If
+            If p.ReviewRequired Then
+                detail &= Environment.NewLine & "Review reason: " & p.LastError
+            End If
+            Return detail
+        End SyncLock
+    End Function
+
+    Private Shared Function IsPendingCommitted(p As PendingPackingOperation) As Boolean
+        Dim state = PaSPackingData.ReadContainer(p.ContainerId)
+        If state Is Nothing Then Return False
+        Select Case p.Kind
+            Case "ADD_PIECE"
+                Return state.Pieces.Any(Function(x) x.LevelNumber = p.LevelNumber AndAlso
+                    String.Equals(x.SsiCode, p.Ssi, StringComparison.Ordinal) AndAlso
+                    String.Equals(x.ClientCode, p.Client, StringComparison.Ordinal))
+            Case "CLOSE_LEVEL"
+                Return state.Levels.Any(Function(x) x.LevelNumber = p.LevelNumber AndAlso
+                    x.Status = "CLOSED")
+            Case "CLOSE_PALLET"
+                Return state.Status = "CLOSED"
+            Case "CLOSE_PARTIAL"
+                Return state.Status = "PARTIAL"
+            Case "CANCEL_EMPTY"
+                Return state.Status = "CANCELLED"
+        End Select
+        Return False
+    End Function
+
+    ' Explicit dismissal is only allowed for a SQL-rejected operation, after
+    ' a fresh server-side read proves it did not commit. Never discard an
+    ' ambiguous timeout or any operation while CCS is unavailable.
+    Public Shared Sub DismissRejectedAfterCheck()
+        SyncLock gate
+            Dim p = ReadPending()
+            If p Is Nothing Then Return
+            If Not p.ReviewRequired Then
+                Throw New InvalidOperationException(
+                    "Pending operation may still be valid. Reconcile it with CCS first.")
+            End If
+            If IsPendingCommitted(p) Then
+                MarkDelivered()
+                Return
+            End If
+            ' A stored procedure rejection is transactionally rolled back.
+            ' Requiring explicit acknowledgement prevents silent data loss.
+            MarkDelivered()
+        End SyncLock
+    End Sub
 
     Private Shared Sub ExecutePending(p As PendingPackingOperation, cn As SqlConnection)
         Dim proc As String

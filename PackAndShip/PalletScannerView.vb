@@ -789,8 +789,8 @@ Public Class PalletScannerView
             For Each level In activeContainer.Levels.OrderBy(Function(x) x.LevelNumber)
                 Dim isClosed = level.Status = "CLOSED"
                 Dim isFull = level.ScannedPieces = level.RequiredPieces
-                Dim color = If(isClosed, Color.FromArgb(28, 113, 83),
-                               If(isFull, Color.FromArgb(196, 128, 40), PaSTheme.Navy))
+                Dim tileColor As System.Drawing.Color = If(isClosed, System.Drawing.Color.FromArgb(28, 113, 83),
+                               If(isFull, System.Drawing.Color.FromArgb(196, 128, 40), PaSTheme.Navy))
                 Dim tile As New Label With {
                     .Text = "L" & level.LevelNumber & "  " &
                             level.ScannedPieces & "/" & level.RequiredPieces &
@@ -798,7 +798,7 @@ Public Class PalletScannerView
                     .TextAlign = ContentAlignment.MiddleCenter,
                     .Size = New Size(118, 38),
                     .Margin = New Padding(0, 0, 9, 4),
-                    .BackColor = color,
+                    .BackColor = tileColor,
                     .ForeColor = Color.White,
                     .Font = New Font("Segoe UI", 10, FontStyle.Bold)
                 }

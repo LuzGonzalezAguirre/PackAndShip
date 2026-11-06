@@ -68,6 +68,7 @@ Public Class PalletScannerView
     Private ReadOnly progressIcon As New Label()
     Private ReadOnly progressPercent As New Label()
     Private ReadOnly progressState As New Label()
+    Private ReadOnly levelTiles As New FlowLayoutPanel()
     Private ReadOnly confirmAgain As Button = PaSTheme.ActionButton("Confirm packed level", False)
     Private autoConfirmVisible As Boolean
     Private autoScanBusy As Boolean
@@ -289,10 +290,15 @@ Public Class PalletScannerView
         progressBar.Minimum = 0
         progressBar.Maximum = 100
         progressArea.Controls.Add(progressBar)
-        progressText.SetBounds(25, 251, 530, 112)
+        progressText.SetBounds(25, 244, 530, 96)
         progressText.Font = New Font("Segoe UI", 16, FontStyle.Bold)
         progressText.ForeColor = PaSTheme.TextPrimary
         progressArea.Controls.Add(progressText)
+        levelTiles.SetBounds(25, 344, 536, 62)
+        levelTiles.AutoScroll = True
+        levelTiles.WrapContents = True
+        levelTiles.BackColor = Color.White
+        progressArea.Controls.Add(levelTiles)
         confirmAgain.Text = "Review packed level"
         confirmAgain.SetBounds(25, 396, 536, 51)
         AddHandler confirmAgain.Click, Sub() PromptCompletedLevel()
@@ -344,6 +350,7 @@ Public Class PalletScannerView
         progressPercent.Width = rightWidth - 128
         progressState.Width = rightWidth - 50
         progressBar.Width = rightWidth - 50
+        levelTiles.Width = rightWidth - 50
         confirmAgain.Width = rightWidth - 50
         confirmAgain.Top = progressArea.Height - 84
     End Sub
@@ -776,6 +783,30 @@ Public Class PalletScannerView
         progressState.ForeColor = If(current IsNot Nothing AndAlso
                                      current.ScannedPieces = current.RequiredPieces,
                                      Color.FromArgb(28, 113, 83), PaSTheme.Navy)
+        levelTiles.SuspendLayout()
+        Try
+            levelTiles.Controls.Clear()
+            For Each level In activeContainer.Levels.OrderBy(Function(x) x.LevelNumber)
+                Dim isClosed = level.Status = "CLOSED"
+                Dim isFull = level.ScannedPieces = level.RequiredPieces
+                Dim color = If(isClosed, Color.FromArgb(28, 113, 83),
+                               If(isFull, Color.FromArgb(196, 128, 40), PaSTheme.Navy))
+                Dim tile As New Label With {
+                    .Text = "L" & level.LevelNumber & "  " &
+                            level.ScannedPieces & "/" & level.RequiredPieces &
+                            If(isClosed, "  ✓", ""),
+                    .TextAlign = ContentAlignment.MiddleCenter,
+                    .Size = New Size(118, 38),
+                    .Margin = New Padding(0, 0, 9, 4),
+                    .BackColor = color,
+                    .ForeColor = Color.White,
+                    .Font = New Font("Segoe UI", 10, FontStyle.Bold)
+                }
+                levelTiles.Controls.Add(tile)
+            Next
+        Finally
+            levelTiles.ResumeLayout()
+        End Try
         progressIcon.Text = If(activeContainer.Status = "OPEN", "▣", "✓")
         buildState.Text = "Container: " & activeContainer.Code & "  |  " & activeContainer.Status
         If activeContainer.Status <> "OPEN" Then
@@ -808,6 +839,7 @@ Public Class PalletScannerView
         progressPercent.Text = "0%"
         progressState.Text = "READY FOR NEXT PALLET"
         progressIcon.Text = "▣"
+        levelTiles.Controls.Clear()
         If selectedConfiguration IsNot Nothing Then
             progressText.Text = "0 / " & selectedConfiguration.TotalPieces &
                 " pieces" & Environment.NewLine & "0 levels complete"
@@ -1151,7 +1183,7 @@ Public Class PalletScannerView
                 scanStatus.Text = "Q-Wall PASS confirmed. Close the completed level before continuing."
             ElseIf recordButton.Enabled Then
                 scanStatus.ForeColor = Color.DarkGreen
-                scanStatus.Text = "Q-Wall PASS confirmed. Click Record piece to pack it."
+                scanStatus.Text = "Q-Wall PASS verified — recording piece in CCS."
             Else
                 scanStatus.ForeColor = Color.DarkRed
                 scanStatus.Text = "Q-Wall PASS confirmed, but recording is unavailable. Reload the container."

@@ -359,7 +359,6 @@ Public Class PalletScannerView
         clockValue.Text = DateTime.Now.ToString("dd/MM/yyyy  HH:mm:ss")
         Try
             palletFormat = PalletIdSettings.Load()
-            OfflineStore.CacheFormat(palletFormat)
             parts = PalletConfigurationData.GetParts().
                 Where(Function(p) p.BusinessUnitId.HasValue AndAlso
                        p.BusinessUnitId.Value = SessionContext.BusinessUnitId).
@@ -414,9 +413,6 @@ Public Class PalletScannerView
             If selectedRule IsNot Nothing Then
                 selectedFields = ScanRulesData.ReadFields(selectedRule.Id)
             End If
-            ' Save the exact approved model/levels/scan rules while connected.
-            ' Offline work must use this snapshot, not invented defaults.
-            OfflineStore.CacheModel(part, selectedConfiguration, selectedRule, selectedFields)
             If selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
                 activePartTitle.Text = part.DisplayName
                 buildState.Text = "Pallet configuration missing or inactive"
@@ -505,14 +501,17 @@ Public Class PalletScannerView
         Dim openNow = activeContainer IsNot Nothing AndAlso activeContainer.Status = "OPEN"
         Dim current As PaSPackedLevel = Nothing
         If openNow Then current = activeContainer.CurrentLevel
-        recordButton.Enabled = openNow AndAlso current IsNot Nothing AndAlso
+        Dim pending = ConnectionRecovery.Pending() IsNot Nothing
+        openButton.Enabled = Not pending
+        verifyButton.Enabled = verifyButton.Enabled AndAlso Not pending
+        recordButton.Enabled = Not pending AndAlso openNow AndAlso current IsNot Nothing AndAlso
             verifiedSsi <> "" AndAlso verifiedClient <> "" AndAlso
             firstQr.Text.Trim() = verifiedSsi AndAlso
             selectedRule IsNot Nothing AndAlso
             (selectedRule.ScanCount = 1 OrElse secondQr.Text.Trim() = verifiedClient)
-        levelButton.Enabled = openNow AndAlso current IsNot Nothing AndAlso
+        levelButton.Enabled = Not pending AndAlso openNow AndAlso current IsNot Nothing AndAlso
             current.ScannedPieces = current.RequiredPieces
-        closePallet.Enabled = openNow AndAlso current Is Nothing AndAlso
+        closePallet.Enabled = Not pending AndAlso openNow AndAlso current Is Nothing AndAlso
             activeContainer.Levels.Count > 0 AndAlso
             activeContainer.Levels.All(Function(l) l.Status = "CLOSED" AndAlso
                                       l.ScannedPieces = l.RequiredPieces)
@@ -586,9 +585,19 @@ Public Class PalletScannerView
             Next
         End If
         UpdatePackingButtons()
-        ' Capture a connected snapshot for seamless offline continuation.
-        ' Never overwrite unsynced local scans in the durable outbox.
-        OfflineStore.CaptureOnlineContainer(activeContainer, SessionContext.UserId)
+    End Sub
+
+    Public Sub AfterRecovery()
+        ResetVerification()
+        Try
+            If activeContainer IsNot Nothing Then RefreshContainer()
+        Catch ex As Exception
+            scanStatus.Text = "Reconnected, but pallet refresh failed: " & ex.Message
+            Return
+        End Try
+        UpdateScannerAvailability()
+        scanStatus.ForeColor = Color.DarkGreen
+        scanStatus.Text = "Connection restored. Pending SQL action reconciled."
     End Sub
 
     Private Sub RecordPiece(sender As Object, e As EventArgs)
@@ -596,8 +605,11 @@ Public Class PalletScannerView
         Try
             Dim current = activeContainer.CurrentLevel
             If current Is Nothing Then Throw New InvalidOperationException("No open level.")
-            ' SQL re-verifies PASS, global uniqueness and capacity atomically.
+            ' Durable write-ahead intent; SQL remains the only authority for PASS.
+            ConnectionRecovery.SaveBeforeSend("ADD_PIECE", activeContainer.Id,
+                current.LevelNumber, verifiedSsi, verifiedClient, SessionContext.UserId)
             PaSPackingData.AddPiece(activeContainer.Id, current.LevelNumber, verifiedSsi, verifiedClient)
+            ConnectionRecovery.MarkDelivered()
             ResetVerification()
             firstQr.Clear()
             secondQr.Clear()
@@ -620,7 +632,10 @@ Public Class PalletScannerView
             If MessageBox.Show("Close level " & current.LevelNumber & " with " &
                                current.RequiredPieces & " pieces?", "Close level",
                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+            ConnectionRecovery.SaveBeforeSend("CLOSE_LEVEL", activeContainer.Id,
+                current.LevelNumber, "", "", SessionContext.UserId)
             PaSPackingData.CloseLevel(activeContainer.Id, current.LevelNumber)
+            ConnectionRecovery.MarkDelivered()
             ResetVerification()
             RefreshContainer()
             scanStatus.Text = "Level " & current.LevelNumber & " closed."
@@ -635,7 +650,10 @@ Public Class PalletScannerView
             If MessageBox.Show("Complete container " & activeContainer.Code & "?",
                                "Complete pallet", MessageBoxButtons.YesNo,
                                MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+            ConnectionRecovery.SaveBeforeSend("CLOSE_PALLET", activeContainer.Id,
+                0, "", "", SessionContext.UserId)
             PaSPackingData.CloseContainer(activeContainer.Id)
+            ConnectionRecovery.MarkDelivered()
             ResetVerification()
             RefreshContainer()
             scanStatus.ForeColor = Color.DarkGreen
@@ -646,6 +664,21 @@ Public Class PalletScannerView
     End Sub
 
     Private Sub ShowPackingError(ex As Exception)
+        ' A SQL business rejection cannot be blindly retried. Keep its intent
+        ' for human review; a connection timeout remains automatically recoverable.
+        Dim sqlError = TryCast(ex, Microsoft.Data.SqlClient.SqlException)
+        If sqlError IsNot Nothing AndAlso (sqlError.Number >= 50000 OrElse
+                                           sqlError.Number = 2601 OrElse sqlError.Number = 2627) Then
+            ConnectionRecovery.FlagReview(ex.Message)
+        End If
+        If ConnectionRecovery.Pending() IsNot Nothing Then
+            ResetVerification()
+            recordButton.Enabled = False
+            levelButton.Enabled = False
+            closePallet.Enabled = False
+            openButton.Enabled = False
+            scanStatus.Text = "SQL action pending verification. Wait for connection recovery."
+        End If
         scanStatus.ForeColor = Color.DarkRed
         scanStatus.Text = ex.Message
         MessageBox.Show(ex.Message, "PackAndShip", MessageBoxButtons.OK, MessageBoxIcon.Warning)

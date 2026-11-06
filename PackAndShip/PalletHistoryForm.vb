@@ -1,6 +1,7 @@
 Imports System.Data
 Imports System.Drawing
 Imports System.IO
+Imports System.Linq
 Imports System.Text
 Imports System.Windows.Forms
 
@@ -94,17 +95,15 @@ Public Class PalletHistoryForm
         Dim upper As New GroupBox With {.Text = "Pallets", .Dock = DockStyle.Fill, .Padding = New Padding(8)}
         upper.Controls.Add(grid)
 
-        For Each info In New (String, DataGridView)() {
-            ("Pieces and Q-Wall Inspection IDs", pieces),
-            ("Levels", levels),
-            ("Audit history", audit)
-        }
-            Dim tab As New TabPage(info.Item1)
-            tab.Controls.Add(info.Item2)
+        Dim names = New String() {"Pieces and Q-Wall Inspection IDs", "Levels", "Audit history"}
+        Dim detailGrids = New DataGridView() {pieces, levels, audit}
+        For index As Integer = 0 To names.Length - 1
+            Dim tab As New TabPage(names(index))
+            Dim target As DataGridView = detailGrids(index)
+            tab.Controls.Add(target)
             Dim bar As New FlowLayoutPanel With {.Dock = DockStyle.Bottom, .Height = 40}
             Dim export As New Button With {.Text = "Export selected tab CSV", .AutoSize = True}
-            Dim target = info.Item2
-            Dim filename = info.Item1.Replace(" ", "_")
+            Dim filename As String = names(index).Replace(" ", "_")
             AddHandler export.Click, Sub() ExportGrid(target, filename)
             bar.Controls.Add(export)
             tab.Controls.Add(bar)

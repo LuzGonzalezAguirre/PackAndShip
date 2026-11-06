@@ -43,6 +43,31 @@ Public NotInheritable Class PaSHistoryData
         End Using
     End Function
 
+    ' Piece-level production report grouped by actual scan day, model and operator.
+    ' Uses UTC dates because scanned_at is stored with SYSUTCDATETIME().
+    Public Shared Function PackingReport(fromDate As DateTime, toDate As DateTime) As DataTable
+        Const sql As String =
+            "SELECT CONVERT(date,p.scanned_at) AS ScanDateUTC, " &
+            "pn.ssiPN AS Model,u.name AS Operator, " &
+            "COUNT(*) AS PackedPieces,COUNT(DISTINCT c.container_id) AS Pallets " &
+            "FROM dbo.ssi_PaS_ContainerPieces p " &
+            "JOIN dbo.ssi_PaS_ContainerLevels l ON l.container_level_id=p.container_level_id " &
+            "JOIN dbo.ssi_PaS_Containers c ON c.container_id=l.container_id " &
+            "JOIN dbo.ssi_PaS_PalletConfigurations cfg ON cfg.configuration_id=c.configuration_id " &
+            "JOIN dbo.ssi_PartNumbers pn ON pn.pn_id=cfg.pn_id " &
+            "JOIN dbo.ssi_PaS_Users u ON u.user_id=p.scanned_by_user_id " &
+            "WHERE p.scanned_at>=@fromDate AND p.scanned_at<@toDate " &
+            "GROUP BY CONVERT(date,p.scanned_at),pn.ssiPN,u.name " &
+            "ORDER BY ScanDateUTC DESC,Model,Operator"
+        Using cn = PackAndShipData.CreateConnection()
+            Using cmd As New SqlCommand(sql, cn)
+                cmd.Parameters.Add("@fromDate", SqlDbType.DateTime2).Value = fromDate.Date
+                cmd.Parameters.Add("@toDate", SqlDbType.DateTime2).Value = toDate.Date.AddDays(1)
+                Return ReadTable(cmd)
+            End Using
+        End Using
+    End Function
+
     Public Shared Function ReadPieces(containerId As Integer) As DataTable
         Const sql As String =
             "SELECT cp.product_id AS ProductId, l.level_number AS Level, " &

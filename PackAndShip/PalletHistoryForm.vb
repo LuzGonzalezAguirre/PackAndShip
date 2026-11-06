@@ -18,6 +18,7 @@ Public Class PalletHistoryForm
     Private ReadOnly pieces As New DataGridView()
     Private ReadOnly levels As New DataGridView()
     Private ReadOnly audit As New DataGridView()
+    Private ReadOnly packingReport As New DataGridView()
     Private ReadOnly summary As New Label With {.AutoSize = True}
     Private ReadOnly removeButton As New Button With {.Text = "Remove selected piece", .AutoSize = True}
     Private ReadOnly cancelButton As New Button With {.Text = "Cancel pallet", .AutoSize = True}
@@ -90,13 +91,14 @@ Public Class PalletHistoryForm
         ConfigureGrid(pieces)
         ConfigureGrid(levels)
         ConfigureGrid(audit)
+        ConfigureGrid(packingReport)
         AddHandler grid.SelectionChanged, AddressOf SelectedPalletChanged
 
         Dim upper As New GroupBox With {.Text = "Pallets", .Dock = DockStyle.Fill, .Padding = New Padding(8)}
         upper.Controls.Add(grid)
 
-        Dim names = New String() {"Pieces and Q-Wall Inspection IDs", "Levels", "Audit history"}
-        Dim detailGrids = New DataGridView() {pieces, levels, audit}
+        Dim names = New String() {"Pieces and Q-Wall Inspection IDs", "Levels", "Audit history", "Packing report by model/operator/day"}
+        Dim detailGrids = New DataGridView() {pieces, levels, audit, packingReport}
         For index As Integer = 0 To names.Length - 1
             Dim tab As New TabPage(names(index))
             Dim target As DataGridView = detailGrids(index)
@@ -127,6 +129,7 @@ Public Class PalletHistoryForm
                 Throw New InvalidOperationException("From date must be before To date.")
             End If
             Dim status = If(statusPicker.SelectedIndex <= 0, "", statusPicker.Text)
+            packingReport.DataSource = PaSHistoryData.PackingReport(fromPicker.Value, toPicker.Value)
             Dim data = PaSHistoryData.SearchContainers(
                 searchCode.Text, searchModel.Text, status, fromPicker.Value, toPicker.Value)
             grid.DataSource = data

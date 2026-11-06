@@ -13,25 +13,32 @@ Public NotInheritable Class PaSHistoryData
             "SELECT c.container_id AS ContainerId, c.container_code AS Pallet, " &
             "pn.ssiPN AS Model, c.status AS Status, " &
             "COALESCE(SUM(l.required_pieces),0) AS Required, " &
+            "CASE WHEN c.status='TRANSFERRED' THEN pc.actual_pieces ELSE " &
             "(SELECT COUNT(*) FROM dbo.ssi_PaS_ContainerPieces cp " &
             " JOIN dbo.ssi_PaS_ContainerLevels cl ON cl.container_level_id=cp.container_level_id " &
-            " WHERE cl.container_id=c.container_id) AS Packed, " &
+            " WHERE cl.container_id=c.container_id) END AS Packed, " &
             "creator.name AS CreatedBy, c.created_at AS CreatedAt, " &
             "closer.name AS ClosedBy, c.closed_at AS ClosedAt, " &
-            "pc.actual_pieces AS PartialPieces, pc.reason AS PartialReason " &
+            "pc.actual_pieces AS PartialPieces, pc.reason AS PartialReason, " &
+            "dst.container_code AS TransferredTo,src.container_code AS TransferredFrom " &
             "FROM dbo.ssi_PaS_Containers c " &
             "JOIN dbo.ssi_PaS_PalletConfigurations cfg ON cfg.configuration_id=c.configuration_id " &
             "JOIN dbo.ssi_PartNumbers pn ON pn.pn_id=cfg.pn_id " &
             "JOIN dbo.ssi_PaS_Users creator ON creator.user_id=c.created_by_user_id " &
             "LEFT JOIN dbo.ssi_PaS_Users closer ON closer.user_id=c.closed_by_user_id " &
             "LEFT JOIN dbo.ssi_PaS_PartialClosures pc ON pc.container_id=c.container_id " &
+            "LEFT JOIN dbo.ssi_PaS_PalletTransfers as outx ON outx.source_container_id=c.container_id " &
+            "LEFT JOIN dbo.ssi_PaS_Containers dst ON dst.container_id=outx.destination_container_id " &
+            "LEFT JOIN dbo.ssi_PaS_PalletTransfers as inx ON inx.destination_container_id=c.container_id " &
+            "LEFT JOIN dbo.ssi_PaS_Containers src ON src.container_id=inx.source_container_id " &
             "JOIN dbo.ssi_PaS_ContainerLevels l ON l.container_id=c.container_id " &
             "WHERE (@code='' OR c.container_code LIKE '%' + @code + '%') " &
             "AND (@part='' OR pn.ssiPN LIKE '%' + @part + '%') " &
             "AND (@status='' OR c.status=@status) " &
             "AND c.created_at>=@fromDate AND c.created_at<@toDate " &
             "GROUP BY c.container_id,c.container_code,pn.ssiPN,c.status, " &
-            "creator.name,c.created_at,closer.name,c.closed_at,pc.actual_pieces,pc.reason " &
+            "creator.name,c.created_at,closer.name,c.closed_at,pc.actual_pieces,pc.reason, " &
+            "dst.container_code,src.container_code " &
             "ORDER BY c.created_at DESC, c.container_id DESC"
         Using cn = PackAndShipData.CreateConnection()
             Using cmd As New SqlCommand(sql, cn)
@@ -71,29 +78,48 @@ Public NotInheritable Class PaSHistoryData
     End Function
 
     Public Shared Function ReadPieces(containerId As Integer) As DataTable
+        ' For transferred source pallets, retain the original physical
+        ' contents in history even after SQL reassigns pieces to destination.
         Const sql As String =
             "SELECT cp.product_id AS ProductId, l.level_number AS Level, " &
             "q.frameSN AS ScanSSI, q.fpcaSN AS ScanClient, " &
             "cp.verified_inspection_id AS InspectionId, u.name AS ScannedBy, " &
-            "cp.scanned_at AS ScannedAt " &
+            "cp.scanned_at AS ScannedAt, CAST(NULL AS VARCHAR(18)) AS TransferredTo " &
             "FROM dbo.ssi_PaS_ContainerPieces cp " &
             "JOIN dbo.ssi_PaS_ContainerLevels l ON l.container_level_id=cp.container_level_id " &
             "JOIN dbo.ssi_Products q ON q.product_id=cp.product_id " &
             "JOIN dbo.ssi_PaS_Users u ON u.user_id=cp.scanned_by_user_id " &
-            "WHERE l.container_id=@id ORDER BY l.level_number,cp.scanned_at"
+            "WHERE l.container_id=@id " &
+            "UNION ALL " &
+            "SELECT cp.product_id, sl.level_number, q.frameSN, q.fpcaSN, " &
+            "cp.verified_inspection_id, u.name, cp.scanned_at, dst.container_code " &
+            "FROM dbo.ssi_PaS_PalletTransfers t " &
+            "JOIN dbo.ssi_PaS_PalletTransferPieces tp ON tp.transfer_id=t.transfer_id " &
+            "JOIN dbo.ssi_PaS_ContainerPieces cp ON cp.container_piece_id=tp.container_piece_id " &
+            "JOIN dbo.ssi_PaS_ContainerLevels sl ON sl.container_level_id=tp.source_level_id " &
+            "JOIN dbo.ssi_PaS_Containers dst ON dst.container_id=t.destination_container_id " &
+            "JOIN dbo.ssi_Products q ON q.product_id=tp.product_id " &
+            "JOIN dbo.ssi_PaS_Users u ON u.user_id=cp.scanned_by_user_id " &
+            "WHERE t.source_container_id=@id " &
+            "ORDER BY Level,ScannedAt"
         Return ByContainer(sql, containerId)
     End Function
 
     Public Shared Function ReadLevels(containerId As Integer) As DataTable
         Const sql As String =
             "SELECT l.level_number AS Level,l.required_pieces AS Required, " &
-            "COUNT(cp.container_piece_id) AS Packed,l.status AS Status, " &
+            "(COUNT(cp.container_piece_id) + " &
+            " (SELECT COUNT(*) FROM dbo.ssi_PaS_PalletTransferPieces tp " &
+            "  JOIN dbo.ssi_PaS_PalletTransfers tr ON tr.transfer_id=tp.transfer_id " &
+            "  WHERE tr.source_container_id=@id AND tp.source_level_id=l.container_level_id)) AS Packed, " &
+            "CASE WHEN c.status='TRANSFERRED' THEN 'TRANSFERRED' ELSE l.status END AS Status, " &
             "u.name AS ClosedBy,l.closed_at AS ClosedAt " &
             "FROM dbo.ssi_PaS_ContainerLevels l " &
+            "JOIN dbo.ssi_PaS_Containers c ON c.container_id=l.container_id " &
             "LEFT JOIN dbo.ssi_PaS_ContainerPieces cp ON cp.container_level_id=l.container_level_id " &
             "LEFT JOIN dbo.ssi_PaS_Users u ON u.user_id=l.closed_by_user_id " &
             "WHERE l.container_id=@id " &
-            "GROUP BY l.level_number,l.required_pieces,l.status,u.name,l.closed_at " &
+            "GROUP BY l.container_level_id,l.level_number,l.required_pieces,l.status,c.status,u.name,l.closed_at " &
             "ORDER BY l.level_number"
         Return ByContainer(sql, containerId)
     End Function
@@ -108,6 +134,26 @@ Public NotInheritable Class PaSHistoryData
             "JOIN dbo.ssi_PaS_Users u ON u.user_id=a.actor_user_id " &
             "WHERE a.container_id=@id ORDER BY a.event_at DESC,a.audit_id DESC"
         Return ByContainer(sql, containerId)
+    End Function
+
+    Public Shared Function ReadTransfers() As DataTable
+        Const sql As String =
+            "SELECT t.transfer_id AS TransferId, " &
+            "src.container_code AS SourcePallet,dst.container_code AS DestinationPallet, " &
+            "pn.ssiPN AS Model,t.transferred_pieces AS Pieces, " &
+            "u.name AS TransferredBy,t.transferred_at AS TransferredAt " &
+            "FROM dbo.ssi_PaS_PalletTransfers t " &
+            "JOIN dbo.ssi_PaS_Containers src ON src.container_id=t.source_container_id " &
+            "JOIN dbo.ssi_PaS_Containers dst ON dst.container_id=t.destination_container_id " &
+            "JOIN dbo.ssi_PaS_PalletConfigurations cfg ON cfg.configuration_id=dst.configuration_id " &
+            "JOIN dbo.ssi_PartNumbers pn ON pn.pn_id=cfg.pn_id " &
+            "JOIN dbo.ssi_PaS_Users u ON u.user_id=t.transferred_by_user_id " &
+            "ORDER BY t.transferred_at DESC,t.transfer_id DESC"
+        Using cn = PackAndShipData.CreateConnection()
+            Using cmd As New SqlCommand(sql, cn)
+                Return ReadTable(cmd)
+            End Using
+        End Using
     End Function
 
     Private Shared Function ByContainer(sql As String, id As Integer) As DataTable

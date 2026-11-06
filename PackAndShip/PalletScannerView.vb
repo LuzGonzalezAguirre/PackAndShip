@@ -547,6 +547,13 @@ Public Class PalletScannerView
         End Try
     End Sub
 
+    Public Sub RefreshAfterHistory()
+        ' A correction may have changed the active pallet. Preserve selection,
+        ' reload authoritative SQL state, and invalidate any pre-verified QR.
+        ResetVerification()
+        If activeContainer IsNot Nothing Then RefreshContainer()
+    End Sub
+
     Private Sub RefreshContainer()
         If activeContainer Is Nothing Then Return
         activeContainer = PaSPackingData.ReadContainer(activeContainer.Id)

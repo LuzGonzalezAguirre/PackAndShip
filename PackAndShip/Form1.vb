@@ -407,6 +407,13 @@ Public Class Form1
     End Sub
 
     Private Sub ChangeDefaultCustomer(sender As Object, e As EventArgs)
+        Dim openCode = StationSettings.ReadLockedPallet()
+        If openCode <> "" Then
+            MessageBox.Show("Finish pallet " & openCode &
+                            " (complete or authorized partial) before changing this station's customer.",
+                            "Active pallet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
         If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
             MessageBox.Show("Your role cannot change Setup.", "Access denied")
             Return

@@ -25,6 +25,7 @@ Public Class PalletScannerView
     Private ReadOnly recordButton As Button = PaSTheme.ActionButton("Record piece")
     Private ReadOnly levelButton As Button = PaSTheme.ActionButton("Close level", False)
     Private ReadOnly partialButton As Button = PaSTheme.ActionButton("Partial pallet", False)
+    Private ReadOnly cancelEmptyButton As Button = PaSTheme.ActionButton("Cancel empty pallet", False)
     Private activeContainer As PaSPackedContainer
     Private verifiedSsi As String = ""
     Private verifiedClient As String = ""
@@ -270,7 +271,7 @@ Public Class PalletScannerView
         scannedList.Enabled = False
         piecesArea.Controls.Add(scannedList)
 
-        progressArea = Card("PALLET PROGRESS", bodyRight, 0, 0, 372, 322)
+        progressArea = Card("PALLET PROGRESS", bodyRight, 0, 0, 372, 365)
         progressText.SetBounds(18, 53, 326, 115)
         progressText.Font = New Font("Segoe UI", 11)
         progressText.ForeColor = PaSTheme.TextPrimary
@@ -295,16 +296,21 @@ Public Class PalletScannerView
         partialButton.Enabled = False
         AddHandler partialButton.Click, AddressOf ClosePartialPallet
         progressArea.Controls.Add(partialButton)
+        cancelEmptyButton.SetBounds(18, 321, 334, 36)
+        cancelEmptyButton.Text = "Cancel empty pallet (authorization)"
+        cancelEmptyButton.Enabled = False
+        AddHandler cancelEmptyButton.Click, AddressOf CancelEmptyPallet
+        progressArea.Controls.Add(cancelEmptyButton)
 
-        validationArea = Card("VALIDATION RULES", bodyRight, 0, 338, 372, 347)
+        validationArea = Card("VALIDATION RULES", bodyRight, 0, 381, 372, 304)
         ruleSummary.SetBounds(18, 54, 334, 163)
         ruleSummary.Font = New Font("Segoe UI", 10)
         validationArea.Controls.Add(ruleSummary)
         Dim warning As New Label With {
             .Text = "SQL VALIDATION ACTIVE" & Environment.NewLine &
                     "Packing actions use transactional SQL validation for PASS, duplicates, level quantities and container closure.",
-            .Location = New Point(18, 207),
-            .Size = New Size(334, 120),
+            .Location = New Point(18, 201),
+            .Size = New Size(334, 82),
             .Font = New Font("Segoe UI", 9, FontStyle.Bold),
             .ForeColor = Color.DarkRed,
             .BackColor = Color.FromArgb(255, 246, 245),
@@ -360,6 +366,7 @@ Public Class PalletScannerView
         closePallet.Width = rightWidth - 38
         levelButton.Width = rightWidth - 38
         partialButton.Width = rightWidth - 38
+        cancelEmptyButton.Width = rightWidth - 38
         ruleSummary.Width = rightWidth - 38
     End Sub
 
@@ -559,6 +566,9 @@ Public Class PalletScannerView
         partialButton.Enabled = Not pending AndAlso openNow AndAlso
             activeContainer.PieceTotal > 0 AndAlso
             activeContainer.PieceTotal < activeContainer.RequiredTotal
+        cancelEmptyButton.Enabled = Not pending AndAlso openNow AndAlso
+            activeContainer.PieceTotal = 0 AndAlso
+            activeContainer.ClosedLevels = 0
     End Sub
 
     Private Sub OpenOrLoadContainer(sender As Object, e As EventArgs)
@@ -842,6 +852,58 @@ Public Class PalletScannerView
         End Try
     End Sub
 
+    Private Sub CancelEmptyPallet(sender As Object, e As EventArgs)
+        If Not cancelEmptyButton.Enabled OrElse activeContainer Is Nothing Then Return
+        Try
+            ' Always refresh the authoritative CCS counts before authorization.
+            RefreshContainer()
+            If activeContainer.Status <> "OPEN" OrElse
+               activeContainer.PieceTotal <> 0 OrElse
+               activeContainer.ClosedLevels <> 0 Then
+                Throw New InvalidOperationException(
+                    "Only an OPEN pallet without pieces or closed levels may be cancelled.")
+            End If
+            Using authorization As New PartialPalletAuthorizationForm(
+                activeContainer.Code, 0, activeContainer.RequiredTotal, True)
+                If authorization.ShowDialog(FindForm()) <> DialogResult.OK Then Return
+                If MessageBox.Show(
+                    "Cancel empty pallet " & activeContainer.Code & "?" &
+                    Environment.NewLine &
+                    "The container code will remain reserved and cannot be reused.",
+                    "Confirm empty pallet cancellation",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
+
+                ' Retain the operation identity across network loss, but never
+                ' persist a second user's credentials on the workstation.
+                ConnectionRecovery.SaveBeforeSend(
+                    "CANCEL_EMPTY", activeContainer.Id, 0, "", "", SessionContext.UserId)
+                Try
+                    PaSPackingData.CancelEmptyPallet(
+                        activeContainer.Id, authorization.AuthorizedUserId,
+                        authorization.AuthorizedBarcode, authorization.AuthorizedPassword,
+                        authorization.Reason)
+                    ConnectionRecovery.MarkDelivered()
+                Catch ex As Microsoft.Data.SqlClient.SqlException
+                    If ex.Number >= 50000 OrElse ex.Number = 2601 OrElse ex.Number = 2627 Then
+                        ' Explicit business rejection: SQL rolled back, so a fresh
+                        ' authorization can be used. A timeout remains pending.
+                        ConnectionRecovery.MarkDelivered()
+                    End If
+                    Throw
+                End Try
+            End Using
+            ResetVerification()
+            RefreshContainer()
+            Dim cancelledCode = activeContainer.Code
+            ResetAfterPalletClosed(cancelledCode)
+            scanStatus.ForeColor = Color.DarkGreen
+            scanStatus.Text = "Empty pallet " & cancelledCode &
+                              " cancelled. Ready for the next container."
+        Catch ex As Exception
+            ShowPackingError(ex)
+        End Try
+    End Sub
+
     Private Sub ShowPackingError(ex As Exception)
         ' A SQL business rejection cannot be blindly retried. Keep its intent
         ' for human review; a connection timeout remains automatically recoverable.
@@ -855,6 +917,7 @@ Public Class PalletScannerView
             recordButton.Enabled = False
             levelButton.Enabled = False
             closePallet.Enabled = False
+            cancelEmptyButton.Enabled = False
             openButton.Enabled = False
             scanStatus.Text = "SQL action pending verification. Wait for connection recovery."
         End If

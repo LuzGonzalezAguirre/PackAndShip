@@ -91,15 +91,14 @@ Public NotInheritable Class PaSHistoryData
             "JOIN dbo.ssi_PaS_Users u ON u.user_id=cp.scanned_by_user_id " &
             "WHERE l.container_id=@id " &
             "UNION ALL " &
-            "SELECT cp.product_id, sl.level_number, q.frameSN, q.fpcaSN, " &
-            "cp.verified_inspection_id, u.name, cp.scanned_at, dst.container_code " &
+            "SELECT tp.product_id, sl.level_number, q.frameSN, q.fpcaSN, " &
+            "tp.verified_inspection_id, u.name, tp.original_scanned_at, dst.container_code " &
             "FROM dbo.ssi_PaS_PalletTransfers t " &
             "JOIN dbo.ssi_PaS_PalletTransferPieces tp ON tp.transfer_id=t.transfer_id " &
-            "JOIN dbo.ssi_PaS_ContainerPieces cp ON cp.container_piece_id=tp.container_piece_id " &
             "JOIN dbo.ssi_PaS_ContainerLevels sl ON sl.container_level_id=tp.source_level_id " &
             "JOIN dbo.ssi_PaS_Containers dst ON dst.container_id=t.destination_container_id " &
             "JOIN dbo.ssi_Products q ON q.product_id=tp.product_id " &
-            "JOIN dbo.ssi_PaS_Users u ON u.user_id=cp.scanned_by_user_id " &
+            "JOIN dbo.ssi_PaS_Users u ON u.user_id=tp.original_scanned_by_user_id " &
             "WHERE t.source_container_id=@id " &
             "ORDER BY Level,ScannedAt"
         Return ByContainer(sql, containerId)

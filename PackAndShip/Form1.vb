@@ -38,10 +38,10 @@ Public Class Form1
         AddHandler setupRulesItem.Click, AddressOf OpenScanRules
         AddHandler setupGeneralItem.Click, AddressOf OpenGeneralSettings
         AddHandler helpAboutItem.Click, Sub()
-            MessageBox.Show("PackAndShip" & Environment.NewLine &
+                                            MessageBox.Show("PackAndShip" & Environment.NewLine &
                             "Manufacturing pallet scanning and configuration.",
                             "About", MessageBoxButtons.OK, MessageBoxIcon.Information)
-        End Sub
+                                        End Sub
         AddHandler menuPalletActions.DropDownOpening, AddressOf UpdatePalletActionsMenu
         AddHandler menuPartialPallet.Click, Sub() scannerView.RequestPartialPallet()
         AddHandler menuCancelEmptyPallet.Click, Sub() scannerView.RequestCancelEmptyPallet()

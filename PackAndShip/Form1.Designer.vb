@@ -15,103 +15,218 @@ Partial Class Form1
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
-        Me.components = New System.ComponentModel.Container()
-        Me.mainMenu = New System.Windows.Forms.MenuStrip()
-        Me.menuSetup = New System.Windows.Forms.ToolStripMenuItem()
-        Me.setupCustomerItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.setupUsersItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.setupPalletItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.setupRulesItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.setupGeneralItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuPalletActions = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuPartialPallet = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuCancelEmptyPallet = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuReviewPendingSql = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuHistory = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuTransfer = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuHelp = New System.Windows.Forms.ToolStripMenuItem()
-        Me.helpAboutItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuLogout = New System.Windows.Forms.ToolStripMenuItem()
-        Me.appHeader = New System.Windows.Forms.Panel()
-        Me.headerTitle = New System.Windows.Forms.Label()
-        Me.signedInPanel = New System.Windows.Forms.Panel()
-        Me.scannerView = New PalletScannerView()
-        Me.connectionStatus = New System.Windows.Forms.StatusStrip()
-        Me.connectionLabel = New System.Windows.Forms.ToolStripStatusLabel()
-        Me.mainMenu.SuspendLayout()
-        Me.signedInPanel.SuspendLayout()
-        Me.connectionStatus.SuspendLayout()
-        Me.SuspendLayout()
-
-        ' MenuStrip, its menus, and their entries are all editable in Designer.
-        Me.mainMenu.AutoSize = False
-        Me.mainMenu.Dock = System.Windows.Forms.DockStyle.Top
-        Me.mainMenu.Height = 34
-        Me.mainMenu.BackColor = System.Drawing.Color.White
-        Me.mainMenu.Font = New System.Drawing.Font("Segoe UI", 10.0!)
-        Me.mainMenu.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-        Me.mainMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {
-            Me.menuSetup, Me.menuPalletActions, Me.menuHistory, Me.menuTransfer, Me.menuHelp, Me.menuLogout})
-        Me.menuSetup.Text = "Setup"
-        Me.menuSetup.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {
-            Me.setupCustomerItem, Me.setupUsersItem, Me.setupPalletItem,
-            Me.setupRulesItem, Me.setupGeneralItem})
-        Me.setupCustomerItem.Text = "Customer Configuration"
-        Me.setupUsersItem.Text = "Users & Roles"
-        Me.setupPalletItem.Text = "Pallet Configuration"
-        Me.setupRulesItem.Text = "Scan Rules"
-        Me.setupGeneralItem.Text = "General Settings"
-        Me.menuPalletActions.Text = "Pallet Actions"
-        Me.menuPalletActions.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {
-            Me.menuPartialPallet, Me.menuCancelEmptyPallet, Me.menuReviewPendingSql})
-        Me.menuPartialPallet.Text = "Partial pallet (authorization)"
-        Me.menuCancelEmptyPallet.Text = "Cancel empty pallet (authorization)"
-        Me.menuReviewPendingSql.Text = "Review pending SQL"
-        Me.menuHistory.Text = "Pallet History"
-        Me.menuTransfer.Text = "Pallet Transfers"
-        Me.menuHelp.Text = "Ayuda"
-        Me.menuHelp.DropDownItems.Add(Me.helpAboutItem)
-        Me.helpAboutItem.Text = "About PackAndShip"
-        Me.menuLogout.Text = "Cerrar sesión"
-
-        Me.appHeader.Dock = System.Windows.Forms.DockStyle.Top
-        Me.appHeader.Height = 84
-        Me.appHeader.BackColor = System.Drawing.Color.FromArgb(31, 78, 121)
-        Me.headerTitle.Text = "PACK AND SHIP"
-        Me.headerTitle.AutoSize = True
-        Me.headerTitle.Location = New System.Drawing.Point(24, 19)
-        Me.headerTitle.Font = New System.Drawing.Font("Segoe UI", 23.0!, System.Drawing.FontStyle.Bold)
-        Me.headerTitle.ForeColor = System.Drawing.Color.White
-        Me.appHeader.Controls.Add(Me.headerTitle)
-
-        ' Scanner is a separate editable UserControl: open its Designer
-        ' to edit nested QR fields, progress, header and tiles individually.
-        Me.signedInPanel.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.signedInPanel.Visible = True
-        Me.scannerView.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.signedInPanel.Controls.Add(Me.scannerView)
-
-        Me.connectionStatus.Dock = System.Windows.Forms.DockStyle.Bottom
-        Me.connectionStatus.SizingGrip = False
-        Me.connectionStatus.Items.Add(Me.connectionLabel)
-        Me.connectionLabel.Text = "CCS: checking connection"
-
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.BackColor = System.Drawing.Color.FromArgb(244, 247, 250)
-        Me.ClientSize = New System.Drawing.Size(1200, 760)
-        Me.Font = New System.Drawing.Font("Segoe UI", 11.0!)
-        Me.MainMenuStrip = Me.mainMenu
-        Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
-        Me.Text = "Pack and Ship | SSI"
-        Me.Controls.Add(Me.signedInPanel)
-        Me.Controls.Add(Me.appHeader)
-        Me.Controls.Add(Me.connectionStatus)
-        Me.Controls.Add(Me.mainMenu)
-        Me.mainMenu.ResumeLayout(False)
-        Me.signedInPanel.ResumeLayout(False)
-        Me.connectionStatus.ResumeLayout(False)
-        Me.ResumeLayout(False)
-        Me.PerformLayout()
+        mainMenu = New MenuStrip()
+        menuSetup = New ToolStripMenuItem()
+        setupCustomerItem = New ToolStripMenuItem()
+        setupUsersItem = New ToolStripMenuItem()
+        setupPalletItem = New ToolStripMenuItem()
+        setupRulesItem = New ToolStripMenuItem()
+        setupGeneralItem = New ToolStripMenuItem()
+        menuPalletActions = New ToolStripMenuItem()
+        menuPartialPallet = New ToolStripMenuItem()
+        menuCancelEmptyPallet = New ToolStripMenuItem()
+        menuReviewPendingSql = New ToolStripMenuItem()
+        menuHistory = New ToolStripMenuItem()
+        menuTransfer = New ToolStripMenuItem()
+        menuHelp = New ToolStripMenuItem()
+        helpAboutItem = New ToolStripMenuItem()
+        menuLogout = New ToolStripMenuItem()
+        appHeader = New Panel()
+        headerTitle = New Label()
+        signedInPanel = New Panel()
+        scannerView = New PalletScannerView()
+        connectionStatus = New StatusStrip()
+        connectionLabel = New ToolStripStatusLabel()
+        mainMenu.SuspendLayout()
+        appHeader.SuspendLayout()
+        signedInPanel.SuspendLayout()
+        connectionStatus.SuspendLayout()
+        SuspendLayout()
+        ' 
+        ' mainMenu
+        ' 
+        mainMenu.AutoSize = False
+        mainMenu.BackColor = Color.White
+        mainMenu.Font = New Font("Segoe UI", 10F)
+        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuPalletActions, menuHistory, menuTransfer, menuHelp, menuLogout})
+        mainMenu.Location = New Point(0, 0)
+        mainMenu.Name = "mainMenu"
+        mainMenu.Size = New Size(1384, 34)
+        mainMenu.TabIndex = 3
+        ' 
+        ' menuSetup
+        ' 
+        menuSetup.DropDownItems.AddRange(New ToolStripItem() {setupCustomerItem, setupUsersItem, setupPalletItem, setupRulesItem, setupGeneralItem})
+        menuSetup.Name = "menuSetup"
+        menuSetup.Size = New Size(56, 30)
+        menuSetup.Text = "Setup"
+        ' 
+        ' setupCustomerItem
+        ' 
+        setupCustomerItem.Name = "setupCustomerItem"
+        setupCustomerItem.Size = New Size(226, 24)
+        setupCustomerItem.Text = "Customer Configuration"
+        ' 
+        ' setupUsersItem
+        ' 
+        setupUsersItem.Name = "setupUsersItem"
+        setupUsersItem.Size = New Size(226, 24)
+        setupUsersItem.Text = "Users & Roles"
+        ' 
+        ' setupPalletItem
+        ' 
+        setupPalletItem.Name = "setupPalletItem"
+        setupPalletItem.Size = New Size(226, 24)
+        setupPalletItem.Text = "Pallet Configuration"
+        ' 
+        ' setupRulesItem
+        ' 
+        setupRulesItem.Name = "setupRulesItem"
+        setupRulesItem.Size = New Size(226, 24)
+        setupRulesItem.Text = "Scan Rules"
+        ' 
+        ' setupGeneralItem
+        ' 
+        setupGeneralItem.Name = "setupGeneralItem"
+        setupGeneralItem.Size = New Size(226, 24)
+        setupGeneralItem.Text = "General Settings"
+        ' 
+        ' menuPalletActions
+        ' 
+        menuPalletActions.DropDownItems.AddRange(New ToolStripItem() {menuPartialPallet, menuCancelEmptyPallet, menuReviewPendingSql})
+        menuPalletActions.Name = "menuPalletActions"
+        menuPalletActions.Size = New Size(103, 30)
+        menuPalletActions.Text = "Pallet Actions"
+        ' 
+        ' menuPartialPallet
+        ' 
+        menuPartialPallet.Name = "menuPartialPallet"
+        menuPartialPallet.Size = New Size(291, 24)
+        menuPartialPallet.Text = "Partial pallet (authorization)"
+        ' 
+        ' menuCancelEmptyPallet
+        ' 
+        menuCancelEmptyPallet.Name = "menuCancelEmptyPallet"
+        menuCancelEmptyPallet.Size = New Size(291, 24)
+        menuCancelEmptyPallet.Text = "Cancel empty pallet (authorization)"
+        ' 
+        ' menuReviewPendingSql
+        ' 
+        menuReviewPendingSql.Name = "menuReviewPendingSql"
+        menuReviewPendingSql.Size = New Size(291, 24)
+        menuReviewPendingSql.Text = "Review pending SQL"
+        ' 
+        ' menuHistory
+        ' 
+        menuHistory.Name = "menuHistory"
+        menuHistory.Size = New Size(102, 30)
+        menuHistory.Text = "Pallet History"
+        ' 
+        ' menuTransfer
+        ' 
+        menuTransfer.Name = "menuTransfer"
+        menuTransfer.Size = New Size(112, 30)
+        menuTransfer.Text = "Pallet Transfers"
+        ' 
+        ' menuHelp
+        ' 
+        menuHelp.DropDownItems.AddRange(New ToolStripItem() {helpAboutItem})
+        menuHelp.Name = "menuHelp"
+        menuHelp.Size = New Size(60, 30)
+        menuHelp.Text = "Ayuda"
+        ' 
+        ' helpAboutItem
+        ' 
+        helpAboutItem.Name = "helpAboutItem"
+        helpAboutItem.Size = New Size(199, 24)
+        helpAboutItem.Text = "About PackAndShip"
+        ' 
+        ' menuLogout
+        ' 
+        menuLogout.Name = "menuLogout"
+        menuLogout.Size = New Size(101, 30)
+        menuLogout.Text = "Cerrar sesión"
+        ' 
+        ' appHeader
+        ' 
+        appHeader.BackColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        appHeader.Controls.Add(headerTitle)
+        appHeader.Dock = DockStyle.Top
+        appHeader.Location = New Point(0, 34)
+        appHeader.Name = "appHeader"
+        appHeader.Size = New Size(1384, 84)
+        appHeader.TabIndex = 1
+        ' 
+        ' headerTitle
+        ' 
+        headerTitle.AutoSize = True
+        headerTitle.Font = New Font("Segoe UI", 23.0F, FontStyle.Bold)
+        headerTitle.ForeColor = Color.White
+        headerTitle.Location = New Point(24, 19)
+        headerTitle.Name = "headerTitle"
+        headerTitle.Size = New Size(253, 42)
+        headerTitle.TabIndex = 0
+        headerTitle.Text = "PACK AND SHIP"
+        ' 
+        ' signedInPanel
+        ' 
+        signedInPanel.Controls.Add(scannerView)
+        signedInPanel.Dock = DockStyle.Fill
+        signedInPanel.Location = New Point(0, 118)
+        signedInPanel.Name = "signedInPanel"
+        signedInPanel.Size = New Size(1384, 620)
+        signedInPanel.TabIndex = 0
+        ' 
+        ' scannerView
+        ' 
+        scannerView.BackColor = Color.FromArgb(CByte(245), CByte(248), CByte(252))
+        scannerView.Dock = DockStyle.Fill
+        scannerView.Font = New Font("Segoe UI", 10.0F)
+        scannerView.Location = New Point(0, 0)
+        scannerView.MinimumSize = New Size(990, 830)
+        scannerView.Name = "scannerView"
+        scannerView.Size = New Size(1384, 830)
+        scannerView.TabIndex = 0
+        ' 
+        ' connectionStatus
+        ' 
+        connectionStatus.Items.AddRange(New ToolStripItem() {connectionLabel})
+        connectionStatus.Location = New Point(0, 738)
+        connectionStatus.Name = "connectionStatus"
+        connectionStatus.Size = New Size(1384, 22)
+        connectionStatus.SizingGrip = False
+        connectionStatus.TabIndex = 2
+        ' 
+        ' connectionLabel
+        ' 
+        connectionLabel.Name = "connectionLabel"
+        connectionLabel.Size = New Size(146, 17)
+        connectionLabel.Text = "CCS: checking connection"
+        ' 
+        ' Form1
+        ' 
+        AutoScaleDimensions = New SizeF(8.0F, 20.0F)
+        AutoScaleMode = AutoScaleMode.Font
+        BackColor = Color.FromArgb(CByte(244), CByte(247), CByte(250))
+        ClientSize = New Size(1384, 760)
+        Controls.Add(signedInPanel)
+        Controls.Add(appHeader)
+        Controls.Add(connectionStatus)
+        Controls.Add(mainMenu)
+        Font = New Font("Segoe UI", 11F)
+        MainMenuStrip = mainMenu
+        Name = "Form1"
+        StartPosition = FormStartPosition.CenterScreen
+        Text = "Pack and Ship | SSI"
+        mainMenu.ResumeLayout(False)
+        mainMenu.PerformLayout()
+        appHeader.ResumeLayout(False)
+        appHeader.PerformLayout()
+        signedInPanel.ResumeLayout(False)
+        connectionStatus.ResumeLayout(False)
+        connectionStatus.PerformLayout()
+        ResumeLayout(False)
+        PerformLayout()
     End Sub
 
     Friend WithEvents mainMenu As System.Windows.Forms.MenuStrip

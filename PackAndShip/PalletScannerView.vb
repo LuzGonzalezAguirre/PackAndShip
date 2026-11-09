@@ -93,21 +93,21 @@ Public Partial Class PalletScannerView
         AddHandler firstQr.KeyDown, AddressOf FirstLabelEnter
         AddHandler secondQr.KeyDown, AddressOf SecondLabelEnter
         AddHandler containerInput.TextChanged, Sub()
-            If activeContainer IsNot Nothing AndAlso
-               activeContainer.Status <> "OPEN" AndAlso
-               Not String.Equals(activeContainer.Code, containerInput.Text.Trim(),
-                                 StringComparison.OrdinalIgnoreCase) Then
-                activeContainer = Nothing
-            End If
-            ResetVerification()
-            UpdateScannerAvailability()
-        End Sub
+                                                   If activeContainer IsNot Nothing AndAlso
+                                                      activeContainer.Status <> "OPEN" AndAlso
+                                                      Not String.Equals(activeContainer.Code, containerInput.Text.Trim(),
+                                                                        StringComparison.OrdinalIgnoreCase) Then
+                                                       activeContainer = Nothing
+                                                   End If
+                                                   ResetVerification()
+                                                   UpdateScannerAvailability()
+                                               End Sub
         AddHandler firstQr.TextChanged, Sub()
-            ResetVerification()
-            If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
-                secondQr.Clear()
-            End If
-        End Sub
+                                            ResetVerification()
+                                            If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
+                                                secondQr.Clear()
+                                            End If
+                                        End Sub
         AddHandler secondQr.TextChanged, Sub() ResetVerification()
     End Sub
 
@@ -514,6 +514,7 @@ Public Partial Class PalletScannerView
         If activeContainer Is Nothing Then
             Throw New InvalidOperationException("Container was not found.")
         End If
+        lbl_lot.Text = activeContainer.Code
         Dim current = activeContainer.CurrentLevel
         Dim actual = activeContainer.PieceTotal
         Dim required = activeContainer.RequiredTotal
@@ -589,6 +590,7 @@ Public Partial Class PalletScannerView
         scannedList.Items.Clear()
         scannedList.Items.Add("No active pallet. Enter or scan the next container.")
         progressBar.Value = 0
+        lbl_lot.Text = "P######"
         progressPercent.Text = "0%"
         progressState.Text = "READY FOR NEXT PALLET"
         progressIcon.Text = "▣"
@@ -946,4 +948,6 @@ Public Partial Class PalletScannerView
             scanStatus.Text = "Verification unavailable: " & ex.Message
         End Try
     End Sub
+
+
 End Class

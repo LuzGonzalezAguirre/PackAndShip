@@ -23,6 +23,10 @@ Partial Class Form1
         Me.setupPalletItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.setupRulesItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.setupGeneralItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuPalletActions = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuPartialPallet = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuCancelEmptyPallet = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuReviewPendingSql = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuHistory = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuTransfer = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuHelp = New System.Windows.Forms.ToolStripMenuItem()
@@ -68,7 +72,7 @@ Partial Class Form1
         Me.mainMenu.Font = New System.Drawing.Font("Segoe UI", 10.0!)
         Me.mainMenu.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
         Me.mainMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {
-            Me.menuSetup, Me.menuHistory, Me.menuTransfer, Me.menuHelp, Me.menuLogout})
+            Me.menuSetup, Me.menuPalletActions, Me.menuHistory, Me.menuTransfer, Me.menuHelp, Me.menuLogout})
         Me.menuSetup.Text = "Setup"
         Me.menuSetup.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {
             Me.setupCustomerItem, Me.setupUsersItem, Me.setupPalletItem,
@@ -78,6 +82,12 @@ Partial Class Form1
         Me.setupPalletItem.Text = "Pallet Configuration"
         Me.setupRulesItem.Text = "Scan Rules"
         Me.setupGeneralItem.Text = "General Settings"
+        Me.menuPalletActions.Text = "Pallet Actions"
+        Me.menuPalletActions.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {
+            Me.menuPartialPallet, Me.menuCancelEmptyPallet, Me.menuReviewPendingSql})
+        Me.menuPartialPallet.Text = "Partial pallet (authorization)"
+        Me.menuCancelEmptyPallet.Text = "Cancel empty pallet (authorization)"
+        Me.menuReviewPendingSql.Text = "Review pending SQL"
         Me.menuHistory.Text = "Pallet History"
         Me.menuTransfer.Text = "Pallet Transfers"
         Me.menuHelp.Text = "Ayuda"
@@ -210,6 +220,10 @@ Partial Class Form1
     Friend WithEvents setupPalletItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents setupRulesItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents setupGeneralItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuPalletActions As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuPartialPallet As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuCancelEmptyPallet As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuReviewPendingSql As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuHistory As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuTransfer As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuHelp As System.Windows.Forms.ToolStripMenuItem

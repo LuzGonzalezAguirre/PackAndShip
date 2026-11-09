@@ -37,10 +37,6 @@ Partial Class PalletScannerView
         Me.clockValue = New System.Windows.Forms.Label()
         Me.activePartTitle = New System.Windows.Forms.Label()
         Me.buildState = New System.Windows.Forms.Label()
-        Me.packingTools = New System.Windows.Forms.ToolStrip()
-        Me.partialButton = New System.Windows.Forms.ToolStripButton()
-        Me.cancelEmptyButton = New System.Windows.Forms.ToolStripButton()
-        Me.pendingButton = New System.Windows.Forms.ToolStripButton()
         Me.bodyLayout = New System.Windows.Forms.TableLayoutPanel()
         Me.leftLayout = New System.Windows.Forms.TableLayoutPanel()
         Me.scanArea = New System.Windows.Forms.Panel()
@@ -66,16 +62,15 @@ Partial Class PalletScannerView
         Me.ruleSummary = New System.Windows.Forms.Label()
         Me.mainLayout.Dock = System.Windows.Forms.DockStyle.Fill
         Me.mainLayout.ColumnCount = 1
-        Me.mainLayout.RowCount = 3
+        Me.mainLayout.RowCount = 2
         Me.mainLayout.Padding = New System.Windows.Forms.Padding(12, 10, 12, 10)
         Me.mainLayout.BackColor = System.Drawing.Color.FromArgb(245, 248, 252)
         Me.mainLayout.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 136!))
-        Me.mainLayout.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44!))
         Me.mainLayout.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100!))
         Me.mainLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100!))
         Me.headerPage.Dock = System.Windows.Forms.DockStyle.Fill
         Me.headerPage.BackColor = System.Drawing.Color.FromArgb(255, 255, 255)
-        Me.headerPage.Margin = New System.Windows.Forms.Padding(0, 0, 0, 4)
+        Me.headerPage.Margin = New System.Windows.Forms.Padding(0, 0, 0, 6)
         Me.headerLayout.Dock = System.Windows.Forms.DockStyle.Top
         Me.headerLayout.Height = 82
         Me.headerLayout.ColumnCount = 5
@@ -92,11 +87,12 @@ Partial Class PalletScannerView
         Me.headerContainerCell.Margin = New System.Windows.Forms.Padding(1, 1, 1, 1)
         Me.captionContainer.Text = "CONTAINER"
         Me.captionContainer.Location = New System.Drawing.Point(9, 6)
-        Me.captionContainer.Size = New System.Drawing.Size(190, 18)
+        Me.captionContainer.Size = New System.Drawing.Size(154, 18)
+        Me.captionContainer.AutoEllipsis = True
         Me.captionContainer.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Bold)
         Me.captionContainer.ForeColor = System.Drawing.Color.FromArgb(108, 128, 155)
         Me.containerInput.Location = New System.Drawing.Point(9, 30)
-        Me.containerInput.Size = New System.Drawing.Size(190, 33)
+        Me.containerInput.Size = New System.Drawing.Size(154, 33)
         Me.containerInput.Anchor = System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right Or System.Windows.Forms.AnchorStyles.Top
         Me.headerContainerCell.Controls.Add(Me.captionContainer)
         Me.headerContainerCell.Controls.Add(Me.containerInput)
@@ -105,11 +101,12 @@ Partial Class PalletScannerView
         Me.headerModelCell.Margin = New System.Windows.Forms.Padding(1, 1, 1, 1)
         Me.captionModel.Text = "PART NUMBER / MODEL"
         Me.captionModel.Location = New System.Drawing.Point(9, 6)
-        Me.captionModel.Size = New System.Drawing.Size(260, 18)
+        Me.captionModel.Size = New System.Drawing.Size(240, 18)
+        Me.captionModel.AutoEllipsis = True
         Me.captionModel.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Bold)
         Me.captionModel.ForeColor = System.Drawing.Color.FromArgb(108, 128, 155)
         Me.partPicker.Location = New System.Drawing.Point(9, 30)
-        Me.partPicker.Size = New System.Drawing.Size(260, 33)
+        Me.partPicker.Size = New System.Drawing.Size(240, 33)
         Me.partPicker.Anchor = System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right Or System.Windows.Forms.AnchorStyles.Top
         Me.headerModelCell.Controls.Add(Me.captionModel)
         Me.headerModelCell.Controls.Add(Me.partPicker)
@@ -118,11 +115,13 @@ Partial Class PalletScannerView
         Me.headerOperatorCell.Margin = New System.Windows.Forms.Padding(1, 1, 1, 1)
         Me.captionOperator.Text = "OPERATOR"
         Me.captionOperator.Location = New System.Drawing.Point(9, 6)
-        Me.captionOperator.Size = New System.Drawing.Size(215, 18)
+        Me.captionOperator.Size = New System.Drawing.Size(190, 18)
+        Me.captionOperator.AutoEllipsis = True
         Me.captionOperator.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Bold)
         Me.captionOperator.ForeColor = System.Drawing.Color.FromArgb(108, 128, 155)
         Me.operatorValue.Location = New System.Drawing.Point(9, 30)
-        Me.operatorValue.Size = New System.Drawing.Size(215, 33)
+        Me.operatorValue.Size = New System.Drawing.Size(190, 33)
+        Me.operatorValue.AutoEllipsis = True
         Me.operatorValue.Anchor = System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right Or System.Windows.Forms.AnchorStyles.Top
         Me.headerOperatorCell.Controls.Add(Me.captionOperator)
         Me.headerOperatorCell.Controls.Add(Me.operatorValue)
@@ -131,11 +130,13 @@ Partial Class PalletScannerView
         Me.headerCustomerCell.Margin = New System.Windows.Forms.Padding(1, 1, 1, 1)
         Me.captionCustomer.Text = "CUSTOMER"
         Me.captionCustomer.Location = New System.Drawing.Point(9, 6)
-        Me.captionCustomer.Size = New System.Drawing.Size(135, 18)
+        Me.captionCustomer.Size = New System.Drawing.Size(116, 18)
+        Me.captionCustomer.AutoEllipsis = True
         Me.captionCustomer.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Bold)
         Me.captionCustomer.ForeColor = System.Drawing.Color.FromArgb(108, 128, 155)
         Me.customerValue.Location = New System.Drawing.Point(9, 30)
-        Me.customerValue.Size = New System.Drawing.Size(135, 33)
+        Me.customerValue.Size = New System.Drawing.Size(116, 33)
+        Me.customerValue.AutoEllipsis = True
         Me.customerValue.Anchor = System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right Or System.Windows.Forms.AnchorStyles.Top
         Me.headerCustomerCell.Controls.Add(Me.captionCustomer)
         Me.headerCustomerCell.Controls.Add(Me.customerValue)
@@ -144,11 +145,13 @@ Partial Class PalletScannerView
         Me.headerTimeCell.Margin = New System.Windows.Forms.Padding(1, 1, 1, 1)
         Me.captionTime.Text = "DATE / TIME"
         Me.captionTime.Location = New System.Drawing.Point(9, 6)
-        Me.captionTime.Size = New System.Drawing.Size(195, 18)
+        Me.captionTime.Size = New System.Drawing.Size(163, 18)
+        Me.captionTime.AutoEllipsis = True
         Me.captionTime.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Bold)
         Me.captionTime.ForeColor = System.Drawing.Color.FromArgb(108, 128, 155)
         Me.clockValue.Location = New System.Drawing.Point(9, 30)
-        Me.clockValue.Size = New System.Drawing.Size(195, 33)
+        Me.clockValue.Size = New System.Drawing.Size(163, 33)
+        Me.clockValue.AutoEllipsis = True
         Me.clockValue.Anchor = System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right Or System.Windows.Forms.AnchorStyles.Top
         Me.headerTimeCell.Controls.Add(Me.captionTime)
         Me.headerTimeCell.Controls.Add(Me.clockValue)
@@ -193,24 +196,10 @@ Partial Class PalletScannerView
         Me.activeStrip.Controls.Add(Me.buildState)
         Me.headerPage.Controls.Add(Me.activeStrip)
         Me.headerPage.Controls.Add(Me.headerLayout)
-        Me.packingTools.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.packingTools.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden
-        Me.packingTools.BackColor = System.Drawing.Color.FromArgb(255, 255, 255)
-        Me.packingTools.Font = New System.Drawing.Font("Segoe UI", 10!, System.Drawing.FontStyle.Bold)
-        Me.partialButton.Text = "Partial pallet"
-        Me.cancelEmptyButton.Text = "Cancel empty pallet"
-        Me.pendingButton.Text = "Review pending SQL"
-        Me.pendingButton.Visible = False
-        Me.partialButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-        Me.packingTools.Items.Add(Me.partialButton)
-        Me.cancelEmptyButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-        Me.packingTools.Items.Add(Me.cancelEmptyButton)
-        Me.pendingButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
-        Me.packingTools.Items.Add(Me.pendingButton)
         Me.bodyLayout.Dock = System.Windows.Forms.DockStyle.Fill
         Me.bodyLayout.ColumnCount = 2
-        Me.bodyLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40!))
-        Me.bodyLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60!))
+        Me.bodyLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 39!))
+        Me.bodyLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 61!))
         Me.bodyLayout.RowCount = 1
         Me.bodyLayout.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100!))
         Me.bodyLayout.BackColor = System.Drawing.Color.FromArgb(245, 248, 252)
@@ -338,13 +327,12 @@ Partial Class PalletScannerView
         Me.bodyLayout.Controls.Add(Me.leftLayout, 0, 0)
         Me.bodyLayout.Controls.Add(Me.progressArea, 1, 0)
         Me.mainLayout.Controls.Add(Me.headerPage, 0, 0)
-        Me.mainLayout.Controls.Add(Me.packingTools, 0, 1)
-        Me.mainLayout.Controls.Add(Me.bodyLayout, 0, 2)
+                Me.mainLayout.Controls.Add(Me.bodyLayout, 0, 1)
         Me.mainLayout.Dock = System.Windows.Forms.DockStyle.Fill
         Me.Controls.Add(Me.mainLayout)
         Me.Me.BackColor = System.Drawing.Color.FromArgb(245, 248, 252)
         Me.Me.Font = New System.Drawing.Font("Segoe UI", 10.0!)
-        Me.Me.MinimumSize = New System.Drawing.Size(1000, 600)
+        Me.Me.MinimumSize = New System.Drawing.Size(990, 630)
         Me.Me.Size = New System.Drawing.Size(1280, 760)
         Me.ResumeLayout(False)
     End Sub
@@ -371,10 +359,6 @@ Partial Class PalletScannerView
     Friend WithEvents clockValue As System.Windows.Forms.Label
     Friend WithEvents activePartTitle As System.Windows.Forms.Label
     Friend WithEvents buildState As System.Windows.Forms.Label
-    Friend WithEvents packingTools As System.Windows.Forms.ToolStrip
-    Friend WithEvents partialButton As System.Windows.Forms.ToolStripButton
-    Friend WithEvents cancelEmptyButton As System.Windows.Forms.ToolStripButton
-    Friend WithEvents pendingButton As System.Windows.Forms.ToolStripButton
     Friend WithEvents bodyLayout As System.Windows.Forms.TableLayoutPanel
     Friend WithEvents leftLayout As System.Windows.Forms.TableLayoutPanel
     Friend WithEvents scanArea As System.Windows.Forms.Panel

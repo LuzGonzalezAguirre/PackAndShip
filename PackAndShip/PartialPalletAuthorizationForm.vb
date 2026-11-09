@@ -5,10 +5,6 @@ Imports System.Windows.Forms
 Public Class PartialPalletAuthorizationForm
     Inherits Form
 
-    Private ReadOnly barcodeInput As New TextBox()
-    Private ReadOnly passwordInput As New TextBox()
-    Private ReadOnly reasonInput As New TextBox()
-    Private ReadOnly info As New Label()
 
     Public ReadOnly Property AuthorizedUserId As Integer
         Get
@@ -33,59 +29,24 @@ Public Class PartialPalletAuthorizationForm
         End Get
     End Property
 
+    Public Sub New()
+        InitializeComponent()
+        AddHandler confirm.Click, AddressOf Authorize
+    End Sub
+
     Public Sub New(code As String, actual As Integer, required As Integer,
                    Optional cancelEmpty As Boolean = False)
+        Me.New()
         Text = If(cancelEmpty, "PackAndShip | Cancel Empty Pallet Authorization",
                   "PackAndShip | Partial Pallet Authorization")
-        ClientSize = New Size(530, 405)
-        FormBorderStyle = FormBorderStyle.FixedDialog
-        MaximizeBox = False
-        MinimizeBox = False
-        StartPosition = FormStartPosition.CenterParent
-        Font = New Font("Segoe UI", 10)
-        BackColor = PaSTheme.Background
-
-        Dim heading As New Label With {
-            .Text = If(cancelEmpty, "CANCEL EMPTY PALLET — ", "PARTIAL PALLET — ") & code,
-            .Font = New Font("Segoe UI", 16, FontStyle.Bold),
-            .ForeColor = PaSTheme.Navy, .Location = New Point(20, 12),
-            .Size = New Size(485, 38)
-        }
+        heading.Text = If(cancelEmpty, "CANCEL EMPTY PALLET — ", "PARTIAL PALLET — ") & code
         info.Text = If(cancelEmpty,
             "No pieces recorded. Cancelling reserves this container code permanently.",
             "Registered: " & actual & " / " & required & " pieces.") &
             Environment.NewLine & "A different, non-Operator user must authorize."
-        info.SetBounds(22, 56, 485, 45)
-        info.ForeColor = Color.DarkRed
-
-        Dim barcodeLabel As New Label With {.Text = "Authorizer Barcode ID", .Location = New Point(22, 114), .AutoSize = True}
-        barcodeInput.SetBounds(22, 137, 480, 29)
-        barcodeInput.CharacterCasing = CharacterCasing.Upper
-        barcodeInput.MaxLength = 50
-
-        Dim passwordLabel As New Label With {.Text = "Authorizer Password", .Location = New Point(22, 178), .AutoSize = True}
-        passwordInput.SetBounds(22, 201, 480, 29)
-        passwordInput.MaxLength = 50
-        passwordInput.UseSystemPasswordChar = True
-
-        Dim reasonLabel As New Label With {.Text = If(cancelEmpty, "Cancellation reason (minimum 10 characters)",
-                       "Reason for partial closure (minimum 10 characters)"), .Location = New Point(22, 242), .AutoSize = True}
-        reasonInput.SetBounds(22, 266, 480, 69)
-        reasonInput.Multiline = True
-        reasonInput.MaxLength = 500
-
-        Dim confirm As New Button With {.Text = If(cancelEmpty, "Authorize & Cancel Pallet", "Authorize & Close Partial"), .Size = New Size(235, 38),
-                                        .Location = New Point(267, 351)}
-        Dim cancel As New Button With {.Text = "Cancel", .Size = New Size(118, 38),
-                                       .Location = New Point(135, 351), .DialogResult = DialogResult.Cancel}
-        AddHandler confirm.Click, AddressOf Authorize
-
-        Controls.AddRange(New Control() {
-            heading, info, barcodeLabel, barcodeInput, passwordLabel,
-            passwordInput, reasonLabel, reasonInput, confirm, cancel
-        })
-        AcceptButton = confirm
-        CancelButton = cancel
+        reasonLabel.Text = If(cancelEmpty, "Cancellation reason (minimum 10 characters)",
+                              "Reason for partial closure (minimum 10 characters)")
+        confirm.Text = If(cancelEmpty, "Authorize & Cancel Pallet", "Authorize & Close Partial")
     End Sub
 
     Private Sub Authorize(sender As Object, e As EventArgs)

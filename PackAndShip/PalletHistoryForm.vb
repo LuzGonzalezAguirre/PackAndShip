@@ -9,36 +9,35 @@ Imports System.Windows.Forms
 Public Class PalletHistoryForm
     Inherits Form
 
-    Private ReadOnly searchCode As New TextBox With {.Width = 150}
-    Private ReadOnly searchModel As New TextBox With {.Width = 130}
-    Private ReadOnly statusPicker As New ComboBox With {.Width = 115, .DropDownStyle = ComboBoxStyle.DropDownList}
-    Private ReadOnly fromPicker As New DateTimePicker With {.Width = 135, .Format = DateTimePickerFormat.Short}
-    Private ReadOnly toPicker As New DateTimePicker With {.Width = 135, .Format = DateTimePickerFormat.Short}
-    Private ReadOnly grid As New DataGridView()
-    Private ReadOnly pieces As New DataGridView()
-    Private ReadOnly levels As New DataGridView()
-    Private ReadOnly audit As New DataGridView()
-    Private ReadOnly packingReport As New DataGridView()
-    Private ReadOnly transfers As New DataGridView()
-    Private ReadOnly summary As New Label With {.AutoSize = True}
-    Private ReadOnly removeButton As New Button With {.Text = "Remove selected piece", .AutoSize = True}
-    Private ReadOnly cancelButton As New Button With {.Text = "Cancel pallet", .AutoSize = True}
-    Private ReadOnly tabs As New TabControl With {.Dock = DockStyle.Fill}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     Private selectedId As Integer
 
     Public Sub New()
-        Text = "PackAndShip | Pallet History"
-        Size = New Size(1250, 800)
-        MinimumSize = New Size(900, 600)
-        StartPosition = FormStartPosition.CenterParent
-        BackColor = PaSTheme.Background
-        Font = New Font("Segoe UI", 10)
-        BuildLayout()
+        InitializeComponent()
+        statusPicker.Items.AddRange(New Object() {"All", "OPEN", "CLOSED", "PARTIAL", "TRANSFERRED", "CANCELLED"})
+        statusPicker.SelectedIndex = 0
+        fromPicker.Value = DateTime.Today.AddMonths(-3)
+        toPicker.Value = DateTime.Today
+        removeButton.Visible = SessionContext.CanModifySetup
+        cancelButton.Visible = SessionContext.UserId > 0
+        BindEvents()
         AddHandler Shown, Sub() RefreshHistory()
     End Sub
 
     Private Shared Sub ConfigureGrid(g As DataGridView)
-        g.Dock = DockStyle.Fill
         g.ReadOnly = True
         g.AllowUserToAddRows = False
         g.AllowUserToDeleteRows = False
@@ -49,80 +48,17 @@ Public Class PalletHistoryForm
         g.RowHeadersVisible = False
     End Sub
 
-    Private Sub BuildLayout()
-        statusPicker.Items.AddRange(New Object() {"All", "OPEN", "CLOSED", "PARTIAL", "TRANSFERRED", "CANCELLED"})
-        statusPicker.SelectedIndex = 0
-        fromPicker.Value = DateTime.Today.AddMonths(-3)
-        toPicker.Value = DateTime.Today
-
-        Dim filters As New FlowLayoutPanel With {
-            .Dock = DockStyle.Top, .Height = 90,
-            .Padding = New Padding(10), .AutoScroll = True,
-            .WrapContents = True
-        }
-        filters.Controls.Add(New Label With {.Text = "Pallet", .AutoSize = True, .Margin = New Padding(5, 11, 3, 3)})
-        filters.Controls.Add(searchCode)
-        filters.Controls.Add(New Label With {.Text = "Model", .AutoSize = True, .Margin = New Padding(9, 11, 3, 3)})
-        filters.Controls.Add(searchModel)
-        filters.Controls.Add(New Label With {.Text = "Status", .AutoSize = True, .Margin = New Padding(9, 11, 3, 3)})
-        filters.Controls.Add(statusPicker)
-        filters.Controls.Add(New Label With {.Text = "From", .AutoSize = True, .Margin = New Padding(9, 11, 3, 3)})
-        filters.Controls.Add(fromPicker)
-        filters.Controls.Add(New Label With {.Text = "To", .AutoSize = True, .Margin = New Padding(9, 11, 3, 3)})
-        filters.Controls.Add(toPicker)
-        Dim refresh As New Button With {.Text = "Search", .AutoSize = True}
-        AddHandler refresh.Click, Sub() RefreshHistory()
-        filters.Controls.Add(refresh)
-        Dim exportSummary As New Button With {.Text = "Export pallet report CSV", .AutoSize = True}
-        AddHandler exportSummary.Click, Sub() ExportGrid(grid, "pallet_report")
-        filters.Controls.Add(exportSummary)
-
-        Dim actions As New FlowLayoutPanel With {
-            .Dock = DockStyle.Top, .Height = 48, .Padding = New Padding(9)
-        }
-        actions.Controls.Add(summary)
-        actions.Controls.Add(removeButton)
-        actions.Controls.Add(cancelButton)
+    Private Sub BindEvents()
+        AddHandler refreshButton.Click, Sub() RefreshHistory()
+        AddHandler exportSummaryButton.Click, Sub() ExportGrid(grid, "pallet_report")
         AddHandler removeButton.Click, AddressOf RemoveSelectedPiece
         AddHandler cancelButton.Click, AddressOf CancelSelectedPallet
-        removeButton.Visible = SessionContext.CanModifySetup
-        cancelButton.Visible = SessionContext.UserId > 0
-
-        ConfigureGrid(grid)
-        ConfigureGrid(pieces)
-        ConfigureGrid(levels)
-        ConfigureGrid(audit)
-        ConfigureGrid(packingReport)
-        ConfigureGrid(transfers)
         AddHandler grid.SelectionChanged, AddressOf SelectedPalletChanged
-
-        Dim upper As New GroupBox With {.Text = "Pallets", .Dock = DockStyle.Fill, .Padding = New Padding(8)}
-        upper.Controls.Add(grid)
-
-        Dim names = New String() {"Pieces and Q-Wall Inspection IDs", "Levels", "Audit history", "Packing report by model/operator/day", "Pallet transfers"}
-        Dim detailGrids = New DataGridView() {pieces, levels, audit, packingReport, transfers}
-        For index As Integer = 0 To names.Length - 1
-            Dim tab As New TabPage(names(index))
-            Dim target As DataGridView = detailGrids(index)
-            tab.Controls.Add(target)
-            Dim bar As New FlowLayoutPanel With {.Dock = DockStyle.Bottom, .Height = 40}
-            Dim export As New Button With {.Text = "Export selected tab CSV", .AutoSize = True}
-            Dim filename As String = names(index).Replace(" ", "_")
-            AddHandler export.Click, Sub() ExportGrid(target, filename)
-            bar.Controls.Add(export)
-            tab.Controls.Add(bar)
-            tabs.TabPages.Add(tab)
-        Next
-
-        Dim split As New SplitContainer With {
-            .Dock = DockStyle.Fill, .Orientation = Orientation.Horizontal,
-            .SplitterDistance = 275, .Panel1MinSize = 150, .Panel2MinSize = 150
-        }
-        split.Panel1.Controls.Add(upper)
-        split.Panel2.Controls.Add(tabs)
-        Controls.Add(split)
-        Controls.Add(actions)
-        Controls.Add(filters)
+        AddHandler exportPieces.Click, Sub() ExportGrid(pieces, "Pieces_and_Q-Wall_Inspection_IDs")
+        AddHandler exportLevels.Click, Sub() ExportGrid(levels, "Levels")
+        AddHandler exportAudit.Click, Sub() ExportGrid(audit, "Audit_history")
+        AddHandler exportPacking.Click, Sub() ExportGrid(packingReport, "Packing_report_by_model_operator_day")
+        AddHandler exportTransfers.Click, Sub() ExportGrid(transfers, "Pallet_transfers")
     End Sub
 
     Private Sub RefreshHistory()

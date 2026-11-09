@@ -27,7 +27,8 @@ Public Class Form1
         menuSetup.Enabled = False
         menuPalletActions.Enabled = False
         menuLogout.Enabled = False
-        AddHandler Shown, AddressOf InitialLoginShown
+        ' LoginForm already authenticated the user before Form1 was created.
+        ActivateAuthenticatedStation()
     End Sub
 
     Private Sub BindViewEvents()
@@ -75,36 +76,36 @@ Public Class Form1
         SessionContext.BusinessUnitName = If(selected Is Nothing, "", selected.Name)
     End Sub
 
-    Private Sub InitialLoginShown(sender As Object, e As EventArgs)
-        RemoveHandler Shown, AddressOf InitialLoginShown
-        ' Display a separate form; the main shell is not usable before login.
-        BeginInvoke(New MethodInvoker(Sub() ShowLoginDialog()))
+    Private Sub ActivateAuthenticatedStation()
+        If SessionContext.UserId <= 0 Then
+            Close()
+            Return
+        End If
+        SetAuthenticatedLayout()
+        scannerView.LoadStation()
+        connectionFailed = False
+        connectionChecked = False
+        failureCount = 0
+        connectionTimer.Interval = 5000
+        connectionTimer.Start()
+        menuSetup.Enabled = SessionContext.CanModifySetup
+        menuPalletActions.Enabled = True
+        menuLogout.Enabled = True
     End Sub
 
     Private Sub ShowLoginDialog()
-        If IsDisposed Then Return
-        mainMenu.Enabled = False
-        signedInPanel.Enabled = False
+        ' Used after logout. Keep the scanner invisible while credentials are entered.
+        Hide()
         Try
             Using login As New LoginForm(SessionContext.BusinessUnitName)
-                If login.ShowDialog(Me) <> DialogResult.OK Then
+                If login.ShowDialog() <> DialogResult.OK Then
                     Close()
                     Return
                 End If
             End Using
-            SetAuthenticatedLayout()
-            scannerView.LoadStation()
-            connectionFailed = False
-            connectionChecked = False
-            failureCount = 0
-            connectionTimer.Interval = 5000
-            connectionTimer.Start()
-            menuSetup.Enabled = SessionContext.CanModifySetup
-            menuPalletActions.Enabled = True
-            menuLogout.Enabled = True
+            ActivateAuthenticatedStation()
         Finally
-            mainMenu.Enabled = True
-            signedInPanel.Enabled = True
+            If Not IsDisposed AndAlso SessionContext.UserId > 0 Then Show()
         End Try
     End Sub
 

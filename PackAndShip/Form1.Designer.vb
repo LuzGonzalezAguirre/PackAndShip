@@ -185,7 +185,7 @@ Partial Class Form1
 
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(244, 247, 250)
-        Me.ClientSize = New System.Drawing.Size(1100, 720)
+        Me.ClientSize = New System.Drawing.Size(1200, 760)
         Me.Font = New System.Drawing.Font("Segoe UI", 11.0!)
         Me.MainMenuStrip = Me.mainMenu
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen

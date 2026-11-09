@@ -4,26 +4,7 @@ Imports System.Windows.Forms
 Public Class Form1
     Private ReadOnly brandBlue As Color = Color.FromArgb(31, 78, 121)
     Private ReadOnly backgroundColor As Color = Color.FromArgb(244, 247, 250)
-    Private ReadOnly inputBarcode As New TextBox()
-    Private ReadOnly inputPassword As New TextBox()
-    Private ReadOnly labelCustomer As New Label()
-    Private ReadOnly labelStatus As New Label()
-    Private ReadOnly labelWelcome As New Label()
-    Private ReadOnly buttonLogin As New Button()
-    Private ReadOnly buttonLogout As New Button()
-    Private ReadOnly mainMenu As New MenuStrip()
-    Private ReadOnly menuSetup As New ToolStripMenuItem("Setup")
-    Private ReadOnly menuHistory As New ToolStripMenuItem("Pallet History")
-    Private ReadOnly menuTransfer As New ToolStripMenuItem("Pallet Transfers")
-    Private ReadOnly menuHelp As New ToolStripMenuItem("Ayuda")
-    Private ReadOnly menuLogout As New ToolStripMenuItem("Cerrar sesión")
-    Private ReadOnly appHeader As New Panel()
-    Private ReadOnly loginPanel As New Panel()
-    Private ReadOnly signedInPanel As New Panel()
-    Private ReadOnly scannerView As New PalletScannerView()
     Private ReadOnly connectionTimer As New Timer With {.Interval = 5000}
-    Private ReadOnly connectionStatus As New StatusStrip()
-    Private ReadOnly connectionLabel As New ToolStripStatusLabel("CCS: checking connection")
     Private connectionBusy As Boolean
     Private connectionFailed As Boolean
     Private connectionChecked As Boolean
@@ -38,174 +19,27 @@ Public Class Form1
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = backgroundColor
         Me.Font = New Font("Segoe UI", 11.0F)
-        CreateLayout()
+        BindViewEvents()
         AddHandler connectionTimer.Tick, AddressOf ConnectionTimerTick
         ReloadCustomers()
         ResetLogin()
     End Sub
 
-    Private Sub CreateLayout()
-        appHeader.Dock = DockStyle.Top
-        appHeader.Height = 84
-        appHeader.BackColor = brandBlue
-        Dim title As New Label With {
-            .Text = "PACK AND SHIP", .Font = New Font("Segoe UI", 23, FontStyle.Bold),
-            .ForeColor = Color.White, .AutoSize = True, .Location = New Point(24, 19)
-        }
-        appHeader.Controls.Add(title)
-
-        ' Traditional fixed MenuStrip, matching the Q-Wall navigation layout.
-        mainMenu.Dock = DockStyle.Top
-        mainMenu.AutoSize = False
-        mainMenu.Height = 34
-        mainMenu.BackColor = PaSTheme.Surface
-        mainMenu.ForeColor = PaSTheme.TextPrimary
-        mainMenu.Font = New Font("Segoe UI", 10.0F)
-        mainMenu.Padding = New Padding(9, 3, 0, 3)
-
-        Dim changeCustomer = menuSetup.DropDownItems.Add("Customer Configuration")
-        AddHandler changeCustomer.Click, AddressOf ChangeDefaultCustomer
-        Dim usersEntry = menuSetup.DropDownItems.Add("Users & Roles")
-        AddHandler usersEntry.Click, AddressOf OpenUsersSetup
-        Dim palletEntry = menuSetup.DropDownItems.Add("Pallet Configuration")
-        AddHandler palletEntry.Click, AddressOf OpenPalletConfiguration
-        Dim scanEntry = menuSetup.DropDownItems.Add("Scan Rules")
-        AddHandler scanEntry.Click, AddressOf OpenScanRules
-        Dim generalEntry = menuSetup.DropDownItems.Add("General Settings")
-        AddHandler generalEntry.Click, AddressOf OpenGeneralSettings
-
-        Dim aboutEntry = menuHelp.DropDownItems.Add("About PackAndShip")
-        AddHandler aboutEntry.Click, Sub()
-                                         MessageBox.Show("PackAndShip" & Environment.NewLine &
-                                                         "Manufacturing pallet scanning and configuration.",
-                                                         "About", MessageBoxButtons.OK,
-                                                         MessageBoxIcon.Information)
-                                     End Sub
+    Private Sub BindViewEvents()
+        AddHandler setupCustomerItem.Click, AddressOf ChangeDefaultCustomer
+        AddHandler setupUsersItem.Click, AddressOf OpenUsersSetup
+        AddHandler setupPalletItem.Click, AddressOf OpenPalletConfiguration
+        AddHandler setupRulesItem.Click, AddressOf OpenScanRules
+        AddHandler setupGeneralItem.Click, AddressOf OpenGeneralSettings
+        AddHandler helpAboutItem.Click, Sub()
+            MessageBox.Show("PackAndShip" & Environment.NewLine &
+                            "Manufacturing pallet scanning and configuration.",
+                            "About", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End Sub
         AddHandler menuHistory.Click, AddressOf OpenPalletHistory
         AddHandler menuTransfer.Click, AddressOf OpenPalletTransfers
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu
-
-        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuHistory, menuTransfer, menuHelp, menuLogout})
-        MainMenuStrip = mainMenu
-
-        loginPanel.Dock = DockStyle.Fill
-        signedInPanel.Dock = DockStyle.Fill
-        CreateLoginContent()
-        CreateSignedInContent()
-
-        Me.Controls.Add(loginPanel)
-        Me.Controls.Add(signedInPanel)
-        Me.Controls.Add(appHeader)
-        connectionStatus.Items.Add(connectionLabel)
-        connectionStatus.SizingGrip = False
-        connectionStatus.Dock = DockStyle.Bottom
-        Me.Controls.Add(connectionStatus)
-        Me.Controls.Add(mainMenu)
-    End Sub
-
-    Private Sub CreateLoginContent()
-        ' Compact standalone login; the form itself is the card.
-        Dim card As New Panel With {
-            .Dock = DockStyle.Fill,
-            .BackColor = Color.White,
-            .BorderStyle = BorderStyle.None
-        }
-        loginPanel.Controls.Add(card)
-
-        Dim cardHeader As New Panel With {
-            .Dock = DockStyle.Top, .Height = 50,
-            .BackColor = brandBlue
-        }
-        Dim cardTitle As New Label With {
-            .Text = "Pack and Ship",
-            .Dock = DockStyle.Fill,
-            .TextAlign = ContentAlignment.MiddleCenter,
-            .Font = New Font("Segoe UI", 13.0F, FontStyle.Bold),
-            .ForeColor = Color.White
-        }
-        cardHeader.Controls.Add(cardTitle)
-
-        Dim cardFooter As New Panel With {
-            .Dock = DockStyle.Bottom, .Height = 50,
-            .BackColor = brandBlue
-        }
-        buttonLogin.Text = "Iniciar sesión"
-        buttonLogin.Dock = DockStyle.Fill
-        buttonLogin.BackColor = brandBlue
-        buttonLogin.ForeColor = Color.White
-        buttonLogin.FlatStyle = FlatStyle.Flat
-        buttonLogin.FlatAppearance.BorderSize = 0
-        buttonLogin.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
-        buttonLogin.Cursor = Cursors.Hand
         AddHandler buttonLogin.Click, AddressOf PerformLogin
-        cardFooter.Controls.Add(buttonLogin)
-
-        Dim sectionLogin As New Label With {
-            .Text = "Inicio de sesión",
-            .Location = New Point(14, 57), .Size = New Size(394, 20),
-            .Font = New Font("Segoe UI", 9.0F, FontStyle.Bold),
-            .ForeColor = brandBlue
-        }
-        Dim barcodeLabel As New Label With {
-            .Text = "Credencial (Barcode ID)",
-            .Location = New Point(14, 79), .Size = New Size(394, 18),
-            .Font = New Font("Segoe UI", 9.0F),
-            .ForeColor = Color.FromArgb(80, 80, 80)
-        }
-        inputBarcode.Location = New Point(14, 99)
-        inputBarcode.Size = New Size(394, 27)
-        inputBarcode.Font = New Font("Segoe UI", 11.0F)
-        inputBarcode.BackColor = Color.White
-        inputBarcode.BorderStyle = BorderStyle.FixedSingle
-        inputBarcode.CharacterCasing = CharacterCasing.Upper
-        inputBarcode.TabIndex = 0
-
-        Dim passwordLabel As New Label With {
-            .Text = "Password",
-            .Location = New Point(14, 133), .Size = New Size(394, 18),
-            .Font = New Font("Segoe UI", 9.0F),
-            .ForeColor = Color.FromArgb(80, 80, 80)
-        }
-        inputPassword.Location = New Point(14, 153)
-        inputPassword.Size = New Size(394, 27)
-        inputPassword.Font = New Font("Segoe UI", 11.0F)
-        inputPassword.BackColor = Color.White
-        inputPassword.BorderStyle = BorderStyle.FixedSingle
-        inputPassword.UseSystemPasswordChar = True
-        inputPassword.TabIndex = 1
-
-        Dim sectionStation As New Label With {
-            .Text = "Estación de trabajo",
-            .Location = New Point(14, 198), .Size = New Size(394, 20),
-            .Font = New Font("Segoe UI", 9.0F, FontStyle.Bold),
-            .ForeColor = brandBlue
-        }
-        Dim customerLabel As New Label With {
-            .Text = "Cliente predeterminado",
-            .Location = New Point(14, 222), .Size = New Size(394, 18),
-            .Font = New Font("Segoe UI", 9.0F),
-            .ForeColor = Color.FromArgb(80, 80, 80)
-        }
-        labelCustomer.Location = New Point(14, 242)
-        labelCustomer.Size = New Size(394, 32)
-        labelCustomer.ForeColor = brandBlue
-        labelCustomer.BackColor = Color.FromArgb(242, 247, 252)
-        labelCustomer.BorderStyle = BorderStyle.FixedSingle
-        labelCustomer.TextAlign = ContentAlignment.MiddleLeft
-        labelCustomer.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
-
-        card.Controls.AddRange(New Control() {
-            sectionLogin, barcodeLabel, inputBarcode, passwordLabel,
-            inputPassword, sectionStation, customerLabel, labelCustomer
-        })
-        card.Controls.Add(cardFooter)
-        card.Controls.Add(cardHeader)
-        cardHeader.BringToFront()
-        cardFooter.BringToFront()
-    End Sub
-
-    Private Sub CreateSignedInContent()
-        signedInPanel.Controls.Add(scannerView)
     End Sub
 
     Private Sub AddLabel(parent As Control, value As String, x As Integer, y As Integer,

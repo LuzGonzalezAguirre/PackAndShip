@@ -28,6 +28,10 @@ Public Partial Class PalletScannerView
     Private ReadOnly recordButton As New Button()
     Private ReadOnly levelButton As New Button()
     Private ReadOnly closePallet As New Button()
+    ' State-only controls, not placed on the UserControl surface.
+    Private ReadOnly partialButton As New Button()
+    Private ReadOnly cancelEmptyButton As New Button()
+    Private ReadOnly pendingButton As New Button()
 
     Public Sub New()
         InitializeComponent()
@@ -37,15 +41,52 @@ Public Partial Class PalletScannerView
         clockTimer.Start()
     End Sub
 
+    Public ReadOnly Property CanClosePartial As Boolean
+        Get
+            Return partialButton.Enabled
+        End Get
+    End Property
+
+    Public ReadOnly Property CanCancelEmpty As Boolean
+        Get
+            Return cancelEmptyButton.Enabled
+        End Get
+    End Property
+
+    Public ReadOnly Property HasPendingSqlAction As Boolean
+        Get
+            Return ConnectionRecovery.Pending() IsNot Nothing
+        End Get
+    End Property
+
+    Public Sub RequestPartialPallet()
+        If Not partialButton.Enabled Then
+            MessageBox.Show("Partial closure requires an OPEN pallet with at least one piece and fewer than the configured quantity.",
+                            "Partial pallet", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Return
+        End If
+        ClosePartialPallet(Me, EventArgs.Empty)
+    End Sub
+
+    Public Sub RequestCancelEmptyPallet()
+        If Not cancelEmptyButton.Enabled Then
+            MessageBox.Show("Only an OPEN pallet with no pieces or closed levels can be cancelled.",
+                            "Cancel empty pallet", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Return
+        End If
+        CancelEmptyPallet(Me, EventArgs.Empty)
+    End Sub
+
+    Public Sub RequestPendingSqlReview()
+        ReviewPendingSql(Me, EventArgs.Empty)
+    End Sub
+
     Private Sub BindScannerEvents()
         AddHandler openButton.Click, AddressOf OpenOrLoadContainer
         AddHandler verifyButton.Click, Sub() VerifyQrFormat()
         AddHandler recordButton.Click, AddressOf RecordPiece
         AddHandler levelButton.Click, AddressOf CloseLevel
         AddHandler closePallet.Click, AddressOf CompletePallet
-        AddHandler partialButton.Click, AddressOf ClosePartialPallet
-        AddHandler cancelEmptyButton.Click, AddressOf CancelEmptyPallet
-        AddHandler pendingButton.Click, AddressOf ReviewPendingSql
         AddHandler confirmAgain.Click, Sub() PromptCompletedLevel()
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
         AddHandler containerInput.KeyDown, AddressOf ContainerEnter
@@ -312,15 +353,12 @@ Public Partial Class PalletScannerView
         If openNow Then current = activeContainer.CurrentLevel
         Dim pendingOp = ConnectionRecovery.Pending()
         Dim pending = pendingOp IsNot Nothing
-        pendingButton.Visible = pending
+        pendingButton.Enabled = pending
         If pending Then
-            pendingButton.Text = If(pendingOp.ReviewRequired,
-                                    "Review blocked SQL action", "Check pending SQL action")
-            pendingButton.Enabled = True
             scanStatus.ForeColor = Color.DarkRed
             scanStatus.Text = "Packing is blocked by pending SQL action: " &
                 pendingOp.Kind & " (Container ID " & pendingOp.ContainerId & "). " &
-                "Click Review pending SQL."
+                "Use Pallet Actions > Review pending SQL."
         End If
         Dim lockedCode = StationSettings.ReadLockedPallet()
         Dim locked = openNow OrElse lockedCode <> ""

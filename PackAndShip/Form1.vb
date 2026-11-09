@@ -36,6 +36,10 @@ Public Class Form1
                             "Manufacturing pallet scanning and configuration.",
                             "About", MessageBoxButtons.OK, MessageBoxIcon.Information)
         End Sub
+        AddHandler menuPalletActions.DropDownOpening, AddressOf UpdatePalletActionsMenu
+        AddHandler menuPartialPallet.Click, Sub() scannerView.RequestPartialPallet()
+        AddHandler menuCancelEmptyPallet.Click, Sub() scannerView.RequestCancelEmptyPallet()
+        AddHandler menuReviewPendingSql.Click, Sub() scannerView.RequestPendingSqlReview()
         AddHandler menuHistory.Click, AddressOf OpenPalletHistory
         AddHandler menuTransfer.Click, AddressOf OpenPalletTransfers
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu
@@ -56,6 +60,13 @@ Public Class Form1
         child.Location = New Point(
             Math.Max(0, (parent.ClientSize.Width - child.Width) \ 2),
             Math.Max(18, (parent.ClientSize.Height - child.Height) \ 2))
+    End Sub
+
+    Private Sub UpdatePalletActionsMenu(sender As Object, e As EventArgs)
+        Dim signedIn = SessionContext.UserId > 0
+        menuPartialPallet.Enabled = signedIn AndAlso scannerView.CanClosePartial
+        menuCancelEmptyPallet.Enabled = signedIn AndAlso scannerView.CanCancelEmpty
+        menuReviewPendingSql.Enabled = signedIn AndAlso scannerView.HasPendingSqlAction
     End Sub
 
     Private Sub ReloadCustomers()
@@ -111,6 +122,7 @@ Public Class Form1
             connectionTimer.Interval = 5000
             connectionTimer.Start()
             menuSetup.Enabled = SessionContext.CanModifySetup
+            menuPalletActions.Enabled = True
             menuLogout.Enabled = True
             labelWelcome.Text = "Operator: " & user.Name & "  |  Role: " & user.RoleName &
                                 Environment.NewLine & "Customer: " &
@@ -411,8 +423,8 @@ Public Class Form1
             signedInPanel.Visible = True
             FormBorderStyle = FormBorderStyle.Sizable
             MaximizeBox = True
-            MinimumSize = New Size(800, 570)
-            ClientSize = New Size(1100, 720)
+            MinimumSize = New Size(1050, 690)
+            ClientSize = New Size(1200, 760)
             appHeader.Visible = False
             mainMenu.Visible = True
             Text = "Pack and Ship | SSI"
@@ -437,6 +449,7 @@ Public Class Form1
         inputPassword.Clear()
         SetLoginLayout()
         menuSetup.Enabled = False
+        menuPalletActions.Enabled = False
         menuLogout.Enabled = False
         Me.AcceptButton = buttonLogin
         inputBarcode.Focus()

@@ -30,6 +30,72 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="PalletTransferForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="PalletTransferForm.Designer.vb">
+      <DependentUpon>PalletTransferForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="PartialPalletAuthorizationForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="PartialPalletAuthorizationForm.Designer.vb">
+      <DependentUpon>PartialPalletAuthorizationForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="GeneralSettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="GeneralSettingsForm.Designer.vb">
+      <DependentUpon>GeneralSettingsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="UsersSetupForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UsersSetupForm.Designer.vb">
+      <DependentUpon>UsersSetupForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="ScanRulesForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ScanRulesForm.Designer.vb">
+      <DependentUpon>ScanRulesForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="PalletHistoryForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="PalletHistoryForm.Designer.vb">
+      <DependentUpon>PalletHistoryForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="PalletConfigurationForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="PalletConfigurationForm.Designer.vb">
+      <DependentUpon>PalletConfigurationForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="ScanRuleEditorForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ScanRuleEditorForm.Designer.vb">
+      <DependentUpon>ScanRuleEditorForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="SetupDashboardForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="SetupDashboardForm.Designer.vb">
+      <DependentUpon>SetupDashboardForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="UserEditorDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UserEditorDialog.Designer.vb">
+      <DependentUpon>UserEditorDialog.vb</DependentUpon>
+    </Compile>
+    <Compile Update="ScanFieldCard.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="ScanFieldCard.Designer.vb">
+      <DependentUpon>ScanFieldCard.vb</DependentUpon>
+    </Compile>
     <Compile Update="LoginForm.vb">
       <SubType>Form</SubType>
     </Compile>

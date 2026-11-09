@@ -9,9 +9,12 @@ Public Class Form1
     Private connectionFailed As Boolean
     Private connectionChecked As Boolean
     Private failureCount As Integer
+    ' Remember the Design-time window size before displaying the compact login.
+    Private signedInDesignerSize As Size
     Private units As New List(Of BusinessUnit)()
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        signedInDesignerSize = Me.ClientSize
         Me.Text = "Pack and Ship | SSI"
         Me.AutoScaleMode = AutoScaleMode.Font
         Me.MinimumSize = New Size(1, 1)
@@ -423,8 +426,11 @@ Public Class Form1
             signedInPanel.Visible = True
             FormBorderStyle = FormBorderStyle.Sizable
             MaximizeBox = True
-            MinimumSize = New Size(1050, 690)
-            ClientSize = New Size(1200, 760)
+            MinimumSize = New Size(1100, 750)
+            ' The authenticated size is editable from Form1 Designer's
+            ' ClientSize property, rather than hardcoded here.
+            ClientSize = New Size(Math.Max(1080, signedInDesignerSize.Width),
+                                  Math.Max(720, signedInDesignerSize.Height))
             appHeader.Visible = False
             mainMenu.Visible = True
             Text = "Pack and Ship | SSI"

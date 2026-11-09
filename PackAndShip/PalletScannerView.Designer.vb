@@ -73,7 +73,7 @@ Partial Class PalletScannerView
         Me.headerLayout.Dock = System.Windows.Forms.DockStyle.None
         Me.headerLayout.Location = New System.Drawing.Point(0, 0)
         Me.headerLayout.Size = New System.Drawing.Size(1138, 82)
-                Me.headerLayout.BackColor = System.Drawing.Color.FromArgb(224, 232, 241)
+        Me.headerLayout.BackColor = System.Drawing.Color.FromArgb(224, 232, 241)
         Me.headerContainerCell.Dock = System.Windows.Forms.DockStyle.None
         Me.headerContainerCell.Location = New System.Drawing.Point(0, 0)
         Me.headerContainerCell.Size = New System.Drawing.Size(190, 82)
@@ -330,7 +330,7 @@ Partial Class PalletScannerView
         Me.bodyLayout.Controls.Add(Me.leftLayout)
         Me.bodyLayout.Controls.Add(Me.progressArea)
         Me.mainLayout.Controls.Add(Me.headerPage)
-                Me.mainLayout.Controls.Add(Me.bodyLayout)
+        Me.mainLayout.Controls.Add(Me.bodyLayout)
         Me.mainLayout.Dock = System.Windows.Forms.DockStyle.Fill
         Me.Controls.Add(Me.mainLayout)
         Me.Me.BackColor = System.Drawing.Color.FromArgb(245, 248, 252)

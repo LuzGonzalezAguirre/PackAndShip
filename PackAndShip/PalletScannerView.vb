@@ -197,6 +197,8 @@ Public Partial Class PalletScannerView
             progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
             progressBar.Value = 0
             activeContainer = Nothing
+            lbl_lot.Text = "P######"
+            DataGridView1.DataSource = Nothing
             ResetVerification()
             scannedList.Items.Clear()
             scannedList.Items.Add("Open or load a container to view its pieces.")

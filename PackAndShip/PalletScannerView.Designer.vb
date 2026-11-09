@@ -308,7 +308,7 @@ Partial Class PalletScannerView
         Me.levelTiles.AutoScroll = True
         Me.confirmAgain.Location = New System.Drawing.Point(25, 408)
         Me.confirmAgain.Size = New System.Drawing.Size(540, 50)
-        Me.confirmAgain.Anchor = System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right Or System.Windows.Forms.AnchorStyles.Bottom
+        Me.confirmAgain.Anchor = System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right
         Me.confirmAgain.Text = "Review packed level"
         Me.confirmAgain.Enabled = False
         Me.confirmAgain.BackColor = System.Drawing.Color.FromArgb(245, 248, 252)

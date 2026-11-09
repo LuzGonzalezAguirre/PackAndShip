@@ -2,31 +2,12 @@ Imports System.Drawing
 Imports System.Linq
 Imports System.Windows.Forms
 
-' SQL-backed scanner: Q-Wall PASS and global duplicate checks execute before recording.
-' Production rollout still requires end-to-end and concurrency validation.
-Public Class PalletScannerView
+' Visual controls and positions are defined in PalletScannerView.Designer.vb.
+' This file contains only scan, database, validation and navigation logic.
+Public Partial Class PalletScannerView
     Inherits UserControl
 
     Private ReadOnly navy As Color = PaSTheme.Navy
-    Private ReadOnly containerInput As New TextBox()
-    Private ReadOnly partPicker As New ComboBox()
-    Private ReadOnly customerValue As New Label()
-    Private ReadOnly operatorValue As New Label()
-    Private ReadOnly clockValue As New Label()
-    Private ReadOnly firstQr As New TextBox()
-    Private ReadOnly secondQr As New TextBox()
-    Private ReadOnly scanHelp As New Label()
-    Private ReadOnly clientScanLabel As New Label()
-    Private ReadOnly scanStatus As New Label()
-    Private ReadOnly palletSummary As New Label()
-    Private ReadOnly ruleSummary As New Label()
-    Private ReadOnly verifyButton As Button = PaSTheme.ActionButton("Verify QR format")
-    Private ReadOnly openButton As Button = PaSTheme.ActionButton("Open / Load", False)
-    Private ReadOnly pendingButton As New ToolStripButton("Review pending SQL")
-    Private ReadOnly recordButton As Button = PaSTheme.ActionButton("Record piece")
-    Private ReadOnly levelButton As Button = PaSTheme.ActionButton("Close level", False)
-    Private ReadOnly partialButton As New ToolStripButton("Partial pallet")
-    Private ReadOnly cancelEmptyButton As New ToolStripButton("Cancel pallet")
     Private activeContainer As PaSPackedContainer
     Private verifiedSsi As String = ""
     Private verifiedClient As String = ""
@@ -36,182 +17,40 @@ Public Class PalletScannerView
     Private selectedRule As ScanRuleRecord
     Private selectedFields As New List(Of ScanFieldRecord)()
     Private palletFormat As PalletIdSettings
-
-    Public Sub New()
-        Dock = DockStyle.Fill
-        BackColor = PaSTheme.Background
-        AutoScroll = True
-        Font = New Font("Segoe UI", 10)
-        BuildLayout()
-        AddHandler clockTimer.Tick, Sub() clockValue.Text = DateTime.Now.ToString("dd/MM/yyyy  HH:mm:ss")
-        clockTimer.Start()
-        AddHandler Disposed, Sub() clockTimer.Stop()
-    End Sub
-
-    Private Function FieldCaption(value As String, x As Integer, y As Integer) As Label
-        Return New Label With {
-            .Text = value, .Location = New Point(x, y),
-            .Size = New Size(310, 22),
-            .ForeColor = PaSTheme.TextSecondary,
-            .Font = New Font("Segoe UI", 9, FontStyle.Bold)
-        }
-    End Function
-
-    Private ReadOnly activePartTitle As New Label()
-    Private ReadOnly buildState As New Label()
-    Private ReadOnly progressText As New Label()
-    Private ReadOnly progressBar As New ProgressBar()
-    Private ReadOnly scannedList As New ListBox()
-    Private ReadOnly closePallet As Button = PaSTheme.ActionButton("Complete pallet")
-    Private ReadOnly headerCards As New List(Of Panel)()
-    Private ReadOnly packingTools As New ToolStrip()
-    Private ReadOnly progressIcon As New Label()
-    Private ReadOnly progressPercent As New Label()
-    Private ReadOnly progressState As New Label()
-    Private ReadOnly levelTiles As New FlowLayoutPanel()
-    Private ReadOnly confirmAgain As Button = PaSTheme.ActionButton("Confirm packed level", False)
     Private autoConfirmVisible As Boolean
     Private autoScanBusy As Boolean
     Private autoOpenBusy As Boolean
-    Private ReadOnly headerPage As New Panel()
-    Private ReadOnly bodyLeft As New Panel()
-    Private ReadOnly bodyRight As New Panel()
-    Private scanArea As New Panel()
-    Private buildArea As New Panel()
-    Private piecesArea As New Panel()
-    Private progressArea As New Panel()
-    Private validationArea As New Panel()
-    Private ReadOnly mainPage As New Panel()
 
-    Private Function Card(title As String, parent As Control, x As Integer,
-                          y As Integer, width As Integer, height As Integer) As Panel
-        Dim panel As New Panel With {
-            .Location = New Point(x, y),
-            .Size = New Size(width, height),
-            .BackColor = Color.White,
-            .BorderStyle = BorderStyle.FixedSingle
-        }
-        parent.Controls.Add(panel)
-        Dim label = PaSTheme.Heading(title, 13)
-        label.Location = New Point(18, 14)
-        panel.Controls.Add(label)
-        Return panel
-    End Function
+    ' These hidden state guards preserve the existing SQL write workflow.
+    ' They are not visual controls and do not need Designer positions.
+    Private ReadOnly openButton As New Button()
+    Private ReadOnly verifyButton As New Button()
+    Private ReadOnly recordButton As New Button()
+    Private ReadOnly levelButton As New Button()
+    Private ReadOnly closePallet As New Button()
 
-    Private Function HeaderCell(title As String, value As Control,
-                                portion As Single) As Panel
-        Dim cell As New Panel With {
-            .Dock = DockStyle.Fill,
-            .BackColor = Color.White,
-            .Margin = New Padding(2, 1, 2, 1),
-            .Padding = New Padding(10)
-        }
-        Dim caption = FieldCaption(title, 9, 7)
-        caption.Font = New Font("Segoe UI", 8.5F, FontStyle.Bold)
-        caption.Size = New Size(220, 22)
-        cell.Controls.Add(caption)
-        value.Location = New Point(9, 31)
-        value.Anchor = AnchorStyles.Left Or AnchorStyles.Top Or AnchorStyles.Right
-        value.Width = 210
-        cell.Controls.Add(value)
-        headerCards.Add(cell)
-        Return cell
-    End Function
+    Public Sub New()
+        InitializeComponent()
+        BindScannerEvents()
+        AddHandler clockTimer.Tick, Sub() clockValue.Text = DateTime.Now.ToString("dd/MM/yyyy  HH:mm:ss")
+        AddHandler Disposed, Sub() clockTimer.Stop()
+        clockTimer.Start()
+    End Sub
 
-    Private Sub BuildLayout()
-        mainPage.Dock = DockStyle.Fill
-        mainPage.AutoScroll = True
-        mainPage.AutoScrollMinSize = New Size(1060, 700)
-        mainPage.BackColor = PaSTheme.Background
-        Controls.Add(mainPage)
-
-        ' Compact information header with active build integrated below.
-        headerPage.Location = New Point(16, 12)
-        headerPage.Size = New Size(1028, 136)
-        headerPage.BackColor = PaSTheme.Border
-        mainPage.Controls.Add(headerPage)
-        Dim strip As New TableLayoutPanel With {
-            .Dock = DockStyle.Top, .Height = 85, .ColumnCount = 5,
-            .RowCount = 1, .BackColor = PaSTheme.Border, .Padding = New Padding(1)
-        }
-        strip.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
-        For Each weight As Single In {17.0F, 27.0F, 22.0F, 14.0F, 20.0F}
-            strip.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, weight))
-        Next
-        headerPage.Controls.Add(strip)
-
-        containerInput.CharacterCasing = CharacterCasing.Upper
-        containerInput.MaxLength = 18
-        containerInput.Font = New Font("Segoe UI", 12, FontStyle.Bold)
-        partPicker.DropDownStyle = ComboBoxStyle.DropDownList
-        partPicker.DisplayMember = "DisplayName"
-        partPicker.ValueMember = "Id"
-        partPicker.Font = New Font("Segoe UI", 10)
-        operatorValue.Font = New Font("Segoe UI", 13, FontStyle.Bold)
-        operatorValue.ForeColor = navy
-        customerValue.Font = New Font("Segoe UI", 12, FontStyle.Bold)
-        customerValue.ForeColor = navy
-        clockValue.Font = New Font("Segoe UI", 10, FontStyle.Bold)
-        clockValue.TextAlign = ContentAlignment.MiddleLeft
-        strip.Controls.Add(HeaderCell("CONTAINER", containerInput, 17), 0, 0)
-        strip.Controls.Add(HeaderCell("PART NUMBER / MODEL", partPicker, 27), 1, 0)
-        strip.Controls.Add(HeaderCell("OPERATOR", operatorValue, 22), 2, 0)
-        strip.Controls.Add(HeaderCell("CUSTOMER", customerValue, 14), 3, 0)
-        strip.Controls.Add(HeaderCell("DATE / TIME", clockValue, 20), 4, 0)
-
-        Dim activeStrip As New Panel With {
-            .Dock = DockStyle.Bottom, .Height = 50, .BackColor = Color.White
-        }
-        headerPage.Controls.Add(activeStrip)
-        Dim activeCaption As New Label With {
-            .Text = "ACTIVE BUILD", .ForeColor = PaSTheme.TextSecondary,
-            .Font = New Font("Segoe UI", 8, FontStyle.Bold),
-            .Location = New Point(12, 7), .Size = New Size(110, 17)
-        }
-        activePartTitle.Location = New Point(130, 4)
-        activePartTitle.Size = New Size(460, 25)
-        activePartTitle.Font = New Font("Segoe UI", 12, FontStyle.Bold)
-        activePartTitle.ForeColor = PaSTheme.Navy
-        activePartTitle.AutoEllipsis = True
-        buildState.Location = New Point(130, 29)
-        buildState.Size = New Size(720, 18)
-        buildState.Font = New Font("Segoe UI", 9)
-        buildState.ForeColor = PaSTheme.TextSecondary
-        activeStrip.Controls.AddRange(New Control() {activeCaption, activePartTitle, buildState})
-
-        ' Always-visible operational ToolStrip, not packing progress buttons.
-        packingTools.Location = New Point(16, 154)
-        packingTools.AutoSize = False
-        packingTools.Size = New Size(1028, 38)
-        packingTools.GripStyle = ToolStripGripStyle.Hidden
-        packingTools.RenderMode = ToolStripRenderMode.System
-        packingTools.BackColor = Color.White
-        packingTools.Padding = New Padding(8, 2, 8, 2)
-        packingTools.Font = New Font("Segoe UI", 10, FontStyle.Bold)
-        partialButton.Text = "◧  Partial pallet"
-        cancelEmptyButton.Text = "✕  Cancel empty pallet"
-        partialButton.DisplayStyle = ToolStripItemDisplayStyle.Text
-        cancelEmptyButton.DisplayStyle = ToolStripItemDisplayStyle.Text
-        pendingButton.DisplayStyle = ToolStripItemDisplayStyle.Text
-        pendingButton.Visible = False
-        AddHandler partialButton.Click, AddressOf ClosePartialPallet
-        AddHandler cancelEmptyButton.Click, AddressOf CancelEmptyPallet
-        AddHandler pendingButton.Click, AddressOf ReviewPendingSql
-        packingTools.Items.Add(partialButton)
-        packingTools.Items.Add(New ToolStripSeparator())
-        packingTools.Items.Add(cancelEmptyButton)
-        packingTools.Items.Add(New ToolStripSeparator())
-        packingTools.Items.Add(pendingButton)
-        mainPage.Controls.Add(packingTools)
-
-        ' The legacy button objects are kept as nonvisual state guards.
+    Private Sub BindScannerEvents()
         AddHandler openButton.Click, AddressOf OpenOrLoadContainer
         AddHandler verifyButton.Click, Sub() VerifyQrFormat()
         AddHandler recordButton.Click, AddressOf RecordPiece
         AddHandler levelButton.Click, AddressOf CloseLevel
         AddHandler closePallet.Click, AddressOf CompletePallet
-
+        AddHandler partialButton.Click, AddressOf ClosePartialPallet
+        AddHandler cancelEmptyButton.Click, AddressOf CancelEmptyPallet
+        AddHandler pendingButton.Click, AddressOf ReviewPendingSql
+        AddHandler confirmAgain.Click, Sub() PromptCompletedLevel()
         AddHandler partPicker.SelectedIndexChanged, AddressOf PartChanged
+        AddHandler containerInput.KeyDown, AddressOf ContainerEnter
+        AddHandler firstQr.KeyDown, AddressOf FirstLabelEnter
+        AddHandler secondQr.KeyDown, AddressOf SecondLabelEnter
         AddHandler containerInput.TextChanged, Sub()
             If activeContainer IsNot Nothing AndAlso
                activeContainer.Status <> "OPEN" AndAlso
@@ -222,7 +61,6 @@ Public Class PalletScannerView
             ResetVerification()
             UpdateScannerAvailability()
         End Sub
-        AddHandler containerInput.KeyDown, AddressOf ContainerEnter
         AddHandler firstQr.TextChanged, Sub()
             ResetVerification()
             If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
@@ -230,129 +68,6 @@ Public Class PalletScannerView
             End If
         End Sub
         AddHandler secondQr.TextChanged, Sub() ResetVerification()
-        AddHandler firstQr.KeyDown, AddressOf FirstLabelEnter
-        AddHandler secondQr.KeyDown, AddressOf SecondLabelEnter
-
-        bodyLeft.Location = New Point(16, 204)
-        bodyLeft.Size = New Size(420, 490)
-        bodyRight.Location = New Point(448, 204)
-        bodyRight.Size = New Size(596, 490)
-        mainPage.Controls.Add(bodyLeft)
-        mainPage.Controls.Add(bodyRight)
-
-        scanArea = Card("SCAN LABELS", bodyLeft, 0, 0, 420, 306)
-        scanHelp.Text = "Scanner ready. Each QR sends Enter automatically."
-        scanHelp.SetBounds(18, 49, 375, 35)
-        scanHelp.ForeColor = PaSTheme.TextSecondary
-        scanArea.Controls.Add(scanHelp)
-        scanArea.Controls.Add(FieldCaption("01  SSI SERIAL", 18, 93))
-        firstQr.SetBounds(18, 118, 382, 43)
-        firstQr.Font = New Font("Consolas", 13, FontStyle.Bold)
-        scanArea.Controls.Add(firstQr)
-        clientScanLabel.Text = "02  CLIENT SERIAL"
-        clientScanLabel.SetBounds(18, 175, 340, 23)
-        clientScanLabel.ForeColor = PaSTheme.TextSecondary
-        clientScanLabel.Font = New Font("Segoe UI", 9, FontStyle.Bold)
-        scanArea.Controls.Add(clientScanLabel)
-        secondQr.SetBounds(18, 202, 382, 43)
-        secondQr.Font = New Font("Consolas", 13, FontStyle.Bold)
-        scanArea.Controls.Add(secondQr)
-        scanStatus.SetBounds(18, 255, 382, 46)
-        scanStatus.Font = New Font("Segoe UI", 9, FontStyle.Bold)
-        scanStatus.ForeColor = PaSTheme.TextSecondary
-        scanArea.Controls.Add(scanStatus)
-
-        piecesArea = Card("RECENTLY SCANNED", bodyLeft, 0, 320, 420, 170)
-        scannedList.SetBounds(18, 48, 382, 103)
-        scannedList.Font = New Font("Consolas", 9.5F)
-        scannedList.BorderStyle = BorderStyle.None
-        scannedList.BackColor = Color.FromArgb(248, 250, 253)
-        scannedList.Enabled = False
-        piecesArea.Controls.Add(scannedList)
-
-        progressArea = Card("PALLET PROGRESS", bodyRight, 0, 0, 596, 490)
-        progressArea.BackColor = Color.White
-        progressIcon.Text = "▣"
-        progressIcon.SetBounds(24, 57, 72, 72)
-        progressIcon.ForeColor = PaSTheme.Navy
-        progressIcon.Font = New Font("Segoe UI Symbol", 43, FontStyle.Bold)
-        progressIcon.TextAlign = ContentAlignment.MiddleCenter
-        progressArea.Controls.Add(progressIcon)
-        progressPercent.SetBounds(104, 59, 390, 72)
-        progressPercent.Font = New Font("Segoe UI", 33, FontStyle.Bold)
-        progressPercent.ForeColor = PaSTheme.Navy
-        progressArea.Controls.Add(progressPercent)
-        progressState.SetBounds(25, 148, 530, 38)
-        progressState.Font = New Font("Segoe UI", 12, FontStyle.Bold)
-        progressState.ForeColor = Color.FromArgb(28, 113, 83)
-        progressArea.Controls.Add(progressState)
-        progressBar.SetBounds(25, 202, 536, 22)
-        progressBar.Minimum = 0
-        progressBar.Maximum = 100
-        progressArea.Controls.Add(progressBar)
-        progressText.SetBounds(25, 244, 530, 96)
-        progressText.Font = New Font("Segoe UI", 16, FontStyle.Bold)
-        progressText.ForeColor = PaSTheme.TextPrimary
-        progressArea.Controls.Add(progressText)
-        levelTiles.SetBounds(25, 344, 536, 62)
-        levelTiles.AutoScroll = True
-        levelTiles.WrapContents = True
-        levelTiles.BackColor = Color.White
-        progressArea.Controls.Add(levelTiles)
-        confirmAgain.Text = "Review packed level"
-        confirmAgain.SetBounds(25, 396, 536, 51)
-        AddHandler confirmAgain.Click, Sub() PromptCompletedLevel()
-        progressArea.Controls.Add(confirmAgain)
-        confirmAgain.Enabled = False
-
-        AddHandler mainPage.Resize, Sub() ResizeScannerLayout()
-        ResizeScannerLayout()
-        activePartTitle.Text = "Select a model"
-        buildState.Text = "Scan a container barcode and press Enter"
-        progressText.Text = "0 / 0 pieces" & Environment.NewLine & "0 levels complete"
-        progressPercent.Text = "0%"
-        progressState.Text = "WAITING FOR PALLET"
-        scanStatus.Text = "Select a model, then scan the container."
-    End Sub
-
-    Private Sub ResizeScannerLayout()
-        Dim totalWidth = Math.Max(1028, mainPage.ClientSize.Width - 32)
-        Dim leftWidth = Math.Max(410, CInt(totalWidth * 0.40))
-        Dim rightWidth = totalWidth - leftWidth - 12
-        headerPage.Width = totalWidth
-        packingTools.Width = totalWidth
-        bodyLeft.Width = leftWidth
-        bodyRight.Left = bodyLeft.Left + leftWidth + 12
-        bodyRight.Width = rightWidth
-        For Each cell In headerCards
-            For Each ctl As Control In cell.Controls
-                If TypeOf ctl Is TextBox OrElse TypeOf ctl Is ComboBox OrElse
-                   (TypeOf ctl Is Label AndAlso ctl.Location.Y >= 30) Then
-                    ctl.Width = Math.Max(55, cell.ClientSize.Width - 18)
-                End If
-            Next
-        Next
-        Dim available = Math.Max(105, mainPage.ClientSize.Height - 219)
-        bodyLeft.Height = available
-        bodyRight.Height = available
-        scanArea.Width = leftWidth
-        piecesArea.Width = leftWidth
-        piecesArea.Height = Math.Max(160, available - 320)
-        scannedList.Width = leftWidth - 36
-        scannedList.Height = piecesArea.Height - 67
-        firstQr.Width = leftWidth - 36
-        secondQr.Width = leftWidth - 36
-        scanHelp.Width = leftWidth - 36
-        scanStatus.Width = leftWidth - 36
-        progressArea.Width = rightWidth
-        progressArea.Height = Math.Max(490, available)
-        progressText.Width = rightWidth - 50
-        progressPercent.Width = rightWidth - 128
-        progressState.Width = rightWidth - 50
-        progressBar.Width = rightWidth - 50
-        levelTiles.Width = rightWidth - 50
-        confirmAgain.Width = rightWidth - 50
-        confirmAgain.Top = progressArea.Height - 84
     End Sub
 
     Private Sub ContainerEnter(sender As Object, e As KeyEventArgs)

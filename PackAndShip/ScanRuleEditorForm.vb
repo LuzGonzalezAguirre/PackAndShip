@@ -10,101 +10,38 @@ Public Class ScanRuleEditorForm
 
     Private ReadOnly original As ScanRuleRecord
     Private ReadOnly navy As Color = Color.FromArgb(31, 78, 121)
-    Private ReadOnly customerPicker As New ComboBox()
-    Private ReadOnly partPicker As New ComboBox()
+
+
     Private isBinding As Boolean
-    Private ReadOnly scanCount As New NumericUpDown()
-    Private ReadOnly matchCheck As New CheckBox()
-    Private ReadOnly activeCheck As New CheckBox()
-    Private ReadOnly notesBox As New TextBox()
-    Private ReadOnly scanContainer As New FlowLayoutPanel()
+
+
+
+
+
     Private ReadOnly scanGroups As New Dictionary(Of Integer, FlowLayoutPanel)()
     Private ReadOnly choices As List(Of PaSPart)
 
-    Public Sub New(existing As ScanRuleRecord, availableParts As List(Of PaSPart))
-        original = existing
-        choices = availableParts
-        Text = If(existing Is Nothing, "Add Scan Rule", "Edit Scan Rule")
-        Size = New Size(1190, 765)
-        MinimumSize = New Size(1020, 620)
-        StartPosition = FormStartPosition.CenterParent
-        BackColor = Color.FromArgb(244, 247, 250)
-        Font = New Font("Segoe UI", 10)
-        BuildLayout()
-        LoadValues()
+    Public Sub New()
+        InitializeComponent()
+        choices = New List(Of PaSPart)()
+        original = Nothing
+        BindEvents()
         AddHandler scanCount.ValueChanged, AddressOf ScanCountChanged
     End Sub
 
-    Private Sub BuildLayout()
-        Dim header As New Panel With {.Dock = DockStyle.Top, .Height = 72, .BackColor = navy}
-        header.Controls.Add(New Label With {
-            .Text = If(original Is Nothing, "Add Scan Rule", "Edit Scan Rule #" & original.Id),
-            .Font = New Font("Segoe UI", 22, FontStyle.Bold), .ForeColor = Color.White,
-            .AutoSize = True, .Location = New Point(22, 15)
-        })
-        Dim upper As New Panel With {.Dock = DockStyle.Top, .Height = 234, .Padding = New Padding(18)}
-        upper.Controls.Add(New Label With {.Text = "Customer", .Location = New Point(20, 12), .AutoSize = True})
-        customerPicker.SetBounds(20, 38, 280, 33)
-        customerPicker.DropDownStyle = ComboBoxStyle.DropDownList
-        upper.Controls.Add(customerPicker)
+    Public Sub New(existing As ScanRuleRecord, availableParts As List(Of PaSPart))
+        Me.New()
+        original = existing
+        choices = availableParts
+        Text = If(existing Is Nothing, "Add Scan Rule", "Edit Scan Rule")
+        headerTitle.Text = If(existing Is Nothing, "Add Scan Rule", "Edit Scan Rule #" & existing.Id)
+        LoadValues()
+    End Sub
+
+    Private Sub BindEvents()
         AddHandler customerPicker.SelectedIndexChanged, AddressOf CustomerChanged
-
-        upper.Controls.Add(New Label With {.Text = "Part number (SSI / Client)", .Location = New Point(320, 12), .AutoSize = True})
-        partPicker.SetBounds(320, 38, 520, 33)
-        partPicker.DropDownStyle = ComboBoxStyle.DropDownList
-        partPicker.DisplayMember = "DisplayName"
-        partPicker.ValueMember = "Id"
-        upper.Controls.Add(partPicker)
-
-        upper.Controls.Add(New Label With {.Text = "Scan count", .Location = New Point(20, 91), .AutoSize = True})
-        scanCount.SetBounds(20, 116, 110, 33)
-        scanCount.Minimum = 1
-        scanCount.Maximum = 100
-        upper.Controls.Add(scanCount)
-
-        matchCheck.Text = "Requires match"
-        matchCheck.SetBounds(163, 114, 160, 35)
-        activeCheck.Text = "Active"
-        activeCheck.SetBounds(340, 114, 130, 35)
-        upper.Controls.Add(matchCheck)
-        upper.Controls.Add(activeCheck)
-
-        upper.Controls.Add(New Label With {.Text = "Notes", .Location = New Point(20, 165), .AutoSize = True})
-        notesBox.Multiline = True
-        notesBox.MaxLength = 4000
-        notesBox.SetBounds(20, 187, 1050, 37)
-        notesBox.Anchor = AnchorStyles.Left Or AnchorStyles.Top Or AnchorStyles.Right
-        upper.Controls.Add(notesBox)
-
-        scanContainer.Dock = DockStyle.Fill
-        scanContainer.FlowDirection = FlowDirection.TopDown
-        scanContainer.WrapContents = False
-        scanContainer.AutoScroll = True
-        scanContainer.Padding = New Padding(12, 10, 12, 10)
         AddHandler scanContainer.Resize, Sub() ResizeGroups()
-
-        Dim footer As New Panel With {.Dock = DockStyle.Bottom, .Height = 73}
-        Dim save As New Button With {.Text = "Save rule", .Size = New Size(158, 39),
-                                    .Anchor = AnchorStyles.Top Or AnchorStyles.Right}
-        StyleButton(save)
-        Dim cancel As New Button With {.Text = "Cancel", .DialogResult = DialogResult.Cancel,
-                                      .Size = New Size(130, 39),
-                                      .Anchor = AnchorStyles.Top Or AnchorStyles.Right}
-        footer.Controls.Add(save)
-        footer.Controls.Add(cancel)
-        AddHandler footer.Resize, Sub()
-                                      save.Left = footer.ClientSize.Width - 184
-                                      cancel.Left = save.Left - 145
-                                  End Sub
-        save.Top = 14
-        cancel.Top = 14
-        AddHandler save.Click, AddressOf SaveRule
-        CancelButton = cancel
-
-        Controls.Add(scanContainer)
-        Controls.Add(footer)
-        Controls.Add(upper)
-        Controls.Add(header)
+        AddHandler saveButton.Click, AddressOf SaveRule
     End Sub
 
     Private Sub StyleButton(button As Button)

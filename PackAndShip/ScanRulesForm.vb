@@ -42,7 +42,6 @@ Public Class ScanRulesForm
     End Sub
 
     Private Sub ConfigureGrid(grid As DataGridView)
-        grid.Dock = DockStyle.Fill
         grid.ReadOnly = True
         grid.AllowUserToAddRows = False
         grid.AllowUserToDeleteRows = False

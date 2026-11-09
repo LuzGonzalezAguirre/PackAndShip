@@ -6,108 +6,38 @@ Public Class UsersSetupForm
     Inherits Form
 
     Private ReadOnly navy As Color = Color.FromArgb(31, 78, 121)
-    Private ReadOnly usersGrid As New DataGridView()
-    Private ReadOnly searchBox As New TextBox()
-    Private ReadOnly roleFilter As New ComboBox()
-    Private ReadOnly countLabel As New Label()
-    Private ReadOnly newButton As New Button()
-    Private ReadOnly editButton As New Button()
-    Private ReadOnly statusButton As New Button()
-    Private ReadOnly resetButton As New Button()
-    Private ReadOnly reloadButton As New Button()
+
+
+
+
+
+
+
+
+
     Private allUsers As New List(Of PaSUser)()
     Private roles As New List(Of PaSRole)()
 
     Public Sub New()
-        Text = "Pack and Ship | Setup - Users & Roles"
-        StartPosition = FormStartPosition.CenterParent
-        Size = New Size(1060, 680)
-        MinimumSize = New Size(850, 550)
-        BackColor = Color.FromArgb(244, 247, 250)
-        Font = New Font("Segoe UI", 10)
-        BuildLayout()
+        InitializeComponent()
+        BindEvents()
         AddHandler Shown, Sub() LoadData()
     End Sub
 
-    Private Sub BuildLayout()
-        Dim top As New Panel With {.Dock = DockStyle.Top, .Height = 92, .BackColor = navy}
-        Dim heading As New Label With {
-            .Text = "Users & Roles", .ForeColor = Color.White,
-            .Font = New Font("Segoe UI", 22, FontStyle.Bold),
-            .AutoSize = True, .Location = New Point(22, 13)
-        }
-        Dim subheading As New Label With {
-            .Text = "PackAndShip user administration", .ForeColor = Color.White,
-            .AutoSize = True, .Location = New Point(25, 59)
-        }
-        top.Controls.AddRange(New Control() {heading, subheading})
-
-        Dim actions As New FlowLayoutPanel With {
-            .Dock = DockStyle.Top, .Height = 57, .Padding = New Padding(12, 10, 10, 5),
-            .WrapContents = False, .AutoScroll = True
-        }
-        ConfigureButton(newButton, "Add user", 115)
-        ConfigureButton(editButton, "Edit", 90)
-        ConfigureButton(statusButton, "Activate / Deactivate", 180)
-        ConfigureButton(resetButton, "Reset password", 145)
-        ConfigureButton(reloadButton, "Refresh", 95)
-        actions.Controls.AddRange(New Control() {newButton, editButton, statusButton, resetButton, reloadButton})
+    Private Sub BindEvents()
         AddHandler newButton.Click, Sub() OpenEditor(Nothing)
         AddHandler editButton.Click, AddressOf EditSelectedUser
         AddHandler statusButton.Click, AddressOf ToggleStatus
         AddHandler resetButton.Click, AddressOf ResetPassword
         AddHandler reloadButton.Click, Sub() LoadData()
-
-        Dim searchPanel As New Panel With {.Dock = DockStyle.Top, .Height = 52}
-        Dim searchLabel As New Label With {
-            .Text = "Search", .Location = New Point(20, 15), .AutoSize = True
-        }
-        searchBox.Location = New Point(95, 11)
-        searchBox.Width = 245
-        searchBox.Anchor = AnchorStyles.Left Or AnchorStyles.Top
         AddHandler searchBox.TextChanged, Sub() RenderRows()
-
-        Dim roleLabel As New Label With {
-            .Text = "Role", .Location = New Point(360, 15), .AutoSize = True
-        }
-        roleFilter.SetBounds(407, 11, 230, 30)
-        roleFilter.DropDownStyle = ComboBoxStyle.DropDownList
-        roleFilter.DisplayMember = "Name"
-        roleFilter.ValueMember = "Id"
         AddHandler roleFilter.SelectedIndexChanged, Sub() RenderRows()
-
-        countLabel.AutoSize = True
-        countLabel.Location = New Point(660, 15)
-        searchPanel.Controls.AddRange(New Control() {searchLabel, searchBox, roleLabel, roleFilter, countLabel})
-
-        usersGrid.Dock = DockStyle.Fill
-        usersGrid.ReadOnly = True
-        usersGrid.AllowUserToAddRows = False
-        usersGrid.AllowUserToDeleteRows = False
-        usersGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        usersGrid.MultiSelect = False
-        usersGrid.AutoGenerateColumns = False
-        usersGrid.BackgroundColor = Color.White
-        usersGrid.RowHeadersVisible = False
-        usersGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        usersGrid.Columns.Add(New DataGridViewTextBoxColumn With {.Name = "Id", .HeaderText = "ID", .DataPropertyName = "Id", .FillWeight = 30})
-        usersGrid.Columns.Add(New DataGridViewTextBoxColumn With {.Name = "FullName", .HeaderText = "Employee", .DataPropertyName = "FullName", .FillWeight = 140})
-        usersGrid.Columns.Add(New DataGridViewTextBoxColumn With {.Name = "Barcode", .HeaderText = "Barcode ID", .DataPropertyName = "Barcode", .FillWeight = 80})
-        usersGrid.Columns.Add(New DataGridViewTextBoxColumn With {.Name = "RoleName", .HeaderText = "Role", .DataPropertyName = "RoleName", .FillWeight = 90})
-        usersGrid.Columns.Add(New DataGridViewCheckBoxColumn With {.Name = "IsActive", .HeaderText = "Active", .DataPropertyName = "IsActive", .FillWeight = 35})
         AddHandler usersGrid.CellDoubleClick, Sub(sender, e)
-                                                  If e.RowIndex >= 0 Then
-                                                      Dim user = TryCast(usersGrid.Rows(e.RowIndex).DataBoundItem, PaSUser)
-                                                      If user IsNot Nothing Then OpenEditor(user)
-                                                  End If
-                                              End Sub
-
-        Dim gridBox As New Panel With {.Dock = DockStyle.Fill, .Padding = New Padding(18, 5, 18, 18)}
-        gridBox.Controls.Add(usersGrid)
-        Controls.Add(gridBox)
-        Controls.Add(searchPanel)
-        Controls.Add(actions)
-        Controls.Add(top)
+            If e.RowIndex >= 0 Then
+                Dim selectedUser = TryCast(usersGrid.Rows(e.RowIndex).DataBoundItem, PaSUser)
+                If selectedUser IsNot Nothing Then OpenEditor(selectedUser)
+            End If
+        End Sub
     End Sub
 
     Private Sub ConfigureButton(button As Button, caption As String, buttonWidth As Integer)

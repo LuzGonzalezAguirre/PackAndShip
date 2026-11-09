@@ -6,171 +6,42 @@ Public Class PalletConfigurationForm
     Inherits Form
 
     Private ReadOnly navy As Color = Color.FromArgb(31, 78, 121)
-    Private ReadOnly searchBox As New TextBox()
-    Private ReadOnly buPicker As New ComboBox()
-    Private ReadOnly partsList As New ListBox()
-    Private ReadOnly levelsPanel As New FlowLayoutPanel()
-    Private ReadOnly titleLabel As New Label()
-    Private ReadOnly totalLabel As New Label()
-    Private ReadOnly countLabel As New Label()
-    Private ReadOnly statusLabel As New Label()
-    Private ReadOnly activeCheck As New CheckBox()
-    Private ReadOnly levelCountInput As New NumericUpDown()
-    Private ReadOnly piecesPerLevelInput As New NumericUpDown()
-    Private ReadOnly distributeButton As New Button()
-    Private ReadOnly addLevelButton As New Button()
-    Private ReadOnly saveButton As New Button()
-    Private ReadOnly refreshButton As New Button()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     Private ReadOnly quantityInputs As New List(Of NumericUpDown)()
     Private parts As New List(Of PaSPart)()
     Private selectedPart As PaSPart
     Private isLoading As Boolean
 
     Public Sub New()
-        Text = "Pack and Ship | Setup - Pallet Configuration"
-        StartPosition = FormStartPosition.CenterParent
-        Size = New Size(1150, 780)
-        MinimumSize = New Size(900, 630)
-        BackColor = Color.FromArgb(244, 247, 250)
-        Font = New Font("Segoe UI", 10)
-        BuildLayout()
+        InitializeComponent()
+        BindEvents()
+        EnableEditor(False)
         AddHandler Shown, Sub() LoadParts()
     End Sub
 
-    Private Sub BuildLayout()
-        Dim header As New Panel With {.Dock = DockStyle.Top, .Height = 88, .BackColor = navy}
-        header.Controls.Add(New Label With {
-            .Text = "Pallet Configuration", .Font = New Font("Segoe UI", 23, FontStyle.Bold),
-            .ForeColor = Color.White, .AutoSize = True, .Location = New Point(24, 12)
-        })
-        header.Controls.Add(New Label With {
-            .Text = "One pallet setup per part number", .ForeColor = Color.White,
-            .AutoSize = True, .Location = New Point(28, 58)
-        })
-
-        Dim browser As New Panel With {
-            .Dock = DockStyle.Left, .Width = 410, .Padding = New Padding(14, 14, 10, 14),
-            .BackColor = Color.White
-        }
-        Dim browserHeading As New Label With {
-            .Text = "Part numbers", .Dock = DockStyle.Top,
-            .Height = 35, .Font = New Font("Segoe UI", 15, FontStyle.Bold),
-            .ForeColor = navy
-        }
-        Dim filterArea As New TableLayoutPanel With {
-            .Dock = DockStyle.Top, .Height = 117, .ColumnCount = 1, .RowCount = 4
-        }
-        filterArea.RowStyles.Add(New RowStyle(SizeType.Absolute, 22))
-        filterArea.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
-        filterArea.RowStyles.Add(New RowStyle(SizeType.Absolute, 23))
-        filterArea.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
-        filterArea.Controls.Add(New Label With {.Text = "Search part number", .Dock = DockStyle.Fill}, 0, 0)
-        searchBox.Dock = DockStyle.Fill
-        filterArea.Controls.Add(searchBox, 0, 1)
-        filterArea.Controls.Add(New Label With {.Text = "Customer (filter only)", .Dock = DockStyle.Fill}, 0, 2)
-        buPicker.Dock = DockStyle.Fill
-        buPicker.DropDownStyle = ComboBoxStyle.DropDownList
-        filterArea.Controls.Add(buPicker, 0, 3)
+    Private Sub BindEvents()
         AddHandler searchBox.TextChanged, Sub() FilterParts()
         AddHandler buPicker.SelectedIndexChanged, Sub() FilterParts()
-        partsList.Dock = DockStyle.Fill
-        partsList.IntegralHeight = False
-        partsList.DisplayMember = "DisplayName"
         AddHandler partsList.SelectedIndexChanged, AddressOf PartSelected
-        refreshButton.Text = "Refresh catalog"
-        refreshButton.Dock = DockStyle.Bottom
-        refreshButton.Height = 40
-        StyleButton(refreshButton)
         AddHandler refreshButton.Click, Sub() LoadParts()
-        browser.Controls.Add(partsList)
-        browser.Controls.Add(filterArea)
-        browser.Controls.Add(browserHeading)
-        browser.Controls.Add(refreshButton)
-
-        Dim editor As New Panel With {.Dock = DockStyle.Fill, .Padding = New Padding(20, 16, 20, 14)}
-        Dim editorTop As New Panel With {.Dock = DockStyle.Top, .Height = 132}
-        titleLabel.Text = "Select a part number"
-        titleLabel.Font = New Font("Segoe UI", 16, FontStyle.Bold)
-        titleLabel.ForeColor = navy
-        titleLabel.SetBounds(0, 0, 680, 44)
-        titleLabel.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
-        statusLabel.Text = "Choose a part from the catalog to configure its pallet."
-        statusLabel.SetBounds(0, 47, 680, 25)
-        activeCheck.Text = "Configuration active"
-        activeCheck.SetBounds(0, 90, 240, 30)
-        activeCheck.Checked = True
-        editorTop.Controls.AddRange(New Control() {titleLabel, statusLabel, activeCheck})
-
-        Dim distribution As New Panel With {
-            .Dock = DockStyle.Top, .Height = 103, .BackColor = Color.White,
-            .Padding = New Padding(8)
-        }
-        Dim helperTitle As New Label With {
-            .Text = "Quick level distribution", .Font = New Font("Segoe UI", 12, FontStyle.Bold),
-            .ForeColor = navy, .Location = New Point(10, 7), .Size = New Size(390, 27)
-        }
-        Dim levelCaption As New Label With {
-            .Text = "Total levels", .Location = New Point(10, 41), .AutoSize = True
-        }
-        levelCountInput.SetBounds(105, 38, 75, 30)
-        levelCountInput.Minimum = 1
-        levelCountInput.Maximum = 1000
-        levelCountInput.Value = 1
-        levelCountInput.TextAlign = HorizontalAlignment.Center
-        Dim piecesCaption As New Label With {
-            .Text = "Pieces per level", .Location = New Point(196, 41), .AutoSize = True
-        }
-        piecesPerLevelInput.SetBounds(310, 38, 90, 30)
-        piecesPerLevelInput.Minimum = 1
-        piecesPerLevelInput.Maximum = Integer.MaxValue
-        piecesPerLevelInput.Value = 1
-        piecesPerLevelInput.TextAlign = HorizontalAlignment.Center
-        distributeButton.Text = "Generate levels"
-        distributeButton.SetBounds(416, 36, 160, 36)
-        StyleButton(distributeButton)
         AddHandler distributeButton.Click, AddressOf GenerateLevels
-        Dim helperNote As New Label With {
-            .Text = "Generate equal quantities, then adjust individual levels below.",
-            .Location = New Point(10, 77), .AutoSize = True, .ForeColor = Color.DimGray
-        }
-        distribution.Controls.AddRange(New Control() {
-            helperTitle, levelCaption, levelCountInput, piecesCaption,
-            piecesPerLevelInput, distributeButton, helperNote
-        })
-
-        Dim footer As New Panel With {.Dock = DockStyle.Bottom, .Height = 112}
-        countLabel.Text = "0 levels"
-        countLabel.SetBounds(0, 7, 220, 32)
-        countLabel.Font = New Font("Segoe UI", 13, FontStyle.Bold)
-        totalLabel.Text = "Total: 0 pieces"
-        totalLabel.SetBounds(230, 7, 340, 34)
-        totalLabel.Font = New Font("Segoe UI", 17, FontStyle.Bold)
-        totalLabel.ForeColor = navy
-        addLevelButton.Text = "+ Add level"
-        addLevelButton.SetBounds(0, 54, 155, 41)
-        StyleButton(addLevelButton)
         AddHandler addLevelButton.Click, Sub() AddLevel(1)
-        saveButton.Text = "Save configuration"
-        saveButton.SetBounds(185, 54, 225, 41)
-        StyleButton(saveButton)
         AddHandler saveButton.Click, AddressOf SaveConfiguration
-        footer.Controls.AddRange(New Control() {countLabel, totalLabel, addLevelButton, saveButton})
-
-        levelsPanel.Dock = DockStyle.Fill
-        levelsPanel.FlowDirection = FlowDirection.TopDown
-        levelsPanel.WrapContents = False
-        levelsPanel.AutoScroll = True
-        levelsPanel.Padding = New Padding(0, 0, 12, 0)
         AddHandler levelsPanel.Resize, Sub() ResizeRows()
-        editor.Controls.Add(levelsPanel)
-        editor.Controls.Add(footer)
-        editor.Controls.Add(distribution)
-        editor.Controls.Add(editorTop)
-
-        Controls.Add(editor)
-        Controls.Add(browser)
-        Controls.Add(header)
-        EnableEditor(False)
     End Sub
 
     Private Sub StyleButton(button As Button)

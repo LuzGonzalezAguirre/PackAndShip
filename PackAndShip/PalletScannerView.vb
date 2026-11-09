@@ -515,6 +515,7 @@ Public Partial Class PalletScannerView
             Throw New InvalidOperationException("Container was not found.")
         End If
         lbl_lot.Text = activeContainer.Code
+        RefreshLevelScanGrid()
         Dim current = activeContainer.CurrentLevel
         Dim actual = activeContainer.PieceTotal
         Dim required = activeContainer.RequiredTotal
@@ -578,6 +579,41 @@ Public Partial Class PalletScannerView
         UpdatePackingButtons()
     End Sub
 
+    ' Shows only the active level. If no level remains OPEN,
+    ' show the most recently completed level. Data comes from refreshed CCS state.
+    Private Sub RefreshLevelScanGrid()
+        Dim rows As New System.Data.DataTable()
+        rows.Columns.Add("PieceNumber", GetType(Integer))
+        rows.Columns.Add("SsiSerial", GetType(String))
+        rows.Columns.Add("ClientSerial", GetType(String))
+        rows.Columns.Add("ScanTime", GetType(String))
+
+        If activeContainer IsNot Nothing Then
+            Dim current = activeContainer.CurrentLevel
+            Dim levelNumber As Integer
+            If current IsNot Nothing Then
+                levelNumber = current.LevelNumber
+            ElseIf activeContainer.Levels.Count > 0 Then
+                levelNumber = activeContainer.Levels.Max(Function(x) x.LevelNumber)
+            End If
+
+            If levelNumber > 0 Then
+                Dim piecesInLevel = activeContainer.Pieces.
+                    Where(Function(p) p.LevelNumber = levelNumber).
+                    OrderBy(Function(p) p.ScannedAt).ToList()
+                Dim position As Integer = 0
+                For Each piece In piecesInLevel
+                    position += 1
+                    rows.Rows.Add(position, piece.SsiCode, piece.ClientCode,
+                                  piece.ScannedAt.ToString("dd/MM/yyyy HH:mm:ss"))
+                Next
+            End If
+        End If
+
+        DataGridView1.DataSource = rows
+        DataGridView1.ClearSelection()
+    End Sub
+
     Private Sub ResetAfterPalletClosed(closedCode As String)
         ' The source has already reached a terminal SQL status; unlock the
         ' station and clear the visible Container field for the next pallet.
@@ -591,6 +627,7 @@ Public Partial Class PalletScannerView
         scannedList.Items.Add("No active pallet. Enter or scan the next container.")
         progressBar.Value = 0
         lbl_lot.Text = "P######"
+        DataGridView1.DataSource = Nothing
         progressPercent.Text = "0%"
         progressState.Text = "READY FOR NEXT PALLET"
         progressIcon.Text = "▣"

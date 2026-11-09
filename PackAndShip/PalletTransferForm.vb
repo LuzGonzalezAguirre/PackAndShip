@@ -6,11 +6,6 @@ Imports System.Windows.Forms
 Public Class PalletTransferForm
     Inherits Form
 
-    Private ReadOnly sourceInput As New TextBox()
-    Private ReadOnly destinationInput As New TextBox()
-    Private ReadOnly summary As New Label()
-    Private ReadOnly transferButton As New Button()
-    Private ReadOnly scanNext As New Label()
     Public ReadOnly Property DestinationCode As String
         Get
             Return _destinationCode
@@ -19,36 +14,7 @@ Public Class PalletTransferForm
     Private _destinationCode As String = ""
 
     Public Sub New()
-        Text = "PackAndShip | Pallet Transfers"
-        ClientSize = New Size(690, 440)
-        MinimumSize = New Size(690, 440)
-        MaximumSize = New Size(690, 440)
-        FormBorderStyle = FormBorderStyle.FixedDialog
-        StartPosition = FormStartPosition.CenterParent
-        MaximizeBox = False
-        MinimizeBox = False
-        Font = New Font("Segoe UI", 10)
-        BackColor = PaSTheme.Background
-
-        Dim heading As New Label With {
-            .Text = "PALLET TRANSFER",
-            .Location = New Point(24, 18), .Size = New Size(620, 38),
-            .ForeColor = PaSTheme.Navy,
-            .Font = New Font("Segoe UI", 20, FontStyle.Bold)
-        }
-        Dim subtitle As New Label With {
-            .Text = "Transfer a closed PARTIAL pallet into a new container code.",
-            .Location = New Point(25, 62), .Size = New Size(620, 26),
-            .ForeColor = PaSTheme.TextSecondary
-        }
-        Dim sourceLabel As New Label With {
-            .Text = "SCAN ORIGINAL PALLET (PARTIAL)",
-            .Location = New Point(25, 107), .Size = New Size(360, 24)
-        }
-        sourceInput.SetBounds(25, 133, 620, 38)
-        sourceInput.CharacterCasing = CharacterCasing.Upper
-        sourceInput.MaxLength = 18
-        sourceInput.Font = New Font("Consolas", 14)
+        InitializeComponent()
         AddHandler sourceInput.Leave, Sub() PreviewSource()
         AddHandler sourceInput.KeyDown, Sub(sender, e)
             If e.KeyCode = Keys.Enter Then
@@ -57,42 +23,13 @@ Public Class PalletTransferForm
                 destinationInput.Focus()
             End If
         End Sub
-
-        Dim targetLabel As New Label With {
-            .Text = "SCAN NEW CONTAINER",
-            .Location = New Point(25, 188), .Size = New Size(360, 24)
-        }
-        destinationInput.SetBounds(25, 216, 620, 38)
-        destinationInput.CharacterCasing = CharacterCasing.Upper
-        destinationInput.MaxLength = 18
-        destinationInput.Font = New Font("Consolas", 14)
         AddHandler destinationInput.KeyDown, Sub(sender, e)
             If e.KeyCode = Keys.Enter Then
                 e.SuppressKeyPress = True
                 transferButton.Focus()
             End If
         End Sub
-
-        summary.SetBounds(25, 270, 620, 57)
-        summary.Text = "Scan the source pallet to load its current SQL quantities."
-        summary.ForeColor = Color.FromArgb(48, 70, 88)
-        scanNext.SetBounds(25, 332, 385, 24)
-        scanNext.Text = "All transferred pieces remain traceable to the source."
-        scanNext.ForeColor = PaSTheme.TextSecondary
-
-        transferButton.Text = "Transfer and open new pallet"
-        transferButton.SetBounds(390, 365, 255, 44)
         AddHandler transferButton.Click, AddressOf ExecuteTransfer
-        Dim cancel As New Button With {
-            .Text = "Cancel", .Location = New Point(250, 365),
-            .Size = New Size(120, 44), .DialogResult = DialogResult.Cancel
-        }
-
-        Controls.AddRange(New Control() {
-            heading,subtitle,sourceLabel,sourceInput,targetLabel,destinationInput,
-            summary,scanNext,transferButton,cancel
-        })
-        CancelButton = cancel
         AddHandler Shown, Sub() sourceInput.Focus()
     End Sub
 

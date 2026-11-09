@@ -61,6 +61,10 @@ Partial Class PalletScannerView
         captionTime = New Label()
         clockValue = New Label()
         DataGridView1 = New DataGridView()
+        colLevelPiece = New DataGridViewTextBoxColumn()
+        colSsiSerial = New DataGridViewTextBoxColumn()
+        colClientSerial = New DataGridViewTextBoxColumn()
+        colScanTime = New DataGridViewTextBoxColumn()
         mainLayout.SuspendLayout()
         scanArea.SuspendLayout()
         leftLayout.SuspendLayout()
@@ -569,6 +573,31 @@ Partial Class PalletScannerView
         ' 
         ' DataGridView1
         ' 
+        DataGridView1.AutoGenerateColumns = False
+        DataGridView1.AllowUserToAddRows = False
+        DataGridView1.AllowUserToDeleteRows = False
+        DataGridView1.ReadOnly = True
+        DataGridView1.MultiSelect = False
+        DataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        DataGridView1.RowHeadersVisible = False
+        DataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        colLevelPiece.Name = "colLevelPiece"
+        colLevelPiece.HeaderText = "Piece"
+        colLevelPiece.DataPropertyName = "PieceNumber"
+        colLevelPiece.FillWeight = 35.0F
+        colSsiSerial.Name = "colSsiSerial"
+        colSsiSerial.HeaderText = "SSI Serial"
+        colSsiSerial.DataPropertyName = "SsiSerial"
+        colSsiSerial.FillWeight = 115.0F
+        colClientSerial.Name = "colClientSerial"
+        colClientSerial.HeaderText = "Client Serial"
+        colClientSerial.DataPropertyName = "ClientSerial"
+        colClientSerial.FillWeight = 115.0F
+        colScanTime.Name = "colScanTime"
+        colScanTime.HeaderText = "Scanned at"
+        colScanTime.DataPropertyName = "ScanTime"
+        colScanTime.FillWeight = 95.0F
+        DataGridView1.Columns.AddRange(New DataGridViewColumn() {colLevelPiece, colSsiSerial, colClientSerial, colScanTime})
         DataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
         DataGridView1.Location = New Point(12, 414)
         DataGridView1.Name = "DataGridView1"
@@ -650,4 +679,8 @@ Partial Class PalletScannerView
     Friend WithEvents lbl_lot As Label
     Friend WithEvents Label1 As Label
     Friend WithEvents DataGridView1 As DataGridView
+    Friend WithEvents colLevelPiece As DataGridViewTextBoxColumn
+    Friend WithEvents colSsiSerial As DataGridViewTextBoxColumn
+    Friend WithEvents colClientSerial As DataGridViewTextBoxColumn
+    Friend WithEvents colScanTime As DataGridViewTextBoxColumn
 End Class

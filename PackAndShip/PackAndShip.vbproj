@@ -36,6 +36,12 @@
     <Compile Update="PalletScannerView.Designer.vb">
       <DependentUpon>PalletScannerView.vb</DependentUpon>
     </Compile>
+    <Compile Update="PackingConfirmationForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="PackingConfirmationForm.Designer.vb">
+      <DependentUpon>PackingConfirmationForm.vb</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

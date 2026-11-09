@@ -2,6 +2,8 @@
 
 ## Editable now
 
+- `Form1.vb` + `Form1.Designer.vb` — **Form**. Main form now contains actual Designer controls for the login card, main MenuStrip, SQL connection StatusStrip, and embedded `scannerView` UserControl. Form1 shows the scanner host in design mode; open `PalletScannerView.vb` separately to move individual Scanner controls. In runtime the login/signed-in visibility is switched by the unchanged business logic.
+
 - `PalletScannerView.vb` + `PalletScannerView.Designer.vb` — **UserControl**. Main Scanner: container/model/operator/customer/time header; active build; partial and cancel ToolStrip; SSI/Client QR fields; recent scans; pallet progress and level chips.
 - `PackingConfirmationForm.vb` + `PackingConfirmationForm.Designer.vb` — **Form**. Large level/final-pallet physical packing confirmation. Its constructor only supplies runtime values and accent colors.
 
@@ -9,7 +11,6 @@ In Solution Explorer, right-click `PalletScannerView.vb` or `PackingConfirmation
 
 ## Other views currently constructed at runtime
 
-- `Form1.vb` (main startup window: Login + main menu; contains Scanner after login)
 - `PalletHistoryForm.vb` (Pallet History)
 - `PalletTransferForm.vb` (Pallet Transfers)
 - `PartialPalletAuthorizationForm.vb` (secondary user credential approval)
@@ -18,7 +19,7 @@ In Solution Explorer, right-click `PalletScannerView.vb` or `PackingConfirmation
 - `GeneralSettingsForm.vb` (container format setup)
 - `UsersSetupForm.vb` (users and roles)
 
-The remaining views still use code-created controls; they are **not** yet visually editable via their own Designer. Moving them requires additional form-by-form migration. In particular, the Login and navigation controls in Form1 still use `CreateLayout()`.
+The remaining views still use code-created controls; they are **not** yet visually editable via their own Designer. Moving them requires additional form-by-form migration. The main Login and navigation controls no longer use `CreateLayout()`; they are in the Form1 Designer. Remaining configuration views still require conversion.
 
 ## Functional preservation
 

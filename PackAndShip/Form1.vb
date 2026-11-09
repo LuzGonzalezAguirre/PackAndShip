@@ -18,14 +18,16 @@ Public Class Form1
         Me.Text = "Pack and Ship | SSI"
         Me.AutoScaleMode = AutoScaleMode.Font
         Me.MinimumSize = New Size(1, 1)
-        Me.ClientSize = New Size(422, 340)
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.BackColor = backgroundColor
         Me.Font = New Font("Segoe UI", 11.0F)
         BindViewEvents()
         AddHandler connectionTimer.Tick, AddressOf ConnectionTimerTick
         ReloadCustomers()
-        ResetLogin()
+        menuSetup.Enabled = False
+        menuPalletActions.Enabled = False
+        menuLogout.Enabled = False
+        AddHandler Shown, AddressOf InitialLoginShown
     End Sub
 
     Private Sub BindViewEvents()
@@ -46,23 +48,6 @@ Public Class Form1
         AddHandler menuHistory.Click, AddressOf OpenPalletHistory
         AddHandler menuTransfer.Click, AddressOf OpenPalletTransfers
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu
-        AddHandler buttonLogin.Click, AddressOf PerformLogin
-    End Sub
-
-    Private Sub AddLabel(parent As Control, value As String, x As Integer, y As Integer,
-                         width As Integer, height As Integer, bold As Boolean)
-        Dim item As New Label With {
-            .Text = value, .Location = New Point(x, y), .Size = New Size(width, height),
-            .ForeColor = brandBlue
-        }
-        If bold Then item.Font = New Font("Segoe UI", 17, FontStyle.Bold)
-        parent.Controls.Add(item)
-    End Sub
-
-    Private Sub CenterCard(parent As Control, child As Control)
-        child.Location = New Point(
-            Math.Max(0, (parent.ClientSize.Width - child.Width) \ 2),
-            Math.Max(18, (parent.ClientSize.Height - child.Height) \ 2))
     End Sub
 
     Private Sub UpdatePalletActionsMenu(sender As Object, e As EventArgs)
@@ -78,7 +63,6 @@ Public Class Form1
             RefreshCustomer()
         Catch ex As Exception
             units.Clear()
-            labelCustomer.Text = "Customer unavailable"
             MessageBox.Show(ex.Message, "SQL Server connection", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -89,34 +73,25 @@ Public Class Form1
         If saved.HasValue Then selected = units.Find(Function(u) u.Id = saved.Value)
         SessionContext.BusinessUnitId = If(selected Is Nothing, 0, selected.Id)
         SessionContext.BusinessUnitName = If(selected Is Nothing, "", selected.Name)
-        labelCustomer.Text = If(selected Is Nothing, "Not configured", selected.Name)
     End Sub
 
-    Private Sub PerformLogin(sender As Object, e As EventArgs)
-        Dim barcode = inputBarcode.Text.Trim().ToUpperInvariant()
-        Dim password = inputPassword.Text
-        If barcode = "" OrElse password = "" Then
-            MessageBox.Show("Enter Barcode ID and Password.", "Required fields",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            Return
-        End If
+    Private Sub InitialLoginShown(sender As Object, e As EventArgs)
+        RemoveHandler Shown, AddressOf InitialLoginShown
+        ' Display a separate form; the main shell is not usable before login.
+        BeginInvoke(New MethodInvoker(Sub() ShowLoginDialog()))
+    End Sub
 
+    Private Sub ShowLoginDialog()
+        If IsDisposed Then Return
+        mainMenu.Enabled = False
+        signedInPanel.Enabled = False
         Try
-            Dim user = PackAndShipData.Authenticate(barcode, password)
-            If user Is Nothing Then
-                MessageBox.Show("Invalid credentials or inactive user.", "Access denied",
-                                MessageBoxButtons.OK, MessageBoxIcon.Warning)
-                inputPassword.Clear()
-                Return
-            End If
-
-            SessionContext.UserId = user.Id
-            SessionContext.FullName = user.Name
-            SessionContext.BarcodeId = user.Barcode
-            SessionContext.RoleId = user.RoleId
-            SessionContext.RoleName = user.RoleName
-            SessionContext.CanModifySetup = user.CanModifySetup
-
+            Using login As New LoginForm(SessionContext.BusinessUnitName)
+                If login.ShowDialog(Me) <> DialogResult.OK Then
+                    Close()
+                    Return
+                End If
+            End Using
             SetAuthenticatedLayout()
             scannerView.LoadStation()
             connectionFailed = False
@@ -127,17 +102,9 @@ Public Class Form1
             menuSetup.Enabled = SessionContext.CanModifySetup
             menuPalletActions.Enabled = True
             menuLogout.Enabled = True
-            labelWelcome.Text = "Operator: " & user.Name & "  |  Role: " & user.RoleName &
-                                Environment.NewLine & "Customer: " &
-                                If(SessionContext.BusinessUnitId = 0, "Not configured",
-                                   SessionContext.BusinessUnitName)
-            If SessionContext.BusinessUnitId = 0 Then
-                labelStatus.Text = "Configure this station's customer from Setup before scanning."
-            Else
-                labelStatus.Text = "Pallet scanning rules are pending definition."
-            End If
-        Catch ex As Exception
-            MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            mainMenu.Enabled = True
+            signedInPanel.Enabled = True
         End Try
     End Sub
 
@@ -401,32 +368,12 @@ Public Class Form1
         End Using
     End Sub
 
-    Private Sub SetLoginLayout()
-        SuspendLayout()
-        Try
-            mainMenu.Visible = False
-            appHeader.Visible = False
-            signedInPanel.Visible = False
-            loginPanel.Visible = True
-            FormBorderStyle = FormBorderStyle.FixedDialog
-            MaximizeBox = False
-            MinimumSize = New Size(1, 1)
-            ClientSize = New Size(422, 340)
-            Text = "Pack and Ship | Login"
-            CenterToScreen()
-        Finally
-            ResumeLayout(True)
-        End Try
-    End Sub
-
     Private Sub SetAuthenticatedLayout()
         SuspendLayout()
         Try
-            loginPanel.Visible = False
             signedInPanel.Visible = True
             FormBorderStyle = FormBorderStyle.Sizable
             MaximizeBox = True
-            MinimumSize = New Size(1100, 750)
             ' The authenticated size is editable from Form1 Designer's
             ' ClientSize property, rather than hardcoded here.
             ClientSize = New Size(Math.Max(1080, signedInDesignerSize.Width),
@@ -442,22 +389,14 @@ Public Class Form1
 
     Private Sub LogoutFromMenu(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 Then Return
-        ResetLogin()
-    End Sub
-
-    Private Sub ResetLogin()
         connectionTimer.Stop()
         SessionContext.Clear()
         connectionLabel.Text = "CCS: signed out"
         connectionLabel.ForeColor = Color.DimGray
-        RefreshCustomer()
-        inputBarcode.Clear()
-        inputPassword.Clear()
-        SetLoginLayout()
         menuSetup.Enabled = False
         menuPalletActions.Enabled = False
         menuLogout.Enabled = False
-        Me.AcceptButton = buttonLogin
-        inputBarcode.Focus()
+        RefreshCustomer()
+        ShowLoginDialog()
     End Sub
 End Class

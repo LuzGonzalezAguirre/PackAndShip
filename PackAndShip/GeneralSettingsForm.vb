@@ -78,7 +78,7 @@ Public Class GeneralSettingsForm
             Dim format = BuildFormat()
             PalletIdSettings.Save(format.Prefix, format.DigitCount)
             saved = format
-            MessageBox.Show("Formato global de ID de pallet guardado en SQL Server.", "Saved",
+            MessageBox.Show("Formato global de ID de pallet guardado en SQL Server.", "Guardado",
                             MessageBoxButtons.OK, MessageBoxIcon.Information)
         Catch ex As Exception
             MessageBox.Show(ex.Message, "No se pudo guardar la configuración general",

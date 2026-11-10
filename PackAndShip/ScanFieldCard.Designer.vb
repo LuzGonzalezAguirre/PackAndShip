@@ -116,10 +116,10 @@ Partial Class ScanFieldCard
         Me.mode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown
         Me.separator.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown
         Me.position.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown
-        Me.target.Items.AddRange(New Object() {"Internal serial (frameSN)", "Customer serial (volvoSerialNumber)"})
-        Me.mode.Items.AddRange(New Object() {"Split by separator"})
-        Me.separator.Items.AddRange(New Object() {"Space ( )", "personalizado", "ninguno"})
-        Me.position.Items.AddRange(New Object() {"After separator", "Before separator"})
+        Me.target.Items.AddRange(New Object() {"Serie interna (frameSN)", "Serie del cliente (volvoSerialNumber)"})
+        Me.mode.Items.AddRange(New Object() {"Separar por delimitador"})
+        Me.separator.Items.AddRange(New Object() {"Espacio ( )", "personalizado", "ninguno"})
+        Me.position.Items.AddRange(New Object() {"Después del separador", "Antes del separador"})
         Me.fieldLabel.MaxLength = 200
         Me.prefix.MaxLength = 100
         Me.customSeparator.MaxLength = 20

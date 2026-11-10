@@ -77,15 +77,15 @@ Partial Class GeneralSettingsForm
         Me.cancelButton.Name = "cancelButton"
         Me.cancelButton.Location = New System.Drawing.Point(390,476)
         Me.cancelButton.Size = New System.Drawing.Size(130,40)
-        Me.heading.Text = "General Settings"
-        Me.subtitle.Text = "Global pallet ID format • Shared by all stations"
-        Me.sectionHeading.Text = "PALLET IDENTIFIER"
-        Me.prefixCaption.Text = "Prefix"
-        Me.digitsCaption.Text = "Numeric digits"
-        Me.testCaption.Text = "Test a scanned pallet ID"
-        Me.note.Text = "This setting validates the pallet ID format only. It does not generate pallet numbers or change existing records."
-        Me.saveButton.Text = "Save changes"
-        Me.cancelButton.Text = "Close"
+        Me.heading.Text = "Configuración general"
+        Me.subtitle.Text = "Formato global de ID de pallet • Compartido por todas las estaciones"
+        Me.sectionHeading.Text = "IDENTIFICADOR DE PALLET"
+        Me.prefixCaption.Text = "Prefijo"
+        Me.digitsCaption.Text = "Dígitos numéricos"
+        Me.testCaption.Text = "Probar ID de pallet escaneado"
+        Me.note.Text = "Esta opción valida el formato del ID de pallet; no genera números ni modifica registros existentes."
+        Me.saveButton.Text = "Guardar cambios"
+        Me.cancelButton.Text = "Cerrar"
         Me.header.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.section.BackColor = System.Drawing.Color.White
         Me.heading.Font = New System.Drawing.Font("Segoe UI", 22.0!, System.Drawing.FontStyle.Bold)
@@ -124,7 +124,7 @@ Partial Class GeneralSettingsForm
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Font = New System.Drawing.Font("Segoe UI",10.0!)
         Me.BackColor = System.Drawing.Color.FromArgb(244,247,250)
-        Me.Text = "Pack and Ship | Setup - General"
+        Me.Text = "PackAndShip | Configuración general"
         Me.ResumeLayout(False)
     End Sub
     Friend WithEvents header As System.Windows.Forms.Panel

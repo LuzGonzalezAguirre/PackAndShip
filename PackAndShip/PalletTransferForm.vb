@@ -86,15 +86,15 @@ Public Class PalletTransferForm
                 Throw New InvalidOperationException("El nuevo código de contenedor no coincide con Configuración general.")
             End If
             If String.Equals(source.Code,destination,StringComparison.OrdinalIgnoreCase) Then
-                Throw New InvalidOperationException("Source and destination must be different.")
+                Throw New InvalidOperationException("El origen y el destino deben ser diferentes.")
             End If
             If PaSPackingData.FindContainer(destination) IsNot Nothing Then
                 Throw New InvalidOperationException("El código de destino ya existe en CCS.")
             End If
             If MessageBox.Show(
-                "¿Transferir " & source.PieceTotal & " validated pieces from " & source.Code &
+                "¿Transferir " & source.PieceTotal & " piezas validadas desde " & source.Code &
                 " al pallet NUEVO " & destination & "?" & Environment.NewLine &
-                "Source becomes TRANSFERRED and destination stays OPEN.",
+                "El origen pasará a TRANSFERIDO y el destino quedará ABIERTO.",
                 "Confirmar transferencia de pallet", MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
 

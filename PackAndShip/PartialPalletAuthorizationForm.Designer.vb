@@ -70,7 +70,7 @@ Partial Class PartialPalletAuthorizationForm
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Font = New System.Drawing.Font("Segoe UI", 10.0!)
         Me.BackColor = System.Drawing.Color.FromArgb(244,247,250)
-        Me.Text = "PartialPalletAuthorizationForm"
+        Me.Text = "PackAndShip | Autorización de pallet"
         Me.Controls.Add(Me.barcodeInput)
         Me.Controls.Add(Me.passwordInput)
         Me.Controls.Add(Me.reasonInput)

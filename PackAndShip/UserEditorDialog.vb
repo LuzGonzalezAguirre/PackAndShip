@@ -14,8 +14,8 @@ Friend Partial Class UserEditorDialog
     Public Sub New(user As PaSUser, roles As List(Of PaSRole))
         Me.New()
         currentUser = user
-        Text = If(user Is Nothing, "New user", "Edit user")
-        heading.Text = If(user Is Nothing, "Add employee", "Edit employee")
+        Text = If(user Is Nothing, "Usuario nuevo", "Editar usuario")
+        heading.Text = If(user Is Nothing, "Agregar empleado", "Editar empleado")
         inputRole.DataSource = roles
         inputRole.DisplayMember = "Name"
         inputRole.ValueMember = "Id"
@@ -43,7 +43,7 @@ Friend Partial Class UserEditorDialog
             DialogResult = DialogResult.OK
             Close()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Unable to save user", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "No se pudo guardar el usuario", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 End Class

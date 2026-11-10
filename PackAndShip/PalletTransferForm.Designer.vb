@@ -69,7 +69,7 @@ Partial Class PalletTransferForm
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Font = New System.Drawing.Font("Segoe UI", 10.0!)
         Me.BackColor = System.Drawing.Color.FromArgb(244,247,250)
-        Me.Text = "PalletTransferForm"
+        Me.Text = "PackAndShip | Transferencia de pallets"
         Me.Controls.Add(Me.sourceInput)
         Me.Controls.Add(Me.destinationInput)
         Me.Controls.Add(Me.summary)

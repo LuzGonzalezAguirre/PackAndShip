@@ -29,7 +29,7 @@ Public Class ScanRulesForm
         AddHandler editRule.Click, Sub()
             Dim selected = SelectedRule()
             If selected Is Nothing Then
-                MessageBox.Show("Select a rule first.")
+                MessageBox.Show("Primero selecciona una regla.")
                 Return
             End If
             OpenRuleEditor(selected)
@@ -116,7 +116,7 @@ Public Class ScanRulesForm
     Private Sub ToggleSelectedRule(sender As Object, e As EventArgs)
         Dim rule = SelectedRule()
         If rule Is Nothing Then
-            MessageBox.Show("Select a rule first.")
+            MessageBox.Show("Primero selecciona una regla.")
             Return
         End If
         Dim action = If(rule.IsActive, "deactivate", "activate")

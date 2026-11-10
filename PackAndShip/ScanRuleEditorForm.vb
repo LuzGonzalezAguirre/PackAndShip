@@ -33,8 +33,8 @@ Public Class ScanRuleEditorForm
         Me.New()
         original = existing
         choices = availableParts
-        Text = If(existing Is Nothing, "Add Scan Rule", "Edit Scan Rule")
-        headerTitle.Text = If(existing Is Nothing, "Add Scan Rule", "Edit Scan Rule #" & existing.Id)
+        Text = If(existing Is Nothing, "Agregar regla de escaneo", "Editar regla de escaneo")
+        headerTitle.Text = If(existing Is Nothing, "Agregar regla de escaneo", "Editar regla de escaneo n.º " & existing.Id)
         LoadValues()
     End Sub
 
@@ -66,7 +66,7 @@ Public Class ScanRuleEditorForm
             GroupBy(Function(p) p.BusinessUnitId.Value).
             Select(Function(g) New BusinessUnit With {.Id = g.Key, .Name = g.First().BusinessUnit}).
             OrderBy(Function(b) b.Name).ToList()
-        customers.Insert(0, New BusinessUnit With {.Id = 0, .Name = "All customers"})
+        customers.Insert(0, New BusinessUnit With {.Id = 0, .Name = "Todos los clientes"})
 
         isBinding = True
         customerPicker.DisplayMember = "Name"
@@ -120,7 +120,7 @@ Public Class ScanRuleEditorForm
         Try
             saved = GetFieldModels()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Scan fields", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show(ex.Message, "Campos de escaneo", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End Try
         If saved.Any(Function(f) f.ScanIndex >= CInt(scanCount.Value)) Then
@@ -155,7 +155,7 @@ Public Class ScanRuleEditorForm
                     .Margin = New Padding(0, 0, 0, 14)
                 }
                 Dim heading As New Label With {
-                    .Text = "SCAN " & (index + 1),
+                    .Text = "ESCANEO " & (index + 1),
                     .ForeColor = Color.FromArgb(31, 78, 121),
                     .Font = New Font("Segoe UI", 12, FontStyle.Bold),
                     .Height = 33, .Width = group.Width - 36
@@ -177,7 +177,7 @@ Public Class ScanRuleEditorForm
                     InsertFieldCard(currentIndex, field)
                 Next
                 Dim add As New Button With {
-                    .Text = "+ Add field", .Width = 130, .Height = 31,
+                    .Text = "+ Agregar campo", .Width = 130, .Height = 31,
                     .ForeColor = Color.FromArgb(31, 78, 121),
                     .FlatStyle = FlatStyle.Flat, .Tag = currentIndex
                 }
@@ -245,12 +245,12 @@ Public Class ScanRuleEditorForm
         Try
             fieldModels = GetFieldModels()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Invalid scan field", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show(ex.Message, "Campo de escaneo inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End Try
         For index As Integer = 0 To CInt(scanCount.Value) - 1
             If Not fieldModels.Any(Function(f) f.ScanIndex = index) Then
-                MessageBox.Show("Scan " & (index + 1) & " needs at least one field.")
+                MessageBox.Show("Escaneo " & (index + 1) & " necesita al menos un campo.")
                 Return
             End If
         Next
@@ -268,7 +268,7 @@ Public Class ScanRuleEditorForm
             .Notes = notesBox.Text,
             .UpdatedAt = If(original Is Nothing, DateTime.MinValue, original.UpdatedAt)
         }
-        If MessageBox.Show("Save this shared scan rule? Changes will affect Q-Wall as well.",
+        If MessageBox.Show("¿Guardar esta regla compartida? Los cambios también afectarán a Q-Wall.",
                            "Confirm shared rule update", MessageBoxButtons.YesNo,
                            MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
         Try
@@ -276,7 +276,7 @@ Public Class ScanRuleEditorForm
             DialogResult = DialogResult.OK
             Close()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cannot save scan rule", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "No se pudo guardar la regla de escaneo", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 End Class

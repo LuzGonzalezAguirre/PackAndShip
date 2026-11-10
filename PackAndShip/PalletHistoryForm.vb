@@ -77,7 +77,7 @@ Public Class PalletHistoryForm
             For Each r As DataRow In data.Rows
                 packed += Convert.ToInt64(r("Packed"))
             Next
-            summary.Text = "Pallets: " & data.Rows.Count & "  |  Current packed pieces: " & packed & "     "
+            summary.Text = "Pallets: " & data.Rows.Count & "  |  Piezas empacadas actuales: " & packed & "     "
             If grid.Rows.Count = 0 Then
                 selectedId = 0
                 pieces.DataSource = Nothing
@@ -88,7 +88,7 @@ Public Class PalletHistoryForm
             End If
             RefreshActions()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "History loading error",
+            MessageBox.Show(ex.Message, "Error al cargar el historial",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -104,7 +104,7 @@ Public Class PalletHistoryForm
             audit.DataSource = PaSHistoryData.ReadAudit(selectedId)
             RefreshActions()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Pallet details error",
+            MessageBox.Show(ex.Message, "Error al consultar detalles del pallet",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -122,12 +122,12 @@ Public Class PalletHistoryForm
 
     Private Function ReasonDialog(action As String) As String
         Using dialog As New Form With {
-            .Text = action & " | Reason required", .Size = New Size(550, 260),
+            .Text = action & " | Motivo obligatorio", .Size = New Size(550, 260),
             .FormBorderStyle = FormBorderStyle.FixedDialog, .StartPosition = FormStartPosition.CenterParent,
             .MinimizeBox = False, .MaximizeBox = False
         }
             Dim caption As New Label With {
-                .Text = "Reason (at least 10 characters). Saved permanently in audit.",
+                .Text = "Motivo (mínimo 10 caracteres). Se guardará permanentemente en auditoría.",
                 .Dock = DockStyle.Top, .Height = 40
             }
             Dim reason As New TextBox With {.Multiline = True, .Dock = DockStyle.Fill, .MaxLength = 500}
@@ -143,7 +143,7 @@ Public Class PalletHistoryForm
             dialog.CancelButton = cancel
             If dialog.ShowDialog(Me) <> DialogResult.OK Then Return Nothing
             If reason.Text.Trim().Length < 10 Then
-                MessageBox.Show("Reason must be at least 10 characters.", "Required")
+                MessageBox.Show("El motivo debe tener al menos 10 caracteres.", "Required")
                 Return Nothing
             End If
             Return reason.Text.Trim()
@@ -153,16 +153,16 @@ Public Class PalletHistoryForm
     Private Sub RemoveSelectedPiece(sender As Object, e As EventArgs)
         If selectedId <= 0 OrElse pieces.SelectedRows.Count = 0 Then Return
         Dim productId = Convert.ToInt32(pieces.SelectedRows(0).Cells("ProductId").Value)
-        Dim reason = ReasonDialog("Remove product " & productId)
+        Dim reason = ReasonDialog("Eliminar producto " & productId)
         If reason Is Nothing Then Return
-        If MessageBox.Show("Remove product " & productId & " from this OPEN level? " &
-                           "The action will be audited.", "Confirm correction",
+        If MessageBox.Show("Eliminar producto " & productId & " from this OPEN level? " &
+                           "La acción quedará registrada en auditoría.", "Confirmar corrección",
                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
         Try
             PaSHistoryData.RemovePiece(selectedId, productId, reason)
             RefreshHistory()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Correction blocked", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show(ex.Message, "Corrección bloqueada", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
     End Sub
 
@@ -174,8 +174,8 @@ Public Class PalletHistoryForm
         Using auth As New PartialPalletAuthorizationForm(code, 0, required, True)
             If auth.ShowDialog(Me) <> DialogResult.OK Then Return
             If MessageBox.Show(
-                "Cancel empty pallet " & code & "? The code cannot be reused.",
-                "Confirm cancellation", MessageBoxButtons.YesNo,
+                "Cancelar pallet vacío " & code & "? El código no podrá reutilizarse.",
+                "Confirmar cancelación", MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
             Try
                 PaSPackingData.CancelEmptyPallet(
@@ -183,7 +183,7 @@ Public Class PalletHistoryForm
                     auth.AuthorizedPassword, auth.Reason)
                 RefreshHistory()
             Catch ex As Exception
-                MessageBox.Show(ex.Message, "Cancellation blocked",
+                MessageBox.Show(ex.Message, "Cancelación bloqueada",
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning)
             End Try
         End Using
@@ -215,9 +215,9 @@ Public Class PalletHistoryForm
                                                     Select(Function(col) CsvField(r(col)))))
                     Next
                 End Using
-                MessageBox.Show("Report exported.", "PackAndShip")
+                MessageBox.Show("Reporte exportado.", "PackAndShip")
             Catch ex As Exception
-                MessageBox.Show(ex.Message, "Export failed", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                MessageBox.Show(ex.Message, "Error al exportar", MessageBoxButtons.OK, MessageBoxIcon.Error)
             End Try
         End Using
     End Sub

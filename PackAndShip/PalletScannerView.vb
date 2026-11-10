@@ -194,8 +194,8 @@ Public Partial Class PalletScannerView
             selectedFields.Clear()
             activePartTitle.Text = "Selecciona un número de parte"
             buildState.Text = "Esperando contenedor y modelo"
-            progressText.Text = "0 / 0 piezas" & Environment.NewLine & "0 niveles completos"
-            progressBar.Value = 0
+            ShowConfiguredPalletMetrics()
+            progressPercent.Text = "0%"
             activeContainer = Nothing
             lbl_lot.Text = "P######"
             DataGridView1.DataSource = Nothing
@@ -268,17 +268,12 @@ Public Partial Class PalletScannerView
             If selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
                 activePartTitle.Text = part.DisplayName
                 buildState.Text = "Configuración de pallet inexistente o inactiva"
-                progressText.Text = "0 / 0 piezas" & Environment.NewLine & "0 niveles completos"
+                ShowConfiguredPalletMetrics()
             Else
                 activePartTitle.Text = part.DisplayName
                 buildState.Text = "Contenedor: " & containerInput.Text.Trim().ToUpperInvariant() &
                     "   |   " & selectedConfiguration.Levels.Count & " niveles configurados"
-                progressText.Text = "0 / " & selectedConfiguration.TotalPieces &
-                    " piezas" & Environment.NewLine &
-                    "0 / " & selectedConfiguration.Levels.Count & " niveles completos" &
-                    Environment.NewLine & "Piezas por nivel: " &
-                    String.Join(" / ", selectedConfiguration.Levels)
-                progressBar.Value = 0
+                ShowConfiguredPalletMetrics()
             End If
             ruleSummary.Text = If(selectedRule Is Nothing,
                 "Regla de escaneo: Inactiva / no disponible", "Escaneos configurados: " & selectedRule.ScanCount &
@@ -510,6 +505,22 @@ Public Partial Class PalletScannerView
         End If
     End Sub
 
+    ' Indicadores sin pallet abierto: muestran la configuración del modelo seleccionado.
+    Private Sub ShowConfiguredPalletMetrics()
+        Dim configuration = selectedConfiguration
+        If configuration Is Nothing OrElse Not configuration.IsActive Then
+            lblLevelsCount.Text = "0 / 0"
+            lblLevelPiecesCount.Text = "0 / 0"
+            lblPalletPiecesCount.Text = "0 / 0"
+        Else
+            lblLevelsCount.Text = "0 / " & configuration.Levels.Count
+            lblLevelPiecesCount.Text = If(configuration.Levels.Count > 0,
+                "0 / " & configuration.Levels(0), "0 / 0")
+            lblPalletPiecesCount.Text = "0 / " & configuration.TotalPieces
+        End If
+        progressPercent.Text = "0%"
+    End Sub
+
     Private Shared Function EstadoPalletVisible(status As String) As String
         Select Case If(status, "").ToUpperInvariant()
             Case "OPEN"
@@ -538,15 +549,14 @@ Public Partial Class PalletScannerView
         Dim current = activeContainer.CurrentLevel
         Dim actual = activeContainer.PieceTotal
         Dim required = activeContainer.RequiredTotal
-        progressText.Text = actual & " / " & required & " piezas" & Environment.NewLine &
-            activeContainer.ClosedLevels & " / " & activeContainer.Levels.Count &
-            " niveles cerrados" & Environment.NewLine &
-            If(current Is Nothing, "No hay nivel abierto",
-               "Nivel " & current.LevelNumber & ": " & current.ScannedPieces &
-               " / " & current.RequiredPieces)
+        lblLevelsCount.Text = activeContainer.ClosedLevels & " / " & activeContainer.Levels.Count
+        Dim visibleLevel = If(current, activeContainer.Levels.
+            OrderByDescending(Function(level) level.LevelNumber).FirstOrDefault())
+        lblLevelPiecesCount.Text = If(visibleLevel Is Nothing, "0 / 0",
+            visibleLevel.ScannedPieces & " / " & visibleLevel.RequiredPieces)
+        lblPalletPiecesCount.Text = actual & " / " & required
         Dim percentage = If(required > 0,
             Math.Min(100, CInt(Math.Truncate(CDbl(actual) * 100.0 / required))), 0)
-        progressBar.Value = percentage
         progressPercent.Text = percentage.ToString() & "%"
         progressState.Text = If(activeContainer.Status <> "OPEN",
                                 EstadoPalletVisible(activeContainer.Status),
@@ -638,19 +648,13 @@ Public Partial Class PalletScannerView
         containerInput.Clear()
         scannedList.Items.Clear()
         scannedList.Items.Add("No hay pallet activo. Ingresa o escanea el siguiente contenedor.")
-        progressBar.Value = 0
         lbl_lot.Text = "P######"
         DataGridView1.DataSource = Nothing
         progressPercent.Text = "0%"
         progressState.Text = "LISTO PARA EL SIGUIENTE PALLET"
         progressIcon.Text = "▣"
         levelTiles.Controls.Clear()
-        If selectedConfiguration IsNot Nothing Then
-            progressText.Text = "0 / " & selectedConfiguration.TotalPieces &
-                " piezas" & Environment.NewLine & "0 niveles completos"
-        Else
-            progressText.Text = "0 / 0 piezas" & Environment.NewLine & "0 niveles completos"
-        End If
+        ShowConfiguredPalletMetrics()
         buildState.Text = "Listo para el siguiente pallet"
         SetQWallStatus("Verificar al escanear")
         UpdateScannerAvailability()

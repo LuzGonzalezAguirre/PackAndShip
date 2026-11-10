@@ -275,7 +275,7 @@ Public Class PalletConfigurationForm
         Try
             PalletConfigurationData.SaveConfiguration(selectedPart.Id, quantities, activeCheck.Checked)
             MessageBox.Show("Configuración de pallet guardada correctamente.",
-                            "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                            "Guardado", MessageBoxButtons.OK, MessageBoxIcon.Information)
             Dim currentPartId = selectedPart.Id
             LoadParts()
             FilterParts(currentPartId)

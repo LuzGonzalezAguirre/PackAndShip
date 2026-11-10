@@ -510,6 +510,23 @@ Public Partial Class PalletScannerView
         End If
     End Sub
 
+    Private Shared Function EstadoPalletVisible(status As String) As String
+        Select Case If(status, "").ToUpperInvariant()
+            Case "OPEN"
+                Return "ABIERTO"
+            Case "CLOSED"
+                Return "CERRADO"
+            Case "PARTIAL"
+                Return "PARCIAL"
+            Case "TRANSFERRED"
+                Return "TRANSFERIDO"
+            Case "CANCELLED"
+                Return "CANCELADO"
+            Case Else
+                Return status
+        End Select
+    End Function
+
     Private Sub RefreshContainer()
         If activeContainer Is Nothing Then Return
         activeContainer = PaSPackingData.ReadContainer(activeContainer.Id)
@@ -532,7 +549,7 @@ Public Partial Class PalletScannerView
         progressBar.Value = percentage
         progressPercent.Text = percentage.ToString() & "%"
         progressState.Text = If(activeContainer.Status <> "OPEN",
-                                activeContainer.Status,
+                                EstadoPalletVisible(activeContainer.Status),
                                 If(current Is Nothing, "LISTO PARA CERRAR PALLET",
                                    If(current.ScannedPieces = current.RequiredPieces,
                                       "NIVEL COMPLETO — CONFIRMA PARA CONTINUAR",
@@ -565,7 +582,7 @@ Public Partial Class PalletScannerView
             levelTiles.ResumeLayout()
         End Try
         progressIcon.Text = If(activeContainer.Status = "OPEN", "▣", "✓")
-        buildState.Text = "Contenedor: " & activeContainer.Code & "  |  " & activeContainer.Status
+        buildState.Text = "Contenedor: " & activeContainer.Code & "  |  " & EstadoPalletVisible(activeContainer.Status)
         If activeContainer.Status <> "OPEN" Then
             StationSettings.UnlockPallet(activeContainer.Code)
         End If
@@ -574,7 +591,7 @@ Public Partial Class PalletScannerView
             scannedList.Items.Add("No hay piezas registradas.")
         Else
             For Each piece In activeContainer.Pieces
-                scannedList.Items.Add("L" & piece.LevelNumber & " | " &
+                scannedList.Items.Add("Nivel " & piece.LevelNumber & " | " &
                     piece.SsiCode & " | " & piece.ClientCode)
             Next
         End If

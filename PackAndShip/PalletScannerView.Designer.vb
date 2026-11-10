@@ -146,7 +146,7 @@ Partial Class PalletScannerView
         piecesTitle.Name = "piecesTitle"
         piecesTitle.Size = New Size(360, 30)
         piecesTitle.TabIndex = 0
-        piecesTitle.Text = "RECENTLY SCANNED"
+        piecesTitle.Text = "ESCANEOS RECIENTES"
         ' 
         ' scannedList
         ' 
@@ -166,7 +166,7 @@ Partial Class PalletScannerView
         scanTitle.Name = "scanTitle"
         scanTitle.Size = New Size(360, 30)
         scanTitle.TabIndex = 0
-        scanTitle.Text = "SCAN LABELS"
+        scanTitle.Text = "ESCANEO DE ETIQUETAS"
         ' 
         ' scanHelp
         ' 
@@ -176,7 +176,7 @@ Partial Class PalletScannerView
         scanHelp.Name = "scanHelp"
         scanHelp.Size = New Size(370, 32)
         scanHelp.TabIndex = 1
-        scanHelp.Text = "Scanner ready. Each QR sends Enter automatically."
+        scanHelp.Text = "Escáner listo. Cada código envía Enter automáticamente."
         ' 
         ' ssiCaption
         ' 
@@ -186,7 +186,7 @@ Partial Class PalletScannerView
         ssiCaption.Name = "ssiCaption"
         ssiCaption.Size = New Size(250, 22)
         ssiCaption.TabIndex = 2
-        ssiCaption.Text = "01  SSI SERIAL"
+        ssiCaption.Text = "01  SERIE SSI"
         ' 
         ' firstQr
         ' 
@@ -204,7 +204,7 @@ Partial Class PalletScannerView
         clientScanLabel.Name = "clientScanLabel"
         clientScanLabel.Size = New Size(300, 22)
         clientScanLabel.TabIndex = 4
-        clientScanLabel.Text = "02  CLIENT SERIAL"
+        clientScanLabel.Text = "02  SERIE DEL CLIENTE"
         ' 
         ' secondQr
         ' 
@@ -222,7 +222,7 @@ Partial Class PalletScannerView
         scanStatus.Name = "scanStatus"
         scanStatus.Size = New Size(380, 48)
         scanStatus.TabIndex = 6
-        scanStatus.Text = "Select a model, then scan the container."
+        scanStatus.Text = "Selecciona un modelo y escanea el contenedor."
         ' 
         ' progressArea
         ' 
@@ -253,7 +253,7 @@ Partial Class PalletScannerView
         Label1.Name = "Label1"
         Label1.Size = New Size(107, 32)
         Label1.TabIndex = 10
-        Label1.Text = "LOT NO:"
+        Label1.Text = "N.º DE LOTE:"
         ' 
         ' lbl_lot
         ' 
@@ -281,7 +281,7 @@ Partial Class PalletScannerView
         progressTitle.Name = "progressTitle"
         progressTitle.Size = New Size(189, 30)
         progressTitle.TabIndex = 0
-        progressTitle.Text = "PALLET PROGRESS"
+        progressTitle.Text = "AVANCE DEL PALLET"
         ' 
         ' progressIcon
         ' 
@@ -311,7 +311,7 @@ Partial Class PalletScannerView
         progressState.Name = "progressState"
         progressState.Size = New Size(520, 27)
         progressState.TabIndex = 3
-        progressState.Text = "WAITING FOR PALLET"
+        progressState.Text = "ESPERANDO PALLET"
         ' 
         ' progressBar
         ' 
@@ -327,7 +327,7 @@ Partial Class PalletScannerView
         progressText.Name = "progressText"
         progressText.Size = New Size(540, 108)
         progressText.TabIndex = 5
-        progressText.Text = "0 / 0 pieces"
+        progressText.Text = "0 / 0 piezas"
         ' 
         ' confirmAgain
         ' 
@@ -337,7 +337,7 @@ Partial Class PalletScannerView
         confirmAgain.Name = "confirmAgain"
         confirmAgain.Size = New Size(97, 97)
         confirmAgain.TabIndex = 7
-        confirmAgain.Text = "Review packed level"
+        confirmAgain.Text = "Confirmar nivel empacado"
         confirmAgain.UseVisualStyleBackColor = False
         ' 
         ' ruleSummary
@@ -391,7 +391,7 @@ Partial Class PalletScannerView
         activeCaption.Name = "activeCaption"
         activeCaption.Size = New Size(114, 18)
         activeCaption.TabIndex = 0
-        activeCaption.Text = "ACTIVE BUILD"
+        activeCaption.Text = "PALLET ACTIVO"
         ' 
         ' activePartTitle
         ' 
@@ -402,7 +402,7 @@ Partial Class PalletScannerView
         activePartTitle.Name = "activePartTitle"
         activePartTitle.Size = New Size(680, 26)
         activePartTitle.TabIndex = 1
-        activePartTitle.Text = "Select a model"
+        activePartTitle.Text = "Selecciona un modelo"
         ' 
         ' buildState
         ' 
@@ -412,7 +412,7 @@ Partial Class PalletScannerView
         buildState.Name = "buildState"
         buildState.Size = New Size(225, 18)
         buildState.TabIndex = 2
-        buildState.Text = "Scan a container barcode and press Enter"
+        buildState.Text = "Escanea el contenedor y presiona Enter"
         ' 
         ' headerContainerCell
         ' 
@@ -434,7 +434,7 @@ Partial Class PalletScannerView
         captionContainer.Name = "captionContainer"
         captionContainer.Size = New Size(154, 18)
         captionContainer.TabIndex = 0
-        captionContainer.Text = "CONTAINER"
+        captionContainer.Text = "CONTENEDOR"
         ' 
         ' containerInput
         ' 
@@ -466,7 +466,7 @@ Partial Class PalletScannerView
         captionModel.Name = "captionModel"
         captionModel.Size = New Size(240, 18)
         captionModel.TabIndex = 0
-        captionModel.Text = "PART NUMBER / MODEL"
+        captionModel.Text = "NÚMERO DE PARTE / MODELO"
         ' 
         ' partPicker
         ' 
@@ -499,7 +499,7 @@ Partial Class PalletScannerView
         captionOperator.Name = "captionOperator"
         captionOperator.Size = New Size(190, 18)
         captionOperator.TabIndex = 0
-        captionOperator.Text = "OPERATOR"
+        captionOperator.Text = "OPERADOR"
         ' 
         ' operatorValue
         ' 
@@ -531,7 +531,7 @@ Partial Class PalletScannerView
         captionCustomer.Name = "captionCustomer"
         captionCustomer.Size = New Size(116, 18)
         captionCustomer.TabIndex = 0
-        captionCustomer.Text = "CUSTOMER"
+        captionCustomer.Text = "CLIENTE"
         ' 
         ' customerValue
         ' 
@@ -563,7 +563,7 @@ Partial Class PalletScannerView
         captionTime.Name = "captionTime"
         captionTime.Size = New Size(163, 18)
         captionTime.TabIndex = 0
-        captionTime.Text = "DATE / TIME"
+        captionTime.Text = "FECHA / HORA"
         ' 
         ' clockValue
         ' 

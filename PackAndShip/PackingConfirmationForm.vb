@@ -23,7 +23,7 @@ Public NotInheritable Partial Class PackingConfirmationForm
         number.Text = count & " / " & count
         message.Text = If(isFinal,
             "Último nivel " & level & " of " & levels & " está completo." & Environment.NewLine &
-            "Are all pieces physically packed? Confirm to close the level AND pallet.",
+            "¿Todas las piezas están empacadas físicamente? Confirma para cerrar el nivel Y el pallet.",
             "Nivel " & level & " of " & levels & " está completo." & Environment.NewLine &
             "¿Todas las piezas están empacadas físicamente? Confirma para abrir el siguiente nivel.")
         yesButton.Text = If(isFinal, "SÍ — COMPLETAR PALLET", "SÍ — SIGUIENTE NIVEL")

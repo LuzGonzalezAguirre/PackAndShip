@@ -59,7 +59,7 @@ Public Class UsersSetupForm
             If previouslySelected IsNot Nothing Then previousRole = previouslySelected.Id
 
             Dim filterOptions As New List(Of PaSRole) From {
-                New PaSRole With {.Id = 0, .Name = "All roles"}
+                New PaSRole With {.Id = 0, .Name = "Todos los roles"}
             }
             filterOptions.AddRange(roles)
             roleFilter.DataSource = filterOptions
@@ -67,7 +67,7 @@ Public Class UsersSetupForm
             If roleFilter.SelectedIndex < 0 Then roleFilter.SelectedIndex = 0
             RenderRows()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cannot load users", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "No se pudieron cargar los usuarios", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -82,7 +82,7 @@ Public Class UsersSetupForm
              u.RoleName.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)).ToList()
         usersGrid.DataSource = Nothing
         usersGrid.DataSource = filtered
-        countLabel.Text = filtered.Count.ToString() & " of " & allUsers.Count.ToString() & " users"
+        countLabel.Text = filtered.Count.ToString() & " of " & allUsers.Count.ToString() & " usuarios"
         usersGrid.ClearSelection()
     End Sub
 
@@ -94,7 +94,7 @@ Public Class UsersSetupForm
     Private Sub EditSelectedUser(sender As Object, e As EventArgs)
         Dim user = SelectedUser()
         If user Is Nothing Then
-            MessageBox.Show("Select a user first.", "Edit user",
+            MessageBox.Show("Select a user first.", "Editar usuario",
                             MessageBoxButtons.OK, MessageBoxIcon.Information)
             Return
         End If
@@ -107,7 +107,7 @@ Public Class UsersSetupForm
                 If dialog.ShowDialog(Me) = DialogResult.OK Then LoadData()
             End Using
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "User editor", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "Editor de usuarios", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -119,13 +119,13 @@ Public Class UsersSetupForm
         End If
         Dim desired = Not user.IsActive
         Dim action = If(desired, "activate", "deactivate")
-        If MessageBox.Show("Do you want to " & action & " " & user.FullName & "?",
+        If MessageBox.Show("¿Deseas " & action & " " & user.FullName & "?",
                            "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Return
         Try
             UserAdministration.SetUserActive(user.Id, desired)
             LoadData()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cannot change status", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "No se pudo cambiar el estado", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -135,14 +135,14 @@ Public Class UsersSetupForm
             MessageBox.Show("Select a user first.")
             Return
         End If
-        If MessageBox.Show("Reset password for " & user.FullName & " to their Barcode ID?",
-                           "Confirm password reset", MessageBoxButtons.YesNo,
+        If MessageBox.Show("¿Restablecer contraseña de " & user.FullName & " a su código de barras?",
+                           "Confirmar restablecimiento de contraseña", MessageBoxButtons.YesNo,
                            MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
         Try
             UserAdministration.ResetPasswordToBarcode(user.Id)
-            MessageBox.Show("Password reset completed.")
+            MessageBox.Show("Contraseña restablecida correctamente.")
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Password reset failed", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "No se pudo restablecer la contraseña", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 End Class

@@ -53,13 +53,13 @@ Partial Class UserEditorDialog
         Me.cancelButton.Name = "cancelButton"
         Me.cancelButton.Location = New System.Drawing.Point(200,334)
         Me.cancelButton.Size = New System.Drawing.Size(120,37)
-        Me.heading.Text = "Add employee"
-        Me.nameCaption.Text = "Employee name"
-        Me.barcodeCaption.Text = "Barcode ID"
-        Me.roleCaption.Text = "Role"
-        Me.inputActive.Text = "Active user"
-        Me.saveButton.Text = "Save"
-        Me.cancelButton.Text = "Cancel"
+        Me.heading.Text = "Agregar empleado"
+        Me.nameCaption.Text = "Nombre del empleado"
+        Me.barcodeCaption.Text = "Código de barras"
+        Me.roleCaption.Text = "Rol"
+        Me.inputActive.Text = "Usuario activo"
+        Me.saveButton.Text = "Guardar"
+        Me.cancelButton.Text = "Cancelar"
         Me.heading.Font = New System.Drawing.Font("Segoe UI",19.0!,System.Drawing.FontStyle.Bold)
         Me.heading.ForeColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.inputName.MaxLength = 100
@@ -86,7 +86,7 @@ Partial Class UserEditorDialog
         Me.MinimumSize = New System.Drawing.Size(0,0)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.Text = "New user"
+        Me.Text = "Usuario nuevo"
         Me.BackColor = System.Drawing.Color.White
         Me.Font = New System.Drawing.Font("Segoe UI",11.0!)
         Me.ResumeLayout(False)

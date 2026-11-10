@@ -41,6 +41,11 @@ Public Partial Class PalletScannerView
         clockTimer.Start()
     End Sub
 
+    ' Compatibilidad con eventos Click creados por Visual Studio Designer.
+    ' Esta etiqueta es informativa y no debe ejecutar operaciones SQL.
+    Private Sub lblPalletPiecesCaption_Click(sender As Object, e As EventArgs) Handles lblPalletPiecesCaption.Click
+    End Sub
+
     Public ReadOnly Property CanClosePartial As Boolean
         Get
             Return partialButton.Enabled

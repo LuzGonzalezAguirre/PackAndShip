@@ -64,7 +64,7 @@ Public Class PalletHistoryForm
     Private Sub RefreshHistory()
         Try
             If fromPicker.Value.Date > toPicker.Value.Date Then
-                Throw New InvalidOperationException("From date must be before To date.")
+                Throw New InvalidOperationException("La fecha inicial debe ser anterior a la fecha final.")
             End If
             Dim status = If(statusPicker.SelectedIndex <= 0, "", statusPicker.Text)
             packingReport.DataSource = PaSHistoryData.PackingReport(fromPicker.Value, toPicker.Value)
@@ -132,7 +132,7 @@ Public Class PalletHistoryForm
             }
             Dim reason As New TextBox With {.Multiline = True, .Dock = DockStyle.Fill, .MaxLength = 500}
             Dim footer As New FlowLayoutPanel With {.Dock = DockStyle.Bottom, .Height = 52, .FlowDirection = FlowDirection.RightToLeft}
-            Dim ok As New Button With {.Text = "Confirm", .DialogResult = DialogResult.OK}
+            Dim ok As New Button With {.Text = "Confirmar", .DialogResult = DialogResult.OK}
             Dim cancel As New Button With {.Text = "Back", .DialogResult = DialogResult.Cancel}
             footer.Controls.Add(ok)
             footer.Controls.Add(cancel)
@@ -155,7 +155,7 @@ Public Class PalletHistoryForm
         Dim productId = Convert.ToInt32(pieces.SelectedRows(0).Cells("ProductId").Value)
         Dim reason = ReasonDialog("Eliminar producto " & productId)
         If reason Is Nothing Then Return
-        If MessageBox.Show("Eliminar producto " & productId & " from this OPEN level? " &
+        If MessageBox.Show("Eliminar producto " & productId & " de este nivel ABIERTO? " &
                            "La acción quedará registrada en auditoría.", "Confirmar corrección",
                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
         Try

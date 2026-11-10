@@ -104,7 +104,7 @@ Public Class PalletConfigurationForm
             LoadSelectedPart()
         Else
             selectedPart = Nothing
-            titleLabel.Text = "Select a part number"
+            titleLabel.Text = "Selecciona un número de parte"
             statusLabel.Text = options.Count & " partes coincidentes"
             ClearLevels()
             EnableEditor(False)
@@ -165,7 +165,7 @@ Public Class PalletConfigurationForm
 
     Private Sub GenerateLevels(sender As Object, e As EventArgs)
         If selectedPart Is Nothing Then
-            MessageBox.Show("Select a part number first.")
+            MessageBox.Show("Primero selecciona un número de parte.")
             Return
         End If
         Dim numberOfLevels = CInt(levelCountInput.Value)
@@ -224,7 +224,7 @@ Public Class PalletConfigurationForm
         }
         AddHandler input.ValueChanged, Sub() UpdateTotals()
         Dim remove As New Button With {
-            .Text = "Remove", .Size = New Size(100, 34),
+            .Text = "Eliminar", .Size = New Size(100, 34),
             .Location = New Point(430, 16), .Tag = input
         }
         AddHandler remove.Click, Sub()
@@ -268,7 +268,7 @@ Public Class PalletConfigurationForm
 
     Private Sub SaveConfiguration(sender As Object, e As EventArgs)
         If selectedPart Is Nothing Then
-            MessageBox.Show("Select a part number first.")
+            MessageBox.Show("Primero selecciona un número de parte.")
             Return
         End If
         Dim quantities = quantityInputs.Select(Function(input) CInt(input.Value)).ToList()

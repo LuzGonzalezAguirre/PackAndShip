@@ -77,15 +77,15 @@ Partial Class ScanRuleEditorForm
         Me.cancelButton.Name = "cancelButton"
         Me.cancelButton.Location = New System.Drawing.Point(805,677)
         Me.cancelButton.Size = New System.Drawing.Size(130,39)
-        Me.headerTitle.Text = "Add Scan Rule"
-        Me.customerCaption.Text = "Customer"
-        Me.partCaption.Text = "Part number (SSI / Client)"
-        Me.countCaption.Text = "Scan count"
-        Me.matchCheck.Text = "Requires match"
-        Me.activeCheck.Text = "Active"
-        Me.notesCaption.Text = "Notes"
-        Me.saveButton.Text = "Save rule"
-        Me.cancelButton.Text = "Cancel"
+        Me.headerTitle.Text = "Agregar regla de escaneo"
+        Me.customerCaption.Text = "Cliente"
+        Me.partCaption.Text = "Número de parte (SSI / cliente)"
+        Me.countCaption.Text = "Cantidad de escaneos"
+        Me.matchCheck.Text = "Requiere coincidencia"
+        Me.activeCheck.Text = "Activo"
+        Me.notesCaption.Text = "Notas"
+        Me.saveButton.Text = "Guardar regla"
+        Me.cancelButton.Text = "Cancelar"
         Me.header.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.headerTitle.Font = New System.Drawing.Font("Segoe UI",22.0!,System.Drawing.FontStyle.Bold)
         Me.headerTitle.ForeColor = System.Drawing.Color.White
@@ -124,7 +124,7 @@ Partial Class ScanRuleEditorForm
         Me.MinimumSize = New System.Drawing.Size(0,0)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.Text = "Add Scan Rule"
+        Me.Text = "Agregar regla de escaneo"
         Me.BackColor = System.Drawing.Color.FromArgb(244,247,250)
         Me.Font = New System.Drawing.Font("Segoe UI",10.0!)
         Me.ResumeLayout(False)

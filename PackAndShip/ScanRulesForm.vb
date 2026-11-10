@@ -65,7 +65,7 @@ Public Class ScanRulesForm
                 GroupBy(Function(p) p.BusinessUnitId.Value).
                 Select(Function(g) New BusinessUnit With {.Id = g.Key, .Name = g.First().BusinessUnit}).
                 OrderBy(Function(x) x.Name).ToList()
-            options.Insert(0, New BusinessUnit With {.Id = 0, .Name = "All customers"})
+            options.Insert(0, New BusinessUnit With {.Id = 0, .Name = "Todos los clientes"})
             loading = True
             customerPicker.DataSource = options
             customerPicker.DisplayMember = "Name"
@@ -76,7 +76,7 @@ Public Class ScanRulesForm
             FilterRules()
         Catch ex As Exception
             loading = False
-            MessageBox.Show(ex.Message, "Cannot read shared scan rules",
+            MessageBox.Show(ex.Message, "No se pudieron consultar las reglas de escaneo compartidas",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -95,7 +95,7 @@ Public Class ScanRulesForm
         rulesGrid.ClearSelection()
         fieldsGrid.DataSource = Nothing
         notesLabel.Clear()
-        summaryLabel.Text = subset.Count & " of " & rules.Count & " rules"
+        summaryLabel.Text = subset.Count & " of " & rules.Count & " reglas"
     End Sub
 
     Private Function SelectedRule() As ScanRuleRecord
@@ -109,7 +109,7 @@ Public Class ScanRulesForm
                 If editor.ShowDialog(Me) = DialogResult.OK Then ReloadRules()
             End Using
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Scan rule editor", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "Editor de reglas de escaneo", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -120,8 +120,8 @@ Public Class ScanRulesForm
             Return
         End If
         Dim action = If(rule.IsActive, "deactivate", "activate")
-        If MessageBox.Show("Do you want to " & action & " this rule for " &
-                           rule.SsiPart & "? This affects Q-Wall.", "Confirm shared rule change",
+        If MessageBox.Show("¿Deseas " & action & " esta regla para " &
+                           rule.SsiPart & "? Esto también afectará a Q-Wall.", "Confirmar cambio de regla compartida",
                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
         Try
             ScanRulesData.SetActive(rule, Not rule.IsActive)
@@ -137,9 +137,9 @@ Public Class ScanRulesForm
         If rule Is Nothing Then Return
         Try
             fieldsGrid.DataSource = ScanRulesData.ReadFields(rule.Id)
-            notesLabel.Text = "Notes: " & rule.Notes
+            notesLabel.Text = "Notas: " & rule.Notes
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cannot read scan fields",
+            MessageBox.Show(ex.Message, "No se pudieron consultar los campos de escaneo",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub

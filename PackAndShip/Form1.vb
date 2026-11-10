@@ -400,4 +400,8 @@ Public Class Form1
         RefreshCustomer()
         ShowLoginDialog()
     End Sub
+
+    Private Sub menuLogout_Click(sender As Object, e As EventArgs) Handles menuLogout.Click
+
+    End Sub
 End Class

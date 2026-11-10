@@ -33,7 +33,6 @@ Partial Class PalletScannerView
         lbl_lot = New Label()
         levelTiles = New FlowLayoutPanel()
         progressTitle = New Label()
-        progressPercent = New Label()
         lblLevelsCaption = New Label()
         lblLevelPiecesCaption = New Label()
         lblLevelsCount = New Label()
@@ -242,7 +241,6 @@ Partial Class PalletScannerView
         progressArea.Controls.Add(lbl_lot)
         progressArea.Controls.Add(levelTiles)
         progressArea.Controls.Add(progressTitle)
-        progressArea.Controls.Add(progressPercent)
         progressArea.Controls.Add(lblLevelsCaption)
         progressArea.Controls.Add(lblLevelPiecesCaption)
         progressArea.Controls.Add(lblLevelsCount)
@@ -293,17 +291,7 @@ Partial Class PalletScannerView
         progressTitle.Name = "progressTitle"
         progressTitle.Size = New Size(193, 30)
         progressTitle.TabIndex = 0
-        progressTitle.Text = "AVANCE DEL PALLET:"
-        ' 
-        ' progressPercent
-        ' 
-        progressPercent.Font = New Font("Segoe UI", 21.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        progressPercent.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        progressPercent.Location = New Point(207, 5)
-        progressPercent.Name = "progressPercent"
-        progressPercent.Size = New Size(231, 49)
-        progressPercent.TabIndex = 2
-        progressPercent.Text = "0%"
+        progressTitle.Text = "AVANCE DEL PALLET"
         ' 
         ' lblLevelsCaption
         ' 
@@ -482,7 +470,7 @@ Partial Class PalletScannerView
         captionContainer.Name = "captionContainer"
         captionContainer.Size = New Size(154, 18)
         captionContainer.TabIndex = 0
-        captionContainer.Text = "CONTENEDOR"
+        captionContainer.Text = "N.º DE LOTE:"
         ' 
         ' containerInput
         ' 
@@ -682,7 +670,6 @@ Partial Class PalletScannerView
     Friend WithEvents firstQr As System.Windows.Forms.TextBox
     Friend WithEvents secondQr As System.Windows.Forms.TextBox
     Friend WithEvents scanStatus As System.Windows.Forms.Label
-    Friend WithEvents progressPercent As System.Windows.Forms.Label
     Friend WithEvents lblLevelsCaption As System.Windows.Forms.Label
     Friend WithEvents lblLevelsCount As System.Windows.Forms.Label
     Friend WithEvents lblLevelPiecesCaption As System.Windows.Forms.Label

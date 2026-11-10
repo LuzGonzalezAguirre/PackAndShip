@@ -193,7 +193,7 @@ Public Partial Class PalletScannerView
             selectedRule = Nothing
             selectedFields.Clear()
             activePartTitle.Text = "Select a part number"
-            buildState.Text = "Waiting for a container and model"
+            buildState.Text = "Esperando contenedor y modelo"
             progressText.Text = "0 / 0 piezas" & Environment.NewLine & "0 niveles completos"
             progressBar.Value = 0
             activeContainer = Nothing
@@ -201,9 +201,9 @@ Public Partial Class PalletScannerView
             DataGridView1.DataSource = Nothing
             ResetVerification()
             scannedList.Items.Clear()
-            scannedList.Items.Add("Open or load a container to view its pieces.")
+            scannedList.Items.Add("Abre o recupera un contenedor para ver sus piezas.")
             ruleSummary.Text = "Ejemplo de contenedor: " & palletFormat.Example() &
-                               Environment.NewLine & "Q-Wall PASS: Check on scan" &
+                               Environment.NewLine & "Q-Wall PASS: Verificar al escanear" &
                                Environment.NewLine & "Prevención de duplicados: SQL UNIQUE(product_id)"
             containerInput.Clear()
             firstQr.Clear()
@@ -232,7 +232,7 @@ Public Partial Class PalletScannerView
                     activeContainer = saved
                     RefreshContainer()
                     scanStatus.Text = "Se recuperó el pallet bloqueado " & lockedCode &
-                                      ". Finish or authorize partial closure before switching."
+                                      ". Termina o autoriza el cierre parcial antes de cambiar."
                 Else
                     StationSettings.UnlockPallet(lockedCode)
                 End If
@@ -267,7 +267,7 @@ Public Partial Class PalletScannerView
             End If
             If selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
                 activePartTitle.Text = part.DisplayName
-                buildState.Text = "Pallet configuration missing or inactive"
+                buildState.Text = "Configuración de pallet inexistente o inactiva"
                 progressText.Text = "0 / 0 piezas" & Environment.NewLine & "0 niveles completos"
             Else
                 activePartTitle.Text = part.DisplayName
@@ -283,7 +283,7 @@ Public Partial Class PalletScannerView
             ruleSummary.Text = If(selectedRule Is Nothing,
                 "Regla de escaneo: Inactiva / no disponible", "Escaneos configurados: " & selectedRule.ScanCount &
                 Environment.NewLine & "Requiere coincidencia: " & If(selectedRule.RequiresMatch, "Yes", "No")) &
-                Environment.NewLine & "Q-Wall PASS: Check on scan" &
+                Environment.NewLine & "Q-Wall PASS: Verificar al escanear" &
                 Environment.NewLine & "Prevención de duplicados: SQL UNIQUE(product_id)" &
                 Environment.NewLine & "Formato de contenedor: Configuración general"
         Catch ex As Exception
@@ -320,9 +320,9 @@ Public Partial Class PalletScannerView
             scanStatus.Text = "Ingresa un ID de contenedor conforme a Configuración general."
         ElseIf selectedRule Is Nothing OrElse
                (selectedRule.ScanCount <> 1 AndAlso selectedRule.ScanCount <> 2) Then
-            scanStatus.Text = "An active one- or two-scan rule is required for this part."
+            scanStatus.Text = "Se requiere una regla activa de uno o dos escaneos para esta parte."
         ElseIf selectedConfiguration Is Nothing OrElse Not selectedConfiguration.IsActive Then
-            scanStatus.Text = "Pallet configuration is missing or inactive."
+            scanStatus.Text = "La configuración de pallet no existe o está inactiva."
         Else
             scanStatus.Text = If(selectedRule.ScanCount = 1,
                 "Listo para escanear SSI; la serie del cliente se generará tras validar el formato.",
@@ -424,7 +424,7 @@ Public Partial Class PalletScannerView
                     "CCS no contiene la operación rechazada. " &
                     "¿Descartar SOLO este intento rechazado? No se eliminarán piezas de CCS." &
                     Environment.NewLine &
-                    "If the piece still needs packing, scan and verify it again.",
+                    "Si aún falta empacar la pieza, vuelve a escanearla y verificarla.",
                     "El rechazo de SQL requiere confirmación",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning) = DialogResult.Yes Then
                     ConnectionRecovery.DismissRejectedAfterCheck()
@@ -459,12 +459,12 @@ Public Partial Class PalletScannerView
             If lockedCode <> "" AndAlso Not String.Equals(code, lockedCode,
                                                           StringComparison.OrdinalIgnoreCase) Then
                 Throw New InvalidOperationException(
-                    "Finish pallet " & lockedCode & " antes de abrir otro pallet.")
+                    "Termina el pallet " & lockedCode & " antes de abrir otro pallet.")
             End If
             If activeContainer IsNot Nothing AndAlso activeContainer.Status = "OPEN" AndAlso
                Not String.Equals(activeContainer.Code, code, StringComparison.OrdinalIgnoreCase) Then
                 Throw New InvalidOperationException(
-                    "Complete or partially close the current pallet before switching.")
+                    "Completa o cierra parcialmente el pallet actual antes de cambiar.")
             End If
             If Not PalletIdSettings.Load().IsValid(code) Then
                 Throw New InvalidOperationException("El formato del contenedor no coincide con Configuración general.")
@@ -620,7 +620,7 @@ Public Partial Class PalletScannerView
         secondQr.Clear()
         containerInput.Clear()
         scannedList.Items.Clear()
-        scannedList.Items.Add("No active pallet. Enter or scan the next container.")
+        scannedList.Items.Add("No hay pallet activo. Ingresa o escanea el siguiente contenedor.")
         progressBar.Value = 0
         lbl_lot.Text = "P######"
         DataGridView1.DataSource = Nothing
@@ -635,7 +635,7 @@ Public Partial Class PalletScannerView
             progressText.Text = "0 / 0 piezas" & Environment.NewLine & "0 niveles completos"
         End If
         buildState.Text = "Listo para el siguiente pallet"
-        SetQWallStatus("Check on scan")
+        SetQWallStatus("Verificar al escanear")
         UpdateScannerAvailability()
         containerInput.Focus()
     End Sub
@@ -648,7 +648,7 @@ Public Partial Class PalletScannerView
         If locked <> "" AndAlso Not String.Equals(locked, destinationCode,
                                                    StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException(
-                "Finish pallet " & locked & " antes de cargar el pallet transferido.")
+                "Termina el pallet " & locked & " antes de cargar el pallet transferido.")
         End If
         Dim pallet = PaSPackingData.FindContainer(destinationCode)
         If pallet Is Nothing OrElse pallet.Status <> "OPEN" Then
@@ -709,7 +709,7 @@ Public Partial Class PalletScannerView
             firstQr.Clear()
             secondQr.Clear()
             RefreshContainer()
-            SetQWallStatus("Check on scan")
+            SetQWallStatus("Verificar al escanear")
             scanStatus.ForeColor = Color.DarkGreen
             scanStatus.Text = "Pieza registrada en el nivel " & current.LevelNumber & "."
             firstQr.Focus()
@@ -805,7 +805,7 @@ Public Partial Class PalletScannerView
                 activeContainer.Code, activeContainer.PieceTotal, activeContainer.RequiredTotal)
                 If authorization.ShowDialog(FindForm()) <> DialogResult.OK Then Return
                 If MessageBox.Show(
-                    "Close pallet " & activeContainer.Code & " como PARCIAL con " &
+                    "¿Cerrar pallet " & activeContainer.Code & " como PARCIAL con " &
                     activeContainer.PieceTotal & " of " & activeContainer.RequiredTotal &
                     " piezas? No se podrá volver a abrir.", "Confirmar pallet parcial",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
@@ -849,16 +849,16 @@ Public Partial Class PalletScannerView
                activeContainer.PieceTotal <> 0 OrElse
                activeContainer.ClosedLevels <> 0 Then
                 Throw New InvalidOperationException(
-                    "Only an OPEN pallet without pieces or closed levels may be cancelled.")
+                    "Solo se puede cancelar un pallet ABIERTO sin piezas ni niveles cerrados.")
             End If
             Using authorization As New PartialPalletAuthorizationForm(
                 activeContainer.Code, 0, activeContainer.RequiredTotal, True)
                 If authorization.ShowDialog(FindForm()) <> DialogResult.OK Then Return
                 If MessageBox.Show(
-                    "Cancel empty pallet " & activeContainer.Code & "?" &
+                    "¿Cancelar pallet vacío " & activeContainer.Code & "?" &
                     Environment.NewLine &
-                    "The container code will remain reserved and cannot be reused.",
-                    "Confirm empty pallet cancellation",
+                    "El código del contenedor quedará reservado y no podrá reutilizarse.",
+                    "Confirmar cancelación de pallet vacío",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
 
                 ' Retain the operation identity across network loss, but never
@@ -885,8 +885,8 @@ Public Partial Class PalletScannerView
             Dim cancelledCode = activeContainer.Code
             ResetAfterPalletClosed(cancelledCode)
             scanStatus.ForeColor = Color.DarkGreen
-            scanStatus.Text = "Empty pallet " & cancelledCode &
-                              " cancelled. Ready for the next container."
+            scanStatus.Text = "Pallet vacío " & cancelledCode &
+                              " cancelado. Listo para el siguiente contenedor."
         Catch ex As Exception
             ShowPackingError(ex)
         End Try
@@ -925,7 +925,7 @@ Public Partial Class PalletScannerView
             ' Re-read global format immediately before every verification.
             Dim currentFormat = PalletIdSettings.Load()
             If Not currentFormat.IsValid(containerInput.Text) Then
-                scanStatus.Text = "The container format changed in General Settings."
+                scanStatus.Text = "El formato del contenedor cambió en Configuración general."
                 scanStatus.ForeColor = Color.DarkRed
                 Return
             End If
@@ -959,22 +959,22 @@ Public Partial Class PalletScannerView
             UpdatePackingButtons()
             If activeContainer Is Nothing Then
                 scanStatus.ForeColor = Color.DarkRed
-                scanStatus.Text = "Q-Wall PASS confirmed. Open / Load the container before recording."
+                scanStatus.Text = "Q-Wall PASS confirmado. Abre o recupera el contenedor antes de registrar."
             ElseIf activeContainer.Status <> "OPEN" Then
                 scanStatus.ForeColor = Color.DarkRed
-                scanStatus.Text = "Q-Wall PASS confirmed. This container is " & activeContainer.Status & "."
+                scanStatus.Text = "Q-Wall PASS confirmado. Este contenedor está " & activeContainer.Status & "."
             ElseIf activeContainer.CurrentLevel Is Nothing Then
                 scanStatus.ForeColor = Color.DarkRed
-                scanStatus.Text = "Q-Wall PASS confirmed. No open level is available."
+                scanStatus.Text = "Q-Wall PASS confirmado. No hay nivel abierto disponible."
             ElseIf activeContainer.CurrentLevel.ScannedPieces >= activeContainer.CurrentLevel.RequiredPieces Then
                 scanStatus.ForeColor = Color.FromArgb(145, 89, 10)
-                scanStatus.Text = "Q-Wall PASS confirmed. Close the completed level before continuing."
+                scanStatus.Text = "Q-Wall PASS confirmado. Cierra el nivel completo antes de continuar."
             ElseIf recordButton.Enabled Then
                 scanStatus.ForeColor = Color.DarkGreen
-                scanStatus.Text = "Q-Wall PASS verified — recording piece in CCS."
+                scanStatus.Text = "Q-Wall PASS verificado. Registrando pieza en CCS."
             Else
                 scanStatus.ForeColor = Color.DarkRed
-                scanStatus.Text = "Q-Wall PASS confirmed, but recording is unavailable. Reload the container."
+                scanStatus.Text = "Q-Wall PASS confirmado, pero el registro no está disponible. Vuelve a cargar el contenedor."
             End If
         Catch ex As Exception
             scanStatus.ForeColor = Color.DarkRed

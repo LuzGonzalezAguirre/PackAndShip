@@ -82,15 +82,15 @@ Partial Class UsersSetupForm
         Me.usersGrid.Name = "usersGrid"
         Me.usersGrid.Location = New System.Drawing.Point(18,217)
         Me.usersGrid.Size = New System.Drawing.Size(1020,400)
-        Me.heading.Text = "Users & Roles"
-        Me.subheading.Text = "PackAndShip user administration"
-        Me.newButton.Text = "Add user"
-        Me.editButton.Text = "Edit"
-        Me.statusButton.Text = "Activate / Deactivate"
-        Me.resetButton.Text = "Reset password"
-        Me.reloadButton.Text = "Refresh"
-        Me.searchLabel.Text = "Search"
-        Me.roleLabel.Text = "Role"
+        Me.heading.Text = "Usuarios y roles"
+        Me.subheading.Text = "Administración de usuarios de PackAndShip"
+        Me.newButton.Text = "Agregar usuario"
+        Me.editButton.Text = "Editar"
+        Me.statusButton.Text = "Activar / Desactivar"
+        Me.resetButton.Text = "Restablecer contraseña"
+        Me.reloadButton.Text = "Actualizar"
+        Me.searchLabel.Text = "Buscar"
+        Me.roleLabel.Text = "Rol"
         Me.top.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.heading.ForeColor = System.Drawing.Color.White
         Me.subheading.ForeColor = System.Drawing.Color.White
@@ -113,22 +113,22 @@ Partial Class UsersSetupForm
         Me.columnId.FillWeight = 30!
         Me.usersGrid.Columns.Add(Me.columnId)
         Me.columnFullName.Name = "FullName"
-        Me.columnFullName.HeaderText = "Employee"
+        Me.columnFullName.HeaderText = "Empleado"
         Me.columnFullName.DataPropertyName = "FullName"
         Me.columnFullName.FillWeight = 140!
         Me.usersGrid.Columns.Add(Me.columnFullName)
         Me.columnBarcode.Name = "Barcode"
-        Me.columnBarcode.HeaderText = "Barcode ID"
+        Me.columnBarcode.HeaderText = "Código de barras"
         Me.columnBarcode.DataPropertyName = "Barcode"
         Me.columnBarcode.FillWeight = 80!
         Me.usersGrid.Columns.Add(Me.columnBarcode)
         Me.columnRoleName.Name = "RoleName"
-        Me.columnRoleName.HeaderText = "Role"
+        Me.columnRoleName.HeaderText = "Rol"
         Me.columnRoleName.DataPropertyName = "RoleName"
         Me.columnRoleName.FillWeight = 90!
         Me.usersGrid.Columns.Add(Me.columnRoleName)
         Me.columnIsActive.Name = "IsActive"
-        Me.columnIsActive.HeaderText = "Active"
+        Me.columnIsActive.HeaderText = "Activo"
         Me.columnIsActive.DataPropertyName = "IsActive"
         Me.columnIsActive.FillWeight = 35!
         Me.usersGrid.Columns.Add(Me.columnIsActive)
@@ -167,7 +167,7 @@ Partial Class UsersSetupForm
         Me.MinimumSize = New System.Drawing.Size(0,0)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.Text = "Pack and Ship | Setup - Users & Roles"
+        Me.Text = "PackAndShip | Usuarios y roles"
         Me.BackColor = System.Drawing.Color.FromArgb(244,247,250)
         Me.Font = New System.Drawing.Font("Segoe UI",10.0!)
         Me.ResumeLayout(False)

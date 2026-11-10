@@ -61,6 +61,9 @@ Partial Class PalletScannerView
         captionTime = New Label()
         clockValue = New Label()
         DataGridView1 = New DataGridView()
+        colContainer = New DataGridViewTextBoxColumn()
+        colSsiModel = New DataGridViewTextBoxColumn()
+        colLevel = New DataGridViewTextBoxColumn()
         colLevelPiece = New DataGridViewTextBoxColumn()
         colSsiSerial = New DataGridViewTextBoxColumn()
         colClientSerial = New DataGridViewTextBoxColumn()
@@ -581,23 +584,35 @@ Partial Class PalletScannerView
         DataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         DataGridView1.RowHeadersVisible = False
         DataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        colContainer.Name = "colContainer"
+        colContainer.HeaderText = "Contenedor"
+        colContainer.DataPropertyName = "ContainerCode"
+        colContainer.FillWeight = 85.0F
+        colSsiModel.Name = "colSsiModel"
+        colSsiModel.HeaderText = "Modelo SSI"
+        colSsiModel.DataPropertyName = "SsiModel"
+        colSsiModel.FillWeight = 85.0F
+        colLevel.Name = "colLevel"
+        colLevel.HeaderText = "Nivel"
+        colLevel.DataPropertyName = "LevelNumber"
+        colLevel.FillWeight = 40.0F
         colLevelPiece.Name = "colLevelPiece"
-        colLevelPiece.HeaderText = "Piece"
+        colLevelPiece.HeaderText = "Pieza"
         colLevelPiece.DataPropertyName = "PieceNumber"
-        colLevelPiece.FillWeight = 35.0F
+        colLevelPiece.FillWeight = 40.0F
         colSsiSerial.Name = "colSsiSerial"
-        colSsiSerial.HeaderText = "SSI Serial"
+        colSsiSerial.HeaderText = "Serie SSI"
         colSsiSerial.DataPropertyName = "SsiSerial"
-        colSsiSerial.FillWeight = 115.0F
+        colSsiSerial.FillWeight = 105.0F
         colClientSerial.Name = "colClientSerial"
-        colClientSerial.HeaderText = "Client Serial"
+        colClientSerial.HeaderText = "Serie del cliente"
         colClientSerial.DataPropertyName = "ClientSerial"
-        colClientSerial.FillWeight = 115.0F
+        colClientSerial.FillWeight = 105.0F
         colScanTime.Name = "colScanTime"
-        colScanTime.HeaderText = "Scanned at"
+        colScanTime.HeaderText = "Fecha y hora de escaneo"
         colScanTime.DataPropertyName = "ScanTime"
-        colScanTime.FillWeight = 95.0F
-        DataGridView1.Columns.AddRange(New DataGridViewColumn() {colLevelPiece, colSsiSerial, colClientSerial, colScanTime})
+        colScanTime.FillWeight = 90.0F
+        DataGridView1.Columns.AddRange(New DataGridViewColumn() {colContainer, colSsiModel, colLevel, colLevelPiece, colSsiSerial, colClientSerial, colScanTime})
         DataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
         DataGridView1.Location = New Point(12, 414)
         DataGridView1.Name = "DataGridView1"
@@ -679,6 +694,9 @@ Partial Class PalletScannerView
     Friend WithEvents lbl_lot As Label
     Friend WithEvents Label1 As Label
     Friend WithEvents DataGridView1 As DataGridView
+    Friend WithEvents colContainer As DataGridViewTextBoxColumn
+    Friend WithEvents colSsiModel As DataGridViewTextBoxColumn
+    Friend WithEvents colLevel As DataGridViewTextBoxColumn
     Friend WithEvents colLevelPiece As DataGridViewTextBoxColumn
     Friend WithEvents colSsiSerial As DataGridViewTextBoxColumn
     Friend WithEvents colClientSerial As DataGridViewTextBoxColumn

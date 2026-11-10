@@ -120,7 +120,7 @@ Public Class UsersSetupForm
         Dim desired = Not user.IsActive
         Dim action = If(desired, "activate", "deactivate")
         If MessageBox.Show("¿Deseas " & action & " " & user.FullName & "?",
-                           "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+                           "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Return
         Try
             UserAdministration.SetUserActive(user.Id, desired)
             LoadData()

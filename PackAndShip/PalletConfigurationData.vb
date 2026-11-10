@@ -9,7 +9,7 @@ Public NotInheritable Class PaSPart
     Public ReadOnly Property DisplayName As String
         Get
             If String.IsNullOrWhiteSpace(ClientNumber) Then Return "SSI: " & Number
-            Return "SSI: " & Number & "   |   Client: " & ClientNumber
+            Return "SSI: " & Number & "   |   Cliente: " & ClientNumber
         End Get
     End Property
     Public Property BusinessUnitId As Integer?

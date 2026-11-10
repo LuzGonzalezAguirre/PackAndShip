@@ -37,16 +37,16 @@ Public Class PartialPalletAuthorizationForm
     Public Sub New(code As String, actual As Integer, required As Integer,
                    Optional cancelEmpty As Boolean = False)
         Me.New()
-        Text = If(cancelEmpty, "PackAndShip | Cancel Empty Pallet Authorization",
-                  "PackAndShip | Partial Pallet Authorization")
-        heading.Text = If(cancelEmpty, "CANCEL EMPTY PALLET — ", "PARTIAL PALLET — ") & code
+        Text = If(cancelEmpty, "PackAndShip | Autorización para cancelar pallet vacío",
+                  "PackAndShip | Autorización de pallet parcial")
+        heading.Text = If(cancelEmpty, "CANCELAR PALLET VACÍO — ", "PALLET PARCIAL — ") & code
         info.Text = If(cancelEmpty,
-            "No pieces recorded. Cancelling reserves this container code permanently.",
-            "Registered: " & actual & " / " & required & " pieces.") &
-            Environment.NewLine & "A different, non-Operator user must authorize."
-        reasonLabel.Text = If(cancelEmpty, "Cancellation reason (minimum 10 characters)",
-                              "Reason for partial closure (minimum 10 characters)")
-        confirm.Text = If(cancelEmpty, "Authorize & Cancel Pallet", "Authorize & Close Partial")
+            "No hay piezas registradas. Al cancelar se reserva este código de contenedor permanentemente.",
+            "Registradas: " & actual & " / " & required & " piezas.") &
+            Environment.NewLine & "Debe autorizar otra persona que no tenga rol de Operador."
+        reasonLabel.Text = If(cancelEmpty, "Motivo de cancelación (mínimo 10 caracteres)",
+                              "Motivo de cierre parcial (mínimo 10 caracteres)")
+        confirm.Text = If(cancelEmpty, "Autorizar y cancelar pallet", "Autorizar y cerrar parcial")
     End Sub
 
     Private Sub Authorize(sender As Object, e As EventArgs)
@@ -63,18 +63,18 @@ Public Class PartialPalletAuthorizationForm
                 Throw New UnauthorizedAccessException("Invalid or inactive authorizer credentials.")
             End If
             If user.Id = SessionContext.UserId Then
-                Throw New UnauthorizedAccessException("A second user must authorize the partial pallet.")
+                Throw New UnauthorizedAccessException("Una segunda persona debe autorizar el pallet parcial.")
             End If
             Dim role = user.RoleName.Trim()
             If role.IndexOf("Operator", StringComparison.OrdinalIgnoreCase) >= 0 OrElse
                role.IndexOf("Operador", StringComparison.OrdinalIgnoreCase) >= 0 Then
-                Throw New UnauthorizedAccessException("Operators cannot authorize partial pallets.")
+                Throw New UnauthorizedAccessException("Los operadores no pueden autorizar pallets parciales.")
             End If
             _authorizedUserId = user.Id
             DialogResult = DialogResult.OK
             Close()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Authorization denied",
+            MessageBox.Show(ex.Message, "Autorización denegada",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
     End Sub

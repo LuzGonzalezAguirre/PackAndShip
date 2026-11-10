@@ -340,11 +340,11 @@ Public Class Form1
                 .Dock = DockStyle.Bottom, .Height = 78,
                 .BackColor = PaSTheme.Surface
             }
-            Dim save = PaSTheme.ActionButton("Save", True)
+            Dim save = PaSTheme.ActionButton("Guardar", True)
             save.Location = New Point(365, 18)
             save.Size = New Size(145, 40)
             save.DialogResult = DialogResult.OK
-            Dim cancel = PaSTheme.ActionButton("Cancel", False)
+            Dim cancel = PaSTheme.ActionButton("Cancelar", False)
             cancel.Location = New Point(215, 18)
             cancel.Size = New Size(135, 40)
             cancel.DialogResult = DialogResult.Cancel

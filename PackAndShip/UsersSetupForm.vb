@@ -94,7 +94,7 @@ Public Class UsersSetupForm
     Private Sub EditSelectedUser(sender As Object, e As EventArgs)
         Dim user = SelectedUser()
         If user Is Nothing Then
-            MessageBox.Show("Select a user first.", "Editar usuario",
+            MessageBox.Show("Primero selecciona un usuario.", "Editar usuario",
                             MessageBoxButtons.OK, MessageBoxIcon.Information)
             Return
         End If
@@ -114,7 +114,7 @@ Public Class UsersSetupForm
     Private Sub ToggleStatus(sender As Object, e As EventArgs)
         Dim user = SelectedUser()
         If user Is Nothing Then
-            MessageBox.Show("Select a user first.")
+            MessageBox.Show("Primero selecciona un usuario.")
             Return
         End If
         Dim desired = Not user.IsActive
@@ -132,7 +132,7 @@ Public Class UsersSetupForm
     Private Sub ResetPassword(sender As Object, e As EventArgs)
         Dim user = SelectedUser()
         If user Is Nothing Then
-            MessageBox.Show("Select a user first.")
+            MessageBox.Show("Primero selecciona un usuario.")
             Return
         End If
         If MessageBox.Show("¿Restablecer contraseña de " & user.FullName & " a su código de barras?",

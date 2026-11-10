@@ -102,15 +102,15 @@ Partial Class ScanRulesForm
         Me.notesLabel.Name = "notesLabel"
         Me.notesLabel.Location = New System.Drawing.Point(14,681)
         Me.notesLabel.Size = New System.Drawing.Size(1170,62)
-        Me.heading.Text = "Scan Rules"
-        Me.subtitle.Text = "Shared Q-Wall rules • Changes also affect Q-Wall"
-        Me.addRule.Text = "Add rule"
-        Me.editRule.Text = "Edit selected"
-        Me.toggleRule.Text = "Activate / Deactivate"
-        Me.searchCaption.Text = "Search"
-        Me.customerCaption.Text = "Customer"
-        Me.refreshButton.Text = "Refresh"
-        Me.fieldsCaption.Text = "Fields for selected rule"
+        Me.heading.Text = "Reglas de escaneo"
+        Me.subtitle.Text = "Reglas compartidas con Q-Wall • Los cambios también afectan a Q-Wall"
+        Me.addRule.Text = "Agregar regla"
+        Me.editRule.Text = "Editar selección"
+        Me.toggleRule.Text = "Activar / Desactivar"
+        Me.searchCaption.Text = "Buscar"
+        Me.customerCaption.Text = "Cliente"
+        Me.refreshButton.Text = "Actualizar"
+        Me.fieldsCaption.Text = "Campos de la regla seleccionada"
         Me.header.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.heading.ForeColor = System.Drawing.Color.White
         Me.subtitle.ForeColor = System.Drawing.Color.White
@@ -140,71 +140,71 @@ Partial Class ScanRulesForm
         Me.col0.FillWeight = 28!
         Me.rulesGrid.Columns.Add(Me.col0)
         Me.col1.Name = "SsiPart"
-        Me.col1.HeaderText = "SSI Part"
+        Me.col1.HeaderText = "Parte SSI"
         Me.col1.DataPropertyName = "SsiPart"
         Me.col1.FillWeight = 90!
         Me.rulesGrid.Columns.Add(Me.col1)
         Me.col2.Name = "Customer"
-        Me.col2.HeaderText = "Customer"
+        Me.col2.HeaderText = "Cliente"
         Me.col2.DataPropertyName = "Customer"
         Me.col2.FillWeight = 100!
         Me.rulesGrid.Columns.Add(Me.col2)
         Me.col3.Name = "ScanCount"
-        Me.col3.HeaderText = "Scans"
+        Me.col3.HeaderText = "Escaneos"
         Me.col3.DataPropertyName = "ScanCount"
         Me.col3.FillWeight = 36!
         Me.rulesGrid.Columns.Add(Me.col3)
         Me.col4.Name = "RequiresMatch"
-        Me.col4.HeaderText = "Match"
+        Me.col4.HeaderText = "Coincidencia"
         Me.col4.DataPropertyName = "RequiresMatch"
         Me.col4.FillWeight = 36!
         Me.rulesGrid.Columns.Add(Me.col4)
         Me.col5.Name = "IsActive"
-        Me.col5.HeaderText = "Active"
+        Me.col5.HeaderText = "Activo"
         Me.col5.DataPropertyName = "IsActive"
         Me.col5.FillWeight = 35!
         Me.rulesGrid.Columns.Add(Me.col5)
-        Me.col6.HeaderText = "Scan"
+        Me.col6.HeaderText = "Escaneo"
         Me.col6.DataPropertyName = "ScanIndex"
         Me.col6.FillWeight = 30!
         Me.fieldsGrid.Columns.Add(Me.col6)
-        Me.col7.HeaderText = "Mode"
+        Me.col7.HeaderText = "Modo"
         Me.col7.DataPropertyName = "ExtractionMode"
         Me.col7.FillWeight = 85!
         Me.fieldsGrid.Columns.Add(Me.col7)
-        Me.col8.HeaderText = "Target"
+        Me.col8.HeaderText = "Destino"
         Me.col8.DataPropertyName = "FieldTarget"
         Me.col8.FillWeight = 75!
         Me.fieldsGrid.Columns.Add(Me.col8)
-        Me.col9.HeaderText = "Label"
+        Me.col9.HeaderText = "Etiqueta"
         Me.col9.DataPropertyName = "DisplayLabel"
         Me.col9.FillWeight = 110!
         Me.fieldsGrid.Columns.Add(Me.col9)
-        Me.col10.HeaderText = "Separator"
+        Me.col10.HeaderText = "Separador"
         Me.col10.DataPropertyName = "Separator"
         Me.col10.FillWeight = 60!
         Me.fieldsGrid.Columns.Add(Me.col10)
-        Me.col11.HeaderText = "Custom sep."
+        Me.col11.HeaderText = "Separador personalizado"
         Me.col11.DataPropertyName = "SeparatorCustom"
         Me.col11.FillWeight = 60!
         Me.fieldsGrid.Columns.Add(Me.col11)
-        Me.col12.HeaderText = "Position"
+        Me.col12.HeaderText = "Posición"
         Me.col12.DataPropertyName = "ValuePosition"
         Me.col12.FillWeight = 65!
         Me.fieldsGrid.Columns.Add(Me.col12)
-        Me.col13.HeaderText = "Segment"
+        Me.col13.HeaderText = "Segmento"
         Me.col13.DataPropertyName = "SegmentIndex"
         Me.col13.FillWeight = 45!
         Me.fieldsGrid.Columns.Add(Me.col13)
-        Me.col14.HeaderText = "Length"
+        Me.col14.HeaderText = "Longitud"
         Me.col14.DataPropertyName = "FixedLength"
         Me.col14.FillWeight = 45!
         Me.fieldsGrid.Columns.Add(Me.col14)
-        Me.col15.HeaderText = "Prefix"
+        Me.col15.HeaderText = "Prefijo"
         Me.col15.DataPropertyName = "PrefixValue"
         Me.col15.FillWeight = 65!
         Me.fieldsGrid.Columns.Add(Me.col15)
-        Me.col16.HeaderText = "Order"
+        Me.col16.HeaderText = "Orden"
         Me.col16.DataPropertyName = "SequenceOrder"
         Me.col16.FillWeight = 40!
         Me.fieldsGrid.Columns.Add(Me.col16)

@@ -246,8 +246,8 @@ Partial Class PalletScannerView
         progressArea.Controls.Add(lblLevelsCount)
         progressArea.Controls.Add(lblLevelPiecesCount)
         progressArea.Controls.Add(lblPalletPiecesCaption)
-        progressArea.Controls.Add(lblPalletPiecesCount)
         progressArea.Controls.Add(confirmAgain)
+        progressArea.Controls.Add(lblPalletPiecesCount)
         progressArea.Controls.Add(ruleSummary)
         progressArea.Location = New Point(539, 97)
         progressArea.Margin = New Padding(4, 4, 5, 4)
@@ -298,7 +298,7 @@ Partial Class PalletScannerView
         lblLevelsCaption.AutoEllipsis = True
         lblLevelsCaption.Font = New Font("Segoe UI", 12.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         lblLevelsCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
-        lblLevelsCaption.Location = New Point(596, 60)
+        lblLevelsCaption.Location = New Point(283, 60)
         lblLevelsCaption.Name = "lblLevelsCaption"
         lblLevelsCaption.Size = New Size(150, 24)
         lblLevelsCaption.TabIndex = 11
@@ -322,9 +322,9 @@ Partial Class PalletScannerView
         lblLevelsCount.AutoEllipsis = True
         lblLevelsCount.Font = New Font("Segoe UI", 48.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         lblLevelsCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        lblLevelsCount.Location = New Point(596, 91)
+        lblLevelsCount.Location = New Point(283, 91)
         lblLevelsCount.Name = "lblLevelsCount"
-        lblLevelsCount.Size = New Size(178, 96)
+        lblLevelsCount.Size = New Size(183, 96)
         lblLevelsCount.TabIndex = 12
         lblLevelsCount.Text = "0 / 0"
         lblLevelsCount.TextAlign = ContentAlignment.MiddleLeft
@@ -336,7 +336,7 @@ Partial Class PalletScannerView
         lblLevelPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
         lblLevelPiecesCount.Location = New Point(41, 91)
         lblLevelPiecesCount.Name = "lblLevelPiecesCount"
-        lblLevelPiecesCount.Size = New Size(219, 96)
+        lblLevelPiecesCount.Size = New Size(222, 96)
         lblLevelPiecesCount.TabIndex = 14
         lblLevelPiecesCount.Text = "0 / 0"
         lblLevelPiecesCount.TextAlign = ContentAlignment.MiddleLeft
@@ -346,7 +346,7 @@ Partial Class PalletScannerView
         lblPalletPiecesCaption.AutoEllipsis = True
         lblPalletPiecesCaption.Font = New Font("Segoe UI", 12.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         lblPalletPiecesCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
-        lblPalletPiecesCaption.Location = New Point(285, 60)
+        lblPalletPiecesCaption.Location = New Point(487, 58)
         lblPalletPiecesCaption.Name = "lblPalletPiecesCaption"
         lblPalletPiecesCaption.Size = New Size(205, 24)
         lblPalletPiecesCaption.TabIndex = 15
@@ -358,7 +358,7 @@ Partial Class PalletScannerView
         lblPalletPiecesCount.AutoEllipsis = True
         lblPalletPiecesCount.Font = New Font("Segoe UI", 48.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         lblPalletPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        lblPalletPiecesCount.Location = New Point(285, 91)
+        lblPalletPiecesCount.Location = New Point(487, 89)
         lblPalletPiecesCount.Name = "lblPalletPiecesCount"
         lblPalletPiecesCount.Size = New Size(295, 98)
         lblPalletPiecesCount.TabIndex = 16

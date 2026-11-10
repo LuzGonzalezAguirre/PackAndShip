@@ -200,7 +200,6 @@ Public Partial Class PalletScannerView
             activePartTitle.Text = "Selecciona un número de parte"
             buildState.Text = "Esperando contenedor y modelo"
             ShowConfiguredPalletMetrics()
-            progressPercent.Text = "0%"
             activeContainer = Nothing
             lbl_lot.Text = "P######"
             DataGridView1.DataSource = Nothing
@@ -524,7 +523,6 @@ Public Partial Class PalletScannerView
                 "0 / " & configuration.Levels(0), "0 / 0")
             lblPalletPiecesCount.Text = "0 / " & configuration.TotalPieces
         End If
-        progressPercent.Text = "0%"
     End Sub
 
     Private Shared Function EstadoPalletVisible(status As String) As String
@@ -563,7 +561,6 @@ Public Partial Class PalletScannerView
         lblPalletPiecesCount.Text = actual & " / " & required
         Dim percentage = If(required > 0,
             Math.Min(100, CInt(Math.Truncate(CDbl(actual) * 100.0 / required))), 0)
-        progressPercent.Text = percentage.ToString() & "%"
 
         levelTiles.SuspendLayout()
         Try
@@ -648,7 +645,6 @@ Public Partial Class PalletScannerView
         scannedList.Items.Add("No hay pallet activo. Ingresa o escanea el siguiente contenedor.")
         lbl_lot.Text = "P######"
         DataGridView1.DataSource = Nothing
-        progressPercent.Text = "0%"
         levelTiles.Controls.Clear()
         ShowConfiguredPalletMetrics()
         buildState.Text = "Listo para el siguiente pallet"

@@ -15,7 +15,7 @@ Public Class Form1
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         signedInDesignerSize = Me.ClientSize
-        Me.Text = "Pack and Ship | SSI"
+        Me.Text = "PackAndShip | Escáner"
         Me.AutoScaleMode = AutoScaleMode.Font
         Me.MinimumSize = New Size(1, 1)
         Me.StartPosition = FormStartPosition.CenterScreen
@@ -39,7 +39,7 @@ Public Class Form1
         AddHandler setupGeneralItem.Click, AddressOf OpenGeneralSettings
         AddHandler helpAboutItem.Click, Sub()
                                             MessageBox.Show("PackAndShip" & Environment.NewLine &
-                            "Manufacturing pallet scanning and configuration.",
+                            "Escaneo y configuración de pallets para manufactura.",
                             "About", MessageBoxButtons.OK, MessageBoxIcon.Information)
                                         End Sub
         AddHandler menuPalletActions.DropDownOpening, AddressOf UpdatePalletActionsMenu
@@ -195,7 +195,7 @@ Public Class Form1
                                 dialog.DestinationCode & Environment.NewLine &
                                 "Falló la carga automática: " & ex.Message &
                                 Environment.NewLine &
-                                "Load the new pallet from the scanner manually.",
+                                "Carga el nuevo pallet manualmente desde el escáner.",
                                 "Pallet transferido", MessageBoxButtons.OK,
                                 MessageBoxIcon.Warning)
             End Try
@@ -265,8 +265,8 @@ Public Class Form1
     Private Sub ChangeDefaultCustomer(sender As Object, e As EventArgs)
         Dim openCode = StationSettings.ReadLockedPallet()
         If openCode <> "" Then
-            MessageBox.Show("Finish pallet " & openCode &
-                            " (complete or authorized partial) before changing this station's customer.",
+            MessageBox.Show("Termina el pallet " & openCode &
+                            " (completo o parcial autorizado) antes de cambiar el cliente de la estación.",
                             "Pallet activo", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -381,7 +381,7 @@ Public Class Form1
                                   Math.Max(720, signedInDesignerSize.Height))
             appHeader.Visible = False
             mainMenu.Visible = True
-            Text = "Pack and Ship | SSI"
+            Text = "PackAndShip | Escáner"
             CenterToScreen()
         Finally
             ResumeLayout(True)

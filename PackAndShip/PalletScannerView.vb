@@ -118,7 +118,7 @@ Public Partial Class PalletScannerView
            activeContainer.Status = "OPEN" Then Return
         If Not openButton.Enabled Then
             scanStatus.ForeColor = Color.DarkRed
-            scanStatus.Text = "Select a configured model or resolve the pending SQL action."
+            scanStatus.Text = "Selecciona un modelo configurado o resuelve la operación SQL pendiente."
             Return
         End If
         autoOpenBusy = True
@@ -192,7 +192,7 @@ Public Partial Class PalletScannerView
             selectedConfiguration = Nothing
             selectedRule = Nothing
             selectedFields.Clear()
-            activePartTitle.Text = "Select a part number"
+            activePartTitle.Text = "Selecciona un número de parte"
             buildState.Text = "Esperando contenedor y modelo"
             progressText.Text = "0 / 0 piezas" & Environment.NewLine & "0 niveles completos"
             progressBar.Value = 0
@@ -299,7 +299,7 @@ Public Partial Class PalletScannerView
     Private Sub ConfigureScanMode()
         Dim singleScan = selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1
         scanHelp.Text = If(singleScan,
-            "Scan SSI once. Client serial is generated from the selected model.",
+            "Escanea SSI una vez. La serie del cliente se genera según el modelo.",
             "Escanea primero SSI y luego cliente. Presiona Enter después de cada código.")
         clientScanLabel.Text = If(singleScan,
             "SERIE DEL CLIENTE — VISTA AUTOMÁTICA", "ESCANEO 2 — SERIE DEL CLIENTE")
@@ -359,7 +359,7 @@ Public Partial Class PalletScannerView
         If pending Then
             scanStatus.ForeColor = Color.DarkRed
             scanStatus.Text = "El empaque está bloqueado por una operación SQL pendiente: " &
-                pendingOp.Kind & " (Container ID " & pendingOp.ContainerId & "). " &
+                pendingOp.Kind & " (ID de contenedor " & pendingOp.ContainerId & "). " &
                 "Usa Acciones de pallet > Revisar operación SQL pendiente."
         End If
         Dim lockedCode = StationSettings.ReadLockedPallet()
@@ -453,7 +453,7 @@ Public Partial Class PalletScannerView
     Private Sub OpenOrLoadContainer(sender As Object, e As EventArgs)
         Try
             Dim part = TryCast(partPicker.SelectedItem, PaSPart)
-            If part Is Nothing Then Throw New InvalidOperationException("Select a model.")
+            If part Is Nothing Then Throw New InvalidOperationException("Selecciona un modelo.")
             Dim code = containerInput.Text.Trim().ToUpperInvariant()
             Dim lockedCode = StationSettings.ReadLockedPallet()
             If lockedCode <> "" AndAlso Not String.Equals(code, lockedCode,

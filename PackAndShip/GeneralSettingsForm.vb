@@ -37,8 +37,8 @@ Public Class GeneralSettingsForm
         Catch ex As Exception
             saveButton.Enabled = False
             MessageBox.Show(ex.Message & Environment.NewLine &
-                            "The existing format was not overwritten.",
-                            "Cannot load general settings", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                            "No se sobrescribió el formato existente.",
+                            "No se pudo cargar la configuración general", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -52,17 +52,17 @@ Public Class GeneralSettingsForm
     Private Sub UpdatePreview()
         Try
             Dim format = BuildFormat()
-            exampleLabel.Text = "Example: " & format.Example()
+            exampleLabel.Text = "Ejemplo: " & format.Example()
             If String.IsNullOrWhiteSpace(testInput.Text) Then
                 testResult.Text = ""
             Else
                 Dim valid = format.IsValid(testInput.Text)
-                testResult.Text = If(valid, "Valid format", "Invalid format")
+                testResult.Text = If(valid, "Formato válido", "Formato inválido")
                 testResult.ForeColor = If(valid, Color.DarkGreen, Color.DarkRed)
             End If
             saveButton.Enabled = True
         Catch
-            exampleLabel.Text = "Enter a valid prefix (A-Z)"
+            exampleLabel.Text = "Ingresa un prefijo válido (A-Z)"
             testResult.Text = ""
             saveButton.Enabled = False
         End Try
@@ -70,7 +70,7 @@ Public Class GeneralSettingsForm
 
     Private Sub SaveChanges(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Your role cannot modify Setup.", "Access denied",
+            MessageBox.Show("Tu rol no puede modificar Configuración.", "Acceso denegado",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -78,10 +78,10 @@ Public Class GeneralSettingsForm
             Dim format = BuildFormat()
             PalletIdSettings.Save(format.Prefix, format.DigitCount)
             saved = format
-            MessageBox.Show("Global pallet ID format saved in SQL Server.", "Saved",
+            MessageBox.Show("Formato global de ID de pallet guardado en SQL Server.", "Saved",
                             MessageBoxButtons.OK, MessageBoxIcon.Information)
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cannot save general settings",
+            MessageBox.Show(ex.Message, "No se pudo guardar la configuración general",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub

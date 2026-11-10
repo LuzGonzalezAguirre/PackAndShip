@@ -37,20 +37,20 @@ Public Class PalletTransferForm
         Dim code = sourceInput.Text.Trim().ToUpperInvariant()
         If code = "" Then Throw New InvalidOperationException("Scan the original partial pallet.")
         Dim found = PaSPackingData.FindContainer(code)
-        If found Is Nothing Then Throw New InvalidOperationException("Source pallet was not found in CCS.")
+        If found Is Nothing Then Throw New InvalidOperationException("No se encontró el pallet de origen en CCS.")
         If found.Status <> "PARTIAL" Then
             Throw New InvalidOperationException(
-                "Source must have PARTIAL status. Actual status: " & found.Status)
+                "El pallet de origen debe tener estado PARCIAL. Estado actual: " & found.Status)
         End If
         Dim part = PalletConfigurationData.GetParts().
             FirstOrDefault(Function(x) x.Id = found.PartId)
         If part Is Nothing OrElse Not part.BusinessUnitId.HasValue OrElse
            part.BusinessUnitId.Value <> SessionContext.BusinessUnitId Then
             Throw New InvalidOperationException(
-                "Source pallet model belongs to another station customer. Transfer is blocked.")
+                "El modelo de origen pertenece a otro cliente de estación. Transferencia bloqueada.")
         End If
         If found.PieceTotal <= 0 OrElse found.PieceTotal >= found.RequiredTotal Then
-            Throw New InvalidOperationException("Original pallet does not have a valid partial quantity.")
+            Throw New InvalidOperationException("El pallet original no tiene una cantidad parcial válida.")
         End If
         Return found
     End Function
@@ -59,9 +59,9 @@ Public Class PalletTransferForm
         Try
             Dim pallet = GetSource()
             summary.ForeColor = Color.DarkGreen
-            summary.Text = "Source: " & pallet.Code & " | PARTIAL" &
-                Environment.NewLine & "Model ID: " & pallet.PartId &
-                " | Pieces to transfer: " & pallet.PieceTotal &
+            summary.Text = "Origen: " & pallet.Code & " | PARCIAL" &
+                Environment.NewLine & "ID de modelo: " & pallet.PartId &
+                " | Piezas a transferir: " & pallet.PieceTotal &
                 " / " & pallet.RequiredTotal
         Catch ex As Exception
             summary.ForeColor = Color.DarkRed
@@ -73,39 +73,39 @@ Public Class PalletTransferForm
         Try
             If ConnectionRecovery.Pending() IsNot Nothing Then
                 Throw New InvalidOperationException(
-                    "A SQL operation is pending reconciliation. Wait for its resolution.")
+                    "Hay una operación SQL pendiente de conciliación. Debes resolverla antes de continuar.")
             End If
             If StationSettings.ReadLockedPallet() <> "" Then
                 Throw New InvalidOperationException(
-                    "Complete the current OPEN pallet before transferring another.")
+                    "Completa el pallet ABIERTO antes de transferir otro.")
             End If
             Dim source = GetSource()
             Dim destination = destinationInput.Text.Trim().ToUpperInvariant()
             Dim format = PalletIdSettings.Load()
             If Not format.IsValid(destination) Then
-                Throw New InvalidOperationException("New container code does not match General Settings.")
+                Throw New InvalidOperationException("El nuevo código de contenedor no coincide con Configuración general.")
             End If
             If String.Equals(source.Code,destination,StringComparison.OrdinalIgnoreCase) Then
                 Throw New InvalidOperationException("Source and destination must be different.")
             End If
             If PaSPackingData.FindContainer(destination) IsNot Nothing Then
-                Throw New InvalidOperationException("Destination code already exists in CCS.")
+                Throw New InvalidOperationException("El código de destino ya existe en CCS.")
             End If
             If MessageBox.Show(
-                "Transfer " & source.PieceTotal & " validated pieces from " & source.Code &
-                " to NEW pallet " & destination & "?" & Environment.NewLine &
+                "¿Transferir " & source.PieceTotal & " validated pieces from " & source.Code &
+                " al pallet NUEVO " & destination & "?" & Environment.NewLine &
                 "Source becomes TRANSFERRED and destination stays OPEN.",
-                "Confirm pallet transfer", MessageBoxButtons.YesNo,
+                "Confirmar transferencia de pallet", MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
 
             Dim destinationId = PaSPackingData.TransferPartial(source.Code, destination)
             If destinationId <= 0 Then Throw New InvalidOperationException(
-                "SQL did not return the new pallet ID.")
+                "SQL no devolvió el ID del nuevo pallet.")
             _destinationCode = destination
             DialogResult = DialogResult.OK
             Close()
         Catch ex As Exception
-            MessageBox.Show(ex.Message,"Pallet transfer blocked",
+            MessageBox.Show(ex.Message,"Transferencia de pallet bloqueada",
                             MessageBoxButtons.OK,MessageBoxIcon.Warning)
         End Try
     End Sub

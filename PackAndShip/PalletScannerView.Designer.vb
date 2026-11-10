@@ -35,8 +35,12 @@ Partial Class PalletScannerView
         progressIcon = New Label()
         progressPercent = New Label()
         progressState = New Label()
-        progressBar = New ProgressBar()
-        progressText = New Label()
+        lblLevelsCaption = New Label()
+        lblLevelsCount = New Label()
+        lblLevelPiecesCaption = New Label()
+        lblLevelPiecesCount = New Label()
+        lblPalletPiecesCaption = New Label()
+        lblPalletPiecesCount = New Label()
         confirmAgain = New Button()
         ruleSummary = New Label()
         headerPage = New Panel()
@@ -235,8 +239,12 @@ Partial Class PalletScannerView
         progressArea.Controls.Add(progressIcon)
         progressArea.Controls.Add(progressPercent)
         progressArea.Controls.Add(progressState)
-        progressArea.Controls.Add(progressBar)
-        progressArea.Controls.Add(progressText)
+        progressArea.Controls.Add(lblLevelsCaption)
+        progressArea.Controls.Add(lblLevelsCount)
+        progressArea.Controls.Add(lblLevelPiecesCaption)
+        progressArea.Controls.Add(lblLevelPiecesCount)
+        progressArea.Controls.Add(lblPalletPiecesCaption)
+        progressArea.Controls.Add(lblPalletPiecesCount)
         progressArea.Controls.Add(confirmAgain)
         progressArea.Controls.Add(ruleSummary)
         progressArea.Location = New Point(539, 97)
@@ -313,22 +321,72 @@ Partial Class PalletScannerView
         progressState.TabIndex = 3
         progressState.Text = "ESPERANDO PALLET"
         ' 
-        ' progressBar
-        ' 
-        progressBar.Location = New Point(232, 62)
-        progressBar.Name = "progressBar"
-        progressBar.Size = New Size(540, 22)
-        progressBar.TabIndex = 4
-        ' 
-        ' progressText
-        ' 
-        progressText.Font = New Font("Segoe UI", 16.0F, FontStyle.Bold)
-        progressText.Location = New Point(232, 86)
-        progressText.Name = "progressText"
-        progressText.Size = New Size(540, 108)
-        progressText.TabIndex = 5
-        progressText.Text = "0 / 0 piezas"
-        ' 
+        '
+        ' lblLevelsCaption
+        '
+        lblLevelsCaption.Name = "lblLevelsCaption"
+        lblLevelsCaption.Text = "NIVELES"
+        lblLevelsCaption.Location = New Point(236, 46)
+        lblLevelsCaption.Size = New Size(150, 24)
+        lblLevelsCaption.Font = New Font("Segoe UI", 10.5F, FontStyle.Bold)
+        lblLevelsCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
+        lblLevelsCaption.TextAlign = ContentAlignment.MiddleLeft
+        lblLevelsCaption.AutoEllipsis = True
+        '
+        ' lblLevelsCount
+        '
+        lblLevelsCount.Name = "lblLevelsCount"
+        lblLevelsCount.Text = "0 / 0"
+        lblLevelsCount.Location = New Point(236, 77)
+        lblLevelsCount.Size = New Size(165, 71)
+        lblLevelsCount.Font = New Font("Segoe UI", 33F, FontStyle.Bold)
+        lblLevelsCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        lblLevelsCount.TextAlign = ContentAlignment.MiddleLeft
+        lblLevelsCount.AutoEllipsis = True
+        '
+        ' lblLevelPiecesCaption
+        '
+        lblLevelPiecesCaption.Name = "lblLevelPiecesCaption"
+        lblLevelPiecesCaption.Text = "PIEZAS POR NIVEL"
+        lblLevelPiecesCaption.Location = New Point(411, 46)
+        lblLevelPiecesCaption.Size = New Size(205, 24)
+        lblLevelPiecesCaption.Font = New Font("Segoe UI", 10.5F, FontStyle.Bold)
+        lblLevelPiecesCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
+        lblLevelPiecesCaption.TextAlign = ContentAlignment.MiddleLeft
+        lblLevelPiecesCaption.AutoEllipsis = True
+        '
+        ' lblLevelPiecesCount
+        '
+        lblLevelPiecesCount.Name = "lblLevelPiecesCount"
+        lblLevelPiecesCount.Text = "0 / 0"
+        lblLevelPiecesCount.Location = New Point(411, 77)
+        lblLevelPiecesCount.Size = New Size(190, 71)
+        lblLevelPiecesCount.Font = New Font("Segoe UI", 33F, FontStyle.Bold)
+        lblLevelPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        lblLevelPiecesCount.TextAlign = ContentAlignment.MiddleLeft
+        lblLevelPiecesCount.AutoEllipsis = True
+        '
+        ' lblPalletPiecesCaption
+        '
+        lblPalletPiecesCaption.Name = "lblPalletPiecesCaption"
+        lblPalletPiecesCaption.Text = "PIEZAS POR PALLET"
+        lblPalletPiecesCaption.Location = New Point(612, 46)
+        lblPalletPiecesCaption.Size = New Size(205, 24)
+        lblPalletPiecesCaption.Font = New Font("Segoe UI", 10.5F, FontStyle.Bold)
+        lblPalletPiecesCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
+        lblPalletPiecesCaption.TextAlign = ContentAlignment.MiddleLeft
+        lblPalletPiecesCaption.AutoEllipsis = True
+        '
+        ' lblPalletPiecesCount
+        '
+        lblPalletPiecesCount.Name = "lblPalletPiecesCount"
+        lblPalletPiecesCount.Text = "0 / 0"
+        lblPalletPiecesCount.Location = New Point(612, 77)
+        lblPalletPiecesCount.Size = New Size(198, 71)
+        lblPalletPiecesCount.Font = New Font("Segoe UI", 33F, FontStyle.Bold)
+        lblPalletPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        lblPalletPiecesCount.TextAlign = ContentAlignment.MiddleLeft
+        lblPalletPiecesCount.AutoEllipsis = True
         ' confirmAgain
         ' 
         confirmAgain.BackColor = Color.FromArgb(CByte(245), CByte(248), CByte(252))
@@ -682,8 +740,12 @@ Partial Class PalletScannerView
     Friend WithEvents progressIcon As System.Windows.Forms.Label
     Friend WithEvents progressPercent As System.Windows.Forms.Label
     Friend WithEvents progressState As System.Windows.Forms.Label
-    Friend WithEvents progressBar As System.Windows.Forms.ProgressBar
-    Friend WithEvents progressText As System.Windows.Forms.Label
+    Friend WithEvents lblLevelsCaption As System.Windows.Forms.Label
+    Friend WithEvents lblLevelsCount As System.Windows.Forms.Label
+    Friend WithEvents lblLevelPiecesCaption As System.Windows.Forms.Label
+    Friend WithEvents lblLevelPiecesCount As System.Windows.Forms.Label
+    Friend WithEvents lblPalletPiecesCaption As System.Windows.Forms.Label
+    Friend WithEvents lblPalletPiecesCount As System.Windows.Forms.Label
     Friend WithEvents levelTiles As System.Windows.Forms.FlowLayoutPanel
     Friend WithEvents confirmAgain As System.Windows.Forms.Button
     Friend WithEvents ruleSummary As System.Windows.Forms.Label

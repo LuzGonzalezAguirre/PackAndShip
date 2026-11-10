@@ -30,6 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="CustomerConfigurationForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="CustomerConfigurationForm.Designer.vb">
+      <DependentUpon>CustomerConfigurationForm.vb</DependentUpon>
+    </Compile>
     <Compile Update="PalletTransferForm.vb">
       <SubType>Form</SubType>
     </Compile>

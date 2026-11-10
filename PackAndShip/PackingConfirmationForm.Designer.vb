@@ -32,7 +32,7 @@ Partial Class PackingConfirmationForm
         Me.symbol.Location = New System.Drawing.Point(28, 12)
         Me.symbol.Size = New System.Drawing.Size(76, 70)
         Me.symbol.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-        Me.heading.Text = "LEVEL READY TO CLOSE"
+        Me.heading.Text = "NIVEL LISTO PARA CERRAR"
         Me.heading.Font = New System.Drawing.Font("Segoe UI", 19.0!, System.Drawing.FontStyle.Bold)
         Me.heading.ForeColor = System.Drawing.Color.White
         Me.heading.Location = New System.Drawing.Point(108, 22)
@@ -40,7 +40,7 @@ Partial Class PackingConfirmationForm
         Me.heading.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         Me.band.Controls.Add(Me.symbol)
         Me.band.Controls.Add(Me.heading)
-        Me.codeLabel.Text = "CONTAINER"
+        Me.codeLabel.Text = "CONTENEDOR"
         Me.codeLabel.Location = New System.Drawing.Point(30, 124)
         Me.codeLabel.Size = New System.Drawing.Size(540, 31)
         Me.codeLabel.Font = New System.Drawing.Font("Segoe UI", 13.0!, System.Drawing.FontStyle.Bold)
@@ -51,18 +51,18 @@ Partial Class PackingConfirmationForm
         Me.number.Font = New System.Drawing.Font("Segoe UI", 36.0!, System.Drawing.FontStyle.Bold)
         Me.number.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         Me.number.ForeColor = System.Drawing.Color.FromArgb(31, 78, 121)
-        Me.message.Text = "Confirm physically packed pieces."
+        Me.message.Text = "Confirma que las piezas estén empacadas físicamente."
         Me.message.Location = New System.Drawing.Point(35, 238)
         Me.message.Size = New System.Drawing.Size(540, 66)
         Me.message.Font = New System.Drawing.Font("Segoe UI", 12.0!)
         Me.message.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-        Me.noButton.Text = "NOT YET"
+        Me.noButton.Text = "TODAVÍA NO"
         Me.noButton.Location = New System.Drawing.Point(30, 328)
         Me.noButton.Size = New System.Drawing.Size(220, 53)
         Me.noButton.BackColor = System.Drawing.Color.White
         Me.noButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
         Me.noButton.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Bold)
-        Me.yesButton.Text = "YES — NEXT LEVEL"
+        Me.yesButton.Text = "SÍ — SIGUIENTE NIVEL"
         Me.yesButton.Location = New System.Drawing.Point(268, 328)
         Me.yesButton.Size = New System.Drawing.Size(310, 53)
         Me.yesButton.ForeColor = System.Drawing.Color.White

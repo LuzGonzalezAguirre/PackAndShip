@@ -34,7 +34,7 @@ Public Partial Class LoginForm
         Dim barcode = inputBarcode.Text.Trim().ToUpperInvariant()
         Dim password = inputPassword.Text
         If barcode = "" OrElse password = "" Then
-            MessageBox.Show("Enter Barcode ID and Password.", "Campos obligatorios",
+            MessageBox.Show("Ingresa la credencial y contraseña.", "Campos obligatorios",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -42,7 +42,7 @@ Public Partial Class LoginForm
         Try
             Dim user = PackAndShipData.Authenticate(barcode, password)
             If user Is Nothing Then
-                MessageBox.Show("Invalid credentials or inactive user.", "Acceso denegado",
+                MessageBox.Show("Credenciales inválidas o usuario inactivo.", "Acceso denegado",
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning)
                 inputPassword.Clear()
                 inputPassword.Focus()

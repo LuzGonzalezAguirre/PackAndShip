@@ -15,7 +15,7 @@ Public Partial Class LoginForm
 
     Public Sub New(customerName As String)
         Me.New()
-        labelCustomer.Text = If(String.IsNullOrWhiteSpace(customerName), "Not configured", customerName)
+        labelCustomer.Text = If(String.IsNullOrWhiteSpace(customerName), "Sin configurar", customerName)
     End Sub
 
     Private Sub BarcodeEnter(sender As Object, e As KeyEventArgs)
@@ -34,7 +34,7 @@ Public Partial Class LoginForm
         Dim barcode = inputBarcode.Text.Trim().ToUpperInvariant()
         Dim password = inputPassword.Text
         If barcode = "" OrElse password = "" Then
-            MessageBox.Show("Enter Barcode ID and Password.", "Required fields",
+            MessageBox.Show("Enter Barcode ID and Password.", "Campos obligatorios",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -42,7 +42,7 @@ Public Partial Class LoginForm
         Try
             Dim user = PackAndShipData.Authenticate(barcode, password)
             If user Is Nothing Then
-                MessageBox.Show("Invalid credentials or inactive user.", "Access denied",
+                MessageBox.Show("Invalid credentials or inactive user.", "Acceso denegado",
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning)
                 inputPassword.Clear()
                 inputPassword.Focus()
@@ -58,7 +58,7 @@ Public Partial Class LoginForm
             DialogResult = DialogResult.OK
             Close()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Login error", MessageBoxButtons.OK,
+            MessageBox.Show(ex.Message, "Error de inicio de sesión", MessageBoxButtons.OK,
                             MessageBoxIcon.Error)
         End Try
     End Sub

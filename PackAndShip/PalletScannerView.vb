@@ -249,6 +249,7 @@ Public Partial Class PalletScannerView
         activeContainer = Nothing
         ResetVerification()
         selectedConfiguration = Nothing
+        ShowConfiguredPalletMetrics()
         selectedRule = Nothing
         selectedFields.Clear()
         Dim part = TryCast(partPicker.SelectedItem, PaSPart)

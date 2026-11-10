@@ -124,7 +124,7 @@ Public Class ScanRuleEditorForm
             Return
         End Try
         If saved.Any(Function(f) f.ScanIndex >= CInt(scanCount.Value)) Then
-            If MessageBox.Show("Reducing scan count will remove fields from higher scans. Continue?",
+            If MessageBox.Show("Reducir los escaneos eliminará los campos de los escaneos superiores. ¿Continuar?",
                                "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then
                 RemoveHandler scanCount.ValueChanged, AddressOf ScanCountChanged
                 scanCount.Value = saved.Max(Function(f) f.ScanIndex) + 1
@@ -269,7 +269,7 @@ Public Class ScanRuleEditorForm
             .UpdatedAt = If(original Is Nothing, DateTime.MinValue, original.UpdatedAt)
         }
         If MessageBox.Show("¿Guardar esta regla compartida? Los cambios también afectarán a Q-Wall.",
-                           "Confirm shared rule update", MessageBoxButtons.YesNo,
+                           "Confirmar actualización de regla compartida", MessageBoxButtons.YesNo,
                            MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
         Try
             ScanRulesData.SaveRule(rule, fieldModels)

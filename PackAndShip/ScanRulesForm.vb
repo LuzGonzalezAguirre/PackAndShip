@@ -127,7 +127,7 @@ Public Class ScanRulesForm
             ScanRulesData.SetActive(rule, Not rule.IsActive)
             ReloadRules()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cannot update rule", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "No se pudo actualizar la regla", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 

@@ -59,74 +59,74 @@ Partial Class Form1
         menuSetup.DropDownItems.AddRange(New ToolStripItem() {setupCustomerItem, setupUsersItem, setupPalletItem, setupRulesItem, setupGeneralItem})
         menuSetup.Name = "menuSetup"
         menuSetup.Size = New Size(56, 30)
-        menuSetup.Text = "Setup"
+        menuSetup.Text = "Configuración"
         ' 
         ' setupCustomerItem
         ' 
         setupCustomerItem.Name = "setupCustomerItem"
         setupCustomerItem.Size = New Size(226, 24)
-        setupCustomerItem.Text = "Customer Configuration"
+        setupCustomerItem.Text = "Configuración de cliente"
         ' 
         ' setupUsersItem
         ' 
         setupUsersItem.Name = "setupUsersItem"
         setupUsersItem.Size = New Size(226, 24)
-        setupUsersItem.Text = "Users & Roles"
+        setupUsersItem.Text = "Usuarios y roles"
         ' 
         ' setupPalletItem
         ' 
         setupPalletItem.Name = "setupPalletItem"
         setupPalletItem.Size = New Size(226, 24)
-        setupPalletItem.Text = "Pallet Configuration"
+        setupPalletItem.Text = "Configuración de pallets"
         ' 
         ' setupRulesItem
         ' 
         setupRulesItem.Name = "setupRulesItem"
         setupRulesItem.Size = New Size(226, 24)
-        setupRulesItem.Text = "Scan Rules"
+        setupRulesItem.Text = "Reglas de escaneo"
         ' 
         ' setupGeneralItem
         ' 
         setupGeneralItem.Name = "setupGeneralItem"
         setupGeneralItem.Size = New Size(226, 24)
-        setupGeneralItem.Text = "General Settings"
+        setupGeneralItem.Text = "Configuración general"
         ' 
         ' menuPalletActions
         ' 
         menuPalletActions.DropDownItems.AddRange(New ToolStripItem() {menuPartialPallet, menuCancelEmptyPallet, menuReviewPendingSql})
         menuPalletActions.Name = "menuPalletActions"
         menuPalletActions.Size = New Size(103, 30)
-        menuPalletActions.Text = "Pallet Actions"
+        menuPalletActions.Text = "Acciones de pallet"
         ' 
         ' menuPartialPallet
         ' 
         menuPartialPallet.Name = "menuPartialPallet"
         menuPartialPallet.Size = New Size(291, 24)
-        menuPartialPallet.Text = "Partial pallet (authorization)"
+        menuPartialPallet.Text = "Cerrar pallet parcial (autorización)"
         ' 
         ' menuCancelEmptyPallet
         ' 
         menuCancelEmptyPallet.Name = "menuCancelEmptyPallet"
         menuCancelEmptyPallet.Size = New Size(291, 24)
-        menuCancelEmptyPallet.Text = "Cancel empty pallet (authorization)"
+        menuCancelEmptyPallet.Text = "Cancelar pallet vacío (autorización)"
         ' 
         ' menuReviewPendingSql
         ' 
         menuReviewPendingSql.Name = "menuReviewPendingSql"
         menuReviewPendingSql.Size = New Size(291, 24)
-        menuReviewPendingSql.Text = "Review pending SQL"
+        menuReviewPendingSql.Text = "Revisar operación SQL pendiente"
         ' 
         ' menuHistory
         ' 
         menuHistory.Name = "menuHistory"
         menuHistory.Size = New Size(102, 30)
-        menuHistory.Text = "Pallet History"
+        menuHistory.Text = "Historial de pallets"
         ' 
         ' menuTransfer
         ' 
         menuTransfer.Name = "menuTransfer"
         menuTransfer.Size = New Size(112, 30)
-        menuTransfer.Text = "Pallet Transfers"
+        menuTransfer.Text = "Transferencias de pallets"
         ' 
         ' menuHelp
         ' 
@@ -139,7 +139,7 @@ Partial Class Form1
         ' 
         helpAboutItem.Name = "helpAboutItem"
         helpAboutItem.Size = New Size(199, 24)
-        helpAboutItem.Text = "About PackAndShip"
+        helpAboutItem.Text = "Acerca de PackAndShip"
         ' 
         ' menuLogout
         ' 
@@ -166,7 +166,7 @@ Partial Class Form1
         headerTitle.Name = "headerTitle"
         headerTitle.Size = New Size(253, 42)
         headerTitle.TabIndex = 0
-        headerTitle.Text = "PACK AND SHIP"
+        headerTitle.Text = "EMPAQUE Y EMBARQUE"
         ' 
         ' signedInPanel
         ' 
@@ -201,7 +201,7 @@ Partial Class Form1
         ' 
         connectionLabel.Name = "connectionLabel"
         connectionLabel.Size = New Size(146, 17)
-        connectionLabel.Text = "CCS: checking connection"
+        connectionLabel.Text = "CCS: verificando conexión"
         ' 
         ' Form1
         ' 

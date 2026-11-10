@@ -15,6 +15,7 @@ Partial Class PalletScannerView
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         mainLayout = New Panel()
+        DataGridView1 = New DataGridView()
         scanArea = New Panel()
         leftLayout = New Panel()
         piecesArea = New Panel()
@@ -32,12 +33,10 @@ Partial Class PalletScannerView
         lbl_lot = New Label()
         levelTiles = New FlowLayoutPanel()
         progressTitle = New Label()
-        progressIcon = New Label()
         progressPercent = New Label()
-        progressState = New Label()
         lblLevelsCaption = New Label()
-        lblLevelsCount = New Label()
         lblLevelPiecesCaption = New Label()
+        lblLevelsCount = New Label()
         lblLevelPiecesCount = New Label()
         lblPalletPiecesCaption = New Label()
         lblPalletPiecesCount = New Label()
@@ -64,15 +63,8 @@ Partial Class PalletScannerView
         headerTimeCell = New Panel()
         captionTime = New Label()
         clockValue = New Label()
-        DataGridView1 = New DataGridView()
-        colContainer = New DataGridViewTextBoxColumn()
-        colSsiModel = New DataGridViewTextBoxColumn()
-        colLevel = New DataGridViewTextBoxColumn()
-        colLevelPiece = New DataGridViewTextBoxColumn()
-        colSsiSerial = New DataGridViewTextBoxColumn()
-        colClientSerial = New DataGridViewTextBoxColumn()
-        colScanTime = New DataGridViewTextBoxColumn()
         mainLayout.SuspendLayout()
+        CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
         scanArea.SuspendLayout()
         leftLayout.SuspendLayout()
         piecesArea.SuspendLayout()
@@ -85,7 +77,6 @@ Partial Class PalletScannerView
         headerOperatorCell.SuspendLayout()
         headerCustomerCell.SuspendLayout()
         headerTimeCell.SuspendLayout()
-        CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' mainLayout
@@ -103,6 +94,21 @@ Partial Class PalletScannerView
         mainLayout.Padding = New Padding(12, 10, 12, 10)
         mainLayout.Size = New Size(1382, 760)
         mainLayout.TabIndex = 0
+        ' 
+        ' DataGridView1
+        ' 
+        DataGridView1.AllowUserToAddRows = False
+        DataGridView1.AllowUserToDeleteRows = False
+        DataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        DataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        DataGridView1.Location = New Point(12, 414)
+        DataGridView1.MultiSelect = False
+        DataGridView1.Name = "DataGridView1"
+        DataGridView1.ReadOnly = True
+        DataGridView1.RowHeadersVisible = False
+        DataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        DataGridView1.Size = New Size(1357, 331)
+        DataGridView1.TabIndex = 2
         ' 
         ' scanArea
         ' 
@@ -236,12 +242,10 @@ Partial Class PalletScannerView
         progressArea.Controls.Add(lbl_lot)
         progressArea.Controls.Add(levelTiles)
         progressArea.Controls.Add(progressTitle)
-        progressArea.Controls.Add(progressIcon)
         progressArea.Controls.Add(progressPercent)
-        progressArea.Controls.Add(progressState)
         progressArea.Controls.Add(lblLevelsCaption)
-        progressArea.Controls.Add(lblLevelsCount)
         progressArea.Controls.Add(lblLevelPiecesCaption)
+        progressArea.Controls.Add(lblLevelsCount)
         progressArea.Controls.Add(lblLevelPiecesCount)
         progressArea.Controls.Add(lblPalletPiecesCaption)
         progressArea.Controls.Add(lblPalletPiecesCount)
@@ -257,9 +261,9 @@ Partial Class PalletScannerView
         ' 
         Label1.AutoSize = True
         Label1.Font = New Font("Segoe UI", 18.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        Label1.Location = New Point(53, 125)
+        Label1.Location = New Point(508, 8)
         Label1.Name = "Label1"
-        Label1.Size = New Size(107, 32)
+        Label1.Size = New Size(158, 32)
         Label1.TabIndex = 10
         Label1.Text = "N.º DE LOTE:"
         ' 
@@ -267,7 +271,7 @@ Partial Class PalletScannerView
         ' 
         lbl_lot.AutoSize = True
         lbl_lot.Font = New Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-        lbl_lot.Location = New Point(40, 157)
+        lbl_lot.Location = New Point(672, 5)
         lbl_lot.Name = "lbl_lot"
         lbl_lot.Size = New Size(130, 37)
         lbl_lot.TabIndex = 9
@@ -285,108 +289,94 @@ Partial Class PalletScannerView
         ' 
         progressTitle.Font = New Font("Segoe UI", 13.0F, FontStyle.Bold)
         progressTitle.ForeColor = Color.FromArgb(CByte(27), CByte(39), CByte(58))
-        progressTitle.Location = New Point(18, 15)
+        progressTitle.Location = New Point(14, 12)
         progressTitle.Name = "progressTitle"
-        progressTitle.Size = New Size(189, 30)
+        progressTitle.Size = New Size(193, 30)
         progressTitle.TabIndex = 0
-        progressTitle.Text = "AVANCE DEL PALLET"
-        ' 
-        ' progressIcon
-        ' 
-        progressIcon.Font = New Font("Segoe UI", 36.0F, FontStyle.Bold)
-        progressIcon.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        progressIcon.Location = New Point(24, 58)
-        progressIcon.Name = "progressIcon"
-        progressIcon.Size = New Size(72, 72)
-        progressIcon.TabIndex = 1
-        progressIcon.Text = "▣"
+        progressTitle.Text = "AVANCE DEL PALLET:"
         ' 
         ' progressPercent
         ' 
-        progressPercent.Font = New Font("Segoe UI", 32.0F, FontStyle.Bold)
+        progressPercent.Font = New Font("Segoe UI", 21.75F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
         progressPercent.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        progressPercent.Location = New Point(106, 53)
+        progressPercent.Location = New Point(207, 5)
         progressPercent.Name = "progressPercent"
-        progressPercent.Size = New Size(120, 72)
+        progressPercent.Size = New Size(231, 49)
         progressPercent.TabIndex = 2
         progressPercent.Text = "0%"
         ' 
-        ' progressState
-        ' 
-        progressState.Font = New Font("Segoe UI", 12.0F, FontStyle.Bold)
-        progressState.ForeColor = Color.FromArgb(CByte(28), CByte(113), CByte(83))
-        progressState.Location = New Point(232, 7)
-        progressState.Name = "progressState"
-        progressState.Size = New Size(520, 27)
-        progressState.TabIndex = 3
-        progressState.Text = "ESPERANDO PALLET"
-        ' 
-        '
         ' lblLevelsCaption
-        '
-        lblLevelsCaption.Name = "lblLevelsCaption"
-        lblLevelsCaption.Text = "NIVELES"
-        lblLevelsCaption.Location = New Point(236, 46)
-        lblLevelsCaption.Size = New Size(150, 24)
-        lblLevelsCaption.Font = New Font("Segoe UI", 10.5F, FontStyle.Bold)
-        lblLevelsCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
-        lblLevelsCaption.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         lblLevelsCaption.AutoEllipsis = True
-        '
-        ' lblLevelsCount
-        '
-        lblLevelsCount.Name = "lblLevelsCount"
-        lblLevelsCount.Text = "0 / 0"
-        lblLevelsCount.Location = New Point(236, 77)
-        lblLevelsCount.Size = New Size(165, 71)
-        lblLevelsCount.Font = New Font("Segoe UI", 33F, FontStyle.Bold)
-        lblLevelsCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        lblLevelsCount.TextAlign = ContentAlignment.MiddleLeft
-        lblLevelsCount.AutoEllipsis = True
-        '
+        lblLevelsCaption.Font = New Font("Segoe UI", 12.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        lblLevelsCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
+        lblLevelsCaption.Location = New Point(596, 60)
+        lblLevelsCaption.Name = "lblLevelsCaption"
+        lblLevelsCaption.Size = New Size(150, 24)
+        lblLevelsCaption.TabIndex = 11
+        lblLevelsCaption.Text = "NIVELES"
+        lblLevelsCaption.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         ' lblLevelPiecesCaption
-        '
-        lblLevelPiecesCaption.Name = "lblLevelPiecesCaption"
-        lblLevelPiecesCaption.Text = "PIEZAS POR NIVEL"
-        lblLevelPiecesCaption.Location = New Point(411, 46)
-        lblLevelPiecesCaption.Size = New Size(205, 24)
-        lblLevelPiecesCaption.Font = New Font("Segoe UI", 10.5F, FontStyle.Bold)
-        lblLevelPiecesCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
-        lblLevelPiecesCaption.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         lblLevelPiecesCaption.AutoEllipsis = True
-        '
+        lblLevelPiecesCaption.Font = New Font("Segoe UI", 12.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        lblLevelPiecesCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
+        lblLevelPiecesCaption.Location = New Point(45, 60)
+        lblLevelPiecesCaption.Name = "lblLevelPiecesCaption"
+        lblLevelPiecesCaption.Size = New Size(205, 24)
+        lblLevelPiecesCaption.TabIndex = 13
+        lblLevelPiecesCaption.Text = "PIEZAS POR NIVEL"
+        lblLevelPiecesCaption.TextAlign = ContentAlignment.MiddleLeft
+        ' 
+        ' lblLevelsCount
+        ' 
+        lblLevelsCount.AutoEllipsis = True
+        lblLevelsCount.Font = New Font("Segoe UI", 48.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        lblLevelsCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        lblLevelsCount.Location = New Point(596, 91)
+        lblLevelsCount.Name = "lblLevelsCount"
+        lblLevelsCount.Size = New Size(178, 96)
+        lblLevelsCount.TabIndex = 12
+        lblLevelsCount.Text = "0 / 0"
+        lblLevelsCount.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         ' lblLevelPiecesCount
-        '
-        lblLevelPiecesCount.Name = "lblLevelPiecesCount"
-        lblLevelPiecesCount.Text = "0 / 0"
-        lblLevelPiecesCount.Location = New Point(411, 77)
-        lblLevelPiecesCount.Size = New Size(190, 71)
-        lblLevelPiecesCount.Font = New Font("Segoe UI", 33F, FontStyle.Bold)
-        lblLevelPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        lblLevelPiecesCount.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         lblLevelPiecesCount.AutoEllipsis = True
-        '
+        lblLevelPiecesCount.Font = New Font("Segoe UI", 48.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        lblLevelPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        lblLevelPiecesCount.Location = New Point(41, 91)
+        lblLevelPiecesCount.Name = "lblLevelPiecesCount"
+        lblLevelPiecesCount.Size = New Size(219, 96)
+        lblLevelPiecesCount.TabIndex = 14
+        lblLevelPiecesCount.Text = "0 / 0"
+        lblLevelPiecesCount.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         ' lblPalletPiecesCaption
-        '
-        lblPalletPiecesCaption.Name = "lblPalletPiecesCaption"
-        lblPalletPiecesCaption.Text = "PIEZAS POR PALLET"
-        lblPalletPiecesCaption.Location = New Point(612, 46)
-        lblPalletPiecesCaption.Size = New Size(205, 24)
-        lblPalletPiecesCaption.Font = New Font("Segoe UI", 10.5F, FontStyle.Bold)
-        lblPalletPiecesCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
-        lblPalletPiecesCaption.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         lblPalletPiecesCaption.AutoEllipsis = True
-        '
+        lblPalletPiecesCaption.Font = New Font("Segoe UI", 12.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        lblPalletPiecesCaption.ForeColor = Color.FromArgb(CByte(100), CByte(115), CByte(136))
+        lblPalletPiecesCaption.Location = New Point(285, 60)
+        lblPalletPiecesCaption.Name = "lblPalletPiecesCaption"
+        lblPalletPiecesCaption.Size = New Size(205, 24)
+        lblPalletPiecesCaption.TabIndex = 15
+        lblPalletPiecesCaption.Text = "PIEZAS POR PALLET"
+        lblPalletPiecesCaption.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         ' lblPalletPiecesCount
-        '
-        lblPalletPiecesCount.Name = "lblPalletPiecesCount"
-        lblPalletPiecesCount.Text = "0 / 0"
-        lblPalletPiecesCount.Location = New Point(612, 77)
-        lblPalletPiecesCount.Size = New Size(198, 71)
-        lblPalletPiecesCount.Font = New Font("Segoe UI", 33F, FontStyle.Bold)
-        lblPalletPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
-        lblPalletPiecesCount.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         lblPalletPiecesCount.AutoEllipsis = True
+        lblPalletPiecesCount.Font = New Font("Segoe UI", 48.0F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
+        lblPalletPiecesCount.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        lblPalletPiecesCount.Location = New Point(285, 91)
+        lblPalletPiecesCount.Name = "lblPalletPiecesCount"
+        lblPalletPiecesCount.Size = New Size(295, 98)
+        lblPalletPiecesCount.TabIndex = 16
+        lblPalletPiecesCount.Text = "0 / 0"
+        lblPalletPiecesCount.TextAlign = ContentAlignment.MiddleLeft
+        ' 
         ' confirmAgain
         ' 
         confirmAgain.BackColor = Color.FromArgb(CByte(245), CByte(248), CByte(252))
@@ -436,9 +426,9 @@ Partial Class PalletScannerView
         activeStrip.Controls.Add(activeCaption)
         activeStrip.Controls.Add(activePartTitle)
         activeStrip.Controls.Add(buildState)
-        activeStrip.Location = New Point(1085, 0)
+        activeStrip.Location = New Point(1051, 0)
         activeStrip.Name = "activeStrip"
-        activeStrip.Size = New Size(282, 82)
+        activeStrip.Size = New Size(319, 82)
         activeStrip.TabIndex = 0
         ' 
         ' activeCaption
@@ -577,7 +567,7 @@ Partial Class PalletScannerView
         headerCustomerCell.Location = New Point(735, 0)
         headerCustomerCell.Margin = New Padding(1)
         headerCustomerCell.Name = "headerCustomerCell"
-        headerCustomerCell.Size = New Size(160, 82)
+        headerCustomerCell.Size = New Size(139, 82)
         headerCustomerCell.TabIndex = 3
         ' 
         ' captionCustomer
@@ -606,7 +596,7 @@ Partial Class PalletScannerView
         headerTimeCell.BackColor = Color.FromArgb(CByte(255), CByte(255), CByte(255))
         headerTimeCell.Controls.Add(captionTime)
         headerTimeCell.Controls.Add(clockValue)
-        headerTimeCell.Location = New Point(895, 0)
+        headerTimeCell.Location = New Point(875, 0)
         headerTimeCell.Margin = New Padding(1)
         headerTimeCell.Name = "headerTimeCell"
         headerTimeCell.Size = New Size(191, 82)
@@ -632,51 +622,6 @@ Partial Class PalletScannerView
         clockValue.Size = New Size(163, 33)
         clockValue.TabIndex = 1
         ' 
-        ' DataGridView1
-        ' 
-        DataGridView1.AutoGenerateColumns = False
-        DataGridView1.AllowUserToAddRows = False
-        DataGridView1.AllowUserToDeleteRows = False
-        DataGridView1.ReadOnly = True
-        DataGridView1.MultiSelect = False
-        DataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        DataGridView1.RowHeadersVisible = False
-        DataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        colContainer.Name = "colContainer"
-        colContainer.HeaderText = "Contenedor"
-        colContainer.DataPropertyName = "ContainerCode"
-        colContainer.FillWeight = 85.0F
-        colSsiModel.Name = "colSsiModel"
-        colSsiModel.HeaderText = "Modelo SSI"
-        colSsiModel.DataPropertyName = "SsiModel"
-        colSsiModel.FillWeight = 85.0F
-        colLevel.Name = "colLevel"
-        colLevel.HeaderText = "Nivel"
-        colLevel.DataPropertyName = "LevelNumber"
-        colLevel.FillWeight = 40.0F
-        colLevelPiece.Name = "colLevelPiece"
-        colLevelPiece.HeaderText = "Pieza"
-        colLevelPiece.DataPropertyName = "PieceNumber"
-        colLevelPiece.FillWeight = 40.0F
-        colSsiSerial.Name = "colSsiSerial"
-        colSsiSerial.HeaderText = "Serie SSI"
-        colSsiSerial.DataPropertyName = "SsiSerial"
-        colSsiSerial.FillWeight = 105.0F
-        colClientSerial.Name = "colClientSerial"
-        colClientSerial.HeaderText = "Serie del cliente"
-        colClientSerial.DataPropertyName = "ClientSerial"
-        colClientSerial.FillWeight = 105.0F
-        colScanTime.Name = "colScanTime"
-        colScanTime.HeaderText = "Fecha y hora de escaneo"
-        colScanTime.DataPropertyName = "ScanTime"
-        colScanTime.FillWeight = 90.0F
-        DataGridView1.Columns.AddRange(New DataGridViewColumn() {colContainer, colSsiModel, colLevel, colLevelPiece, colSsiSerial, colClientSerial, colScanTime})
-        DataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        DataGridView1.Location = New Point(12, 414)
-        DataGridView1.Name = "DataGridView1"
-        DataGridView1.Size = New Size(1357, 331)
-        DataGridView1.TabIndex = 2
-        ' 
         ' PalletScannerView
         ' 
         BackColor = Color.FromArgb(CByte(245), CByte(248), CByte(252))
@@ -686,6 +631,7 @@ Partial Class PalletScannerView
         Name = "PalletScannerView"
         Size = New Size(1382, 760)
         mainLayout.ResumeLayout(False)
+        CType(DataGridView1, ComponentModel.ISupportInitialize).EndInit()
         scanArea.ResumeLayout(False)
         scanArea.PerformLayout()
         leftLayout.ResumeLayout(False)
@@ -701,7 +647,6 @@ Partial Class PalletScannerView
         headerOperatorCell.ResumeLayout(False)
         headerCustomerCell.ResumeLayout(False)
         headerTimeCell.ResumeLayout(False)
-        CType(DataGridView1, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
     End Sub
 
@@ -737,9 +682,7 @@ Partial Class PalletScannerView
     Friend WithEvents firstQr As System.Windows.Forms.TextBox
     Friend WithEvents secondQr As System.Windows.Forms.TextBox
     Friend WithEvents scanStatus As System.Windows.Forms.Label
-    Friend WithEvents progressIcon As System.Windows.Forms.Label
     Friend WithEvents progressPercent As System.Windows.Forms.Label
-    Friend WithEvents progressState As System.Windows.Forms.Label
     Friend WithEvents lblLevelsCaption As System.Windows.Forms.Label
     Friend WithEvents lblLevelsCount As System.Windows.Forms.Label
     Friend WithEvents lblLevelPiecesCaption As System.Windows.Forms.Label

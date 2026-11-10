@@ -559,15 +559,7 @@ Public Partial Class PalletScannerView
         Dim percentage = If(required > 0,
             Math.Min(100, CInt(Math.Truncate(CDbl(actual) * 100.0 / required))), 0)
         progressPercent.Text = percentage.ToString() & "%"
-        progressState.Text = If(activeContainer.Status <> "OPEN",
-                                EstadoPalletVisible(activeContainer.Status),
-                                If(current Is Nothing, "LISTO PARA CERRAR PALLET",
-                                   If(current.ScannedPieces = current.RequiredPieces,
-                                      "NIVEL COMPLETO — CONFIRMA PARA CONTINUAR",
-                                      "EMPAQUE EN PROCESO")))
-        progressState.ForeColor = If(current IsNot Nothing AndAlso
-                                     current.ScannedPieces = current.RequiredPieces,
-                                     Color.FromArgb(28, 113, 83), PaSTheme.Navy)
+
         levelTiles.SuspendLayout()
         Try
             levelTiles.Controls.Clear()
@@ -592,7 +584,7 @@ Public Partial Class PalletScannerView
         Finally
             levelTiles.ResumeLayout()
         End Try
-        progressIcon.Text = If(activeContainer.Status = "OPEN", "▣", "✓")
+
         buildState.Text = "Contenedor: " & activeContainer.Code & "  |  " & EstadoPalletVisible(activeContainer.Status)
         If activeContainer.Status <> "OPEN" Then
             StationSettings.UnlockPallet(activeContainer.Code)
@@ -652,8 +644,6 @@ Public Partial Class PalletScannerView
         lbl_lot.Text = "P######"
         DataGridView1.DataSource = Nothing
         progressPercent.Text = "0%"
-        progressState.Text = "LISTO PARA EL SIGUIENTE PALLET"
-        progressIcon.Text = "▣"
         levelTiles.Controls.Clear()
         ShowConfiguredPalletMetrics()
         buildState.Text = "Listo para el siguiente pallet"

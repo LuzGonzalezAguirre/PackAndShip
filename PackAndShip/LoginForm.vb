@@ -11,6 +11,7 @@ Public Partial Class LoginForm
         AddHandler buttonLogin.Click, AddressOf PerformLogin
         AddHandler inputBarcode.KeyDown, AddressOf BarcodeEnter
         AddHandler inputPassword.KeyDown, AddressOf PasswordEnter
+        AddHandler Shown, Sub() inputBarcode.Focus()
     End Sub
 
     Public Sub New(customerName As String)
@@ -27,7 +28,7 @@ Public Partial Class LoginForm
     Private Sub PasswordEnter(sender As Object, e As KeyEventArgs)
         If e.KeyCode <> Keys.Enter Then Return
         e.SuppressKeyPress = True
-        buttonLogin.PerformClick()
+        buttonLogin.Focus()
     End Sub
 
     Private Sub PerformLogin(sender As Object, e As EventArgs)

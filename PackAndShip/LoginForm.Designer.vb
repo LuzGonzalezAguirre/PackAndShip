@@ -30,7 +30,7 @@ Partial Class LoginForm
         ' Move and resize them with the mouse in Visual Studio.
         '
         Me.titleLabel.Name = "titleLabel"
-        Me.titleLabel.Text = "Pack and Ship"
+        Me.titleLabel.Text = "Empaque y embarque"
         Me.titleLabel.Location = New System.Drawing.Point(22, 16)
         Me.titleLabel.Size = New System.Drawing.Size(394, 40)
         Me.titleLabel.Font = New System.Drawing.Font("Segoe UI", 18.0!, System.Drawing.FontStyle.Bold)
@@ -44,7 +44,7 @@ Partial Class LoginForm
         Me.sectionLogin.ForeColor = System.Drawing.Color.FromArgb(31, 78, 121)
 
         Me.barcodeLabel.Name = "barcodeLabel"
-        Me.barcodeLabel.Text = "Credencial (Barcode ID)"
+        Me.barcodeLabel.Text = "Credencial (código de barras)"
         Me.barcodeLabel.Location = New System.Drawing.Point(22, 104)
         Me.barcodeLabel.Size = New System.Drawing.Size(394, 21)
 
@@ -55,7 +55,7 @@ Partial Class LoginForm
         Me.inputBarcode.TabIndex = 0
 
         Me.passwordLabel.Name = "passwordLabel"
-        Me.passwordLabel.Text = "Password"
+        Me.passwordLabel.Text = "Contraseña"
         Me.passwordLabel.Location = New System.Drawing.Point(22, 176)
         Me.passwordLabel.Size = New System.Drawing.Size(394, 21)
 
@@ -78,7 +78,7 @@ Partial Class LoginForm
         Me.customerCaption.Size = New System.Drawing.Size(394, 22)
 
         Me.labelCustomer.Name = "labelCustomer"
-        Me.labelCustomer.Text = "Not configured"
+        Me.labelCustomer.Text = "Sin configurar"
         Me.labelCustomer.Location = New System.Drawing.Point(22, 309)
         Me.labelCustomer.Size = New System.Drawing.Size(394, 31)
         Me.labelCustomer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
@@ -107,7 +107,7 @@ Partial Class LoginForm
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.MaximizeBox = True
         Me.MinimizeBox = True
-        Me.Text = "Pack and Ship | Login"
+        Me.Text = "PackAndShip | Inicio de sesión"
         Me.AcceptButton = Me.buttonLogin
         Me.Controls.Add(Me.titleLabel)
         Me.Controls.Add(Me.sectionLogin)

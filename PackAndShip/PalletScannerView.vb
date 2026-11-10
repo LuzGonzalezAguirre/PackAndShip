@@ -581,35 +581,29 @@ Public Partial Class PalletScannerView
         UpdatePackingButtons()
     End Sub
 
-    ' Shows only the active level. If no level remains OPEN,
-    ' show the most recently completed level. Data comes from refreshed CCS state.
+    ' Lista todas las piezas confirmadas del pallet, sin reiniciarse entre niveles.
+    ' La información proviene del estado real actualizado de SQL Server CCS.
     Private Sub RefreshLevelScanGrid()
         Dim rows As New System.Data.DataTable()
+        rows.Columns.Add("ContainerCode", GetType(String))
+        rows.Columns.Add("SsiModel", GetType(String))
+        rows.Columns.Add("LevelNumber", GetType(Integer))
         rows.Columns.Add("PieceNumber", GetType(Integer))
         rows.Columns.Add("SsiSerial", GetType(String))
         rows.Columns.Add("ClientSerial", GetType(String))
         rows.Columns.Add("ScanTime", GetType(String))
 
         If activeContainer IsNot Nothing Then
-            Dim current = activeContainer.CurrentLevel
-            Dim levelNumber As Integer
-            If current IsNot Nothing Then
-                levelNumber = current.LevelNumber
-            ElseIf activeContainer.Levels.Count > 0 Then
-                levelNumber = activeContainer.Levels.Max(Function(x) x.LevelNumber)
-            End If
-
-            If levelNumber > 0 Then
-                Dim piecesInLevel = activeContainer.Pieces.
-                    Where(Function(p) p.LevelNumber = levelNumber).
-                    OrderBy(Function(p) p.ScannedAt).ToList()
-                Dim position As Integer = 0
-                For Each piece In piecesInLevel
-                    position += 1
-                    rows.Rows.Add(position, piece.SsiCode, piece.ClientCode,
-                                  piece.ScannedAt.ToString("dd/MM/yyyy HH:mm:ss"))
-                Next
-            End If
+            Dim selectedPart = parts.FirstOrDefault(Function(p) p.Id = activeContainer.PartId)
+            Dim modelNumber = If(selectedPart Is Nothing, "", selectedPart.Number)
+            Dim pieceNumber As Integer = 0
+            For Each piece In activeContainer.Pieces.
+                OrderBy(Function(p) p.ScannedAt).ThenBy(Function(p) p.ProductId)
+                pieceNumber += 1
+                rows.Rows.Add(activeContainer.Code, modelNumber, piece.LevelNumber,
+                              pieceNumber, piece.SsiCode, piece.ClientCode,
+                              piece.ScannedAt.ToString("dd/MM/yyyy HH:mm:ss"))
+            Next
         End If
 
         DataGridView1.DataSource = rows

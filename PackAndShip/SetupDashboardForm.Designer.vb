@@ -114,22 +114,22 @@ Partial Class SetupDashboardForm
         Me.generalButton.Location = New System.Drawing.Point(20,94)
         Me.generalButton.Size = New System.Drawing.Size(172,34)
         Me.banner.BackColor = System.Drawing.Color.FromArgb(31,78,121)
-        Me.titleLabel.Text = "SETUP"
+        Me.titleLabel.Text = "CONFIGURACIÓN"
         Me.titleLabel.Font = New System.Drawing.Font("Segoe UI",23.0!,System.Drawing.FontStyle.Bold)
         Me.titleLabel.ForeColor = System.Drawing.Color.White
-        Me.subtitle.Text = "Configuration center"
+        Me.subtitle.Text = "Centro de configuración"
         Me.subtitle.ForeColor = System.Drawing.Color.White
-        Me.mainHeading.Text = "Manage your station"
+        Me.mainHeading.Text = "Administra tu estación"
         Me.mainHeading.Font = New System.Drawing.Font("Segoe UI",21.0!,System.Drawing.FontStyle.Bold)
-        Me.detail.Text = "Select a section to review or update its settings."
+        Me.detail.Text = "Selecciona una sección para consultar o modificar su configuración."
         Me.banner.Controls.Add(Me.titleLabel)
         Me.banner.Controls.Add(Me.subtitle)
         Me.customerCard.BackColor = System.Drawing.Color.White
         Me.customerCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.customerTitle.Text = "Customer Configuration"
+        Me.customerTitle.Text = "Configuración de cliente"
         Me.customerTitle.Font = New System.Drawing.Font("Segoe UI",13.0!,System.Drawing.FontStyle.Bold)
-        Me.customerDescription.Text = "Default customer for this workstation"
-        Me.customerButton.Text = "Open customer"
+        Me.customerDescription.Text = "Cliente predeterminado de esta estación"
+        Me.customerButton.Text = "Abrir cliente"
         Me.customerButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.customerButton.ForeColor = System.Drawing.Color.White
         Me.customerCard.Controls.Add(Me.customerTitle)
@@ -137,10 +137,10 @@ Partial Class SetupDashboardForm
         Me.customerCard.Controls.Add(Me.customerButton)
         Me.usersCard.BackColor = System.Drawing.Color.White
         Me.usersCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.usersTitle.Text = "Users & Roles"
+        Me.usersTitle.Text = "Usuarios y roles"
         Me.usersTitle.Font = New System.Drawing.Font("Segoe UI",13.0!,System.Drawing.FontStyle.Bold)
-        Me.usersDescription.Text = "Accounts, access levels and permissions"
-        Me.usersButton.Text = "Manage users"
+        Me.usersDescription.Text = "Cuentas, niveles de acceso y permisos"
+        Me.usersButton.Text = "Administrar usuarios"
         Me.usersButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.usersButton.ForeColor = System.Drawing.Color.White
         Me.usersCard.Controls.Add(Me.usersTitle)
@@ -148,10 +148,10 @@ Partial Class SetupDashboardForm
         Me.usersCard.Controls.Add(Me.usersButton)
         Me.palletCard.BackColor = System.Drawing.Color.White
         Me.palletCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.palletTitle.Text = "Pallet Configuration"
+        Me.palletTitle.Text = "Configuración de pallets"
         Me.palletTitle.Font = New System.Drawing.Font("Segoe UI",13.0!,System.Drawing.FontStyle.Bold)
-        Me.palletDescription.Text = "Part numbers, pallet levels and piece quantities"
-        Me.palletButton.Text = "Configure pallets"
+        Me.palletDescription.Text = "Números de parte, niveles y cantidades"
+        Me.palletButton.Text = "Configurar pallets"
         Me.palletButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.palletButton.ForeColor = System.Drawing.Color.White
         Me.palletCard.Controls.Add(Me.palletTitle)
@@ -159,10 +159,10 @@ Partial Class SetupDashboardForm
         Me.palletCard.Controls.Add(Me.palletButton)
         Me.scansCard.BackColor = System.Drawing.Color.White
         Me.scansCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.scansTitle.Text = "Scan Rules"
+        Me.scansTitle.Text = "Reglas de escaneo"
         Me.scansTitle.Font = New System.Drawing.Font("Segoe UI",13.0!,System.Drawing.FontStyle.Bold)
-        Me.scansDescription.Text = "Scans, serial mapping and validation fields"
-        Me.scansButton.Text = "Manage rules"
+        Me.scansDescription.Text = "Escaneos, mapeo de series y validaciones"
+        Me.scansButton.Text = "Administrar reglas"
         Me.scansButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.scansButton.ForeColor = System.Drawing.Color.White
         Me.scansCard.Controls.Add(Me.scansTitle)
@@ -170,10 +170,10 @@ Partial Class SetupDashboardForm
         Me.scansCard.Controls.Add(Me.scansButton)
         Me.generalCard.BackColor = System.Drawing.Color.White
         Me.generalCard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.generalTitle.Text = "General Settings"
+        Me.generalTitle.Text = "Configuración general"
         Me.generalTitle.Font = New System.Drawing.Font("Segoe UI",13.0!,System.Drawing.FontStyle.Bold)
-        Me.generalDescription.Text = "Shared pallet ID format in SQL Server"
-        Me.generalButton.Text = "Open general"
+        Me.generalDescription.Text = "Formato de pallet compartido en SQL Server"
+        Me.generalButton.Text = "Abrir configuración"
         Me.generalButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.generalButton.ForeColor = System.Drawing.Color.White
         Me.generalCard.Controls.Add(Me.generalTitle)
@@ -191,7 +191,7 @@ Partial Class SetupDashboardForm
         Me.MinimumSize = New System.Drawing.Size(0,0)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.Text = "Pack and Ship | Setup"
+        Me.Text = "PackAndShip | Configuración"
         Me.BackColor = System.Drawing.Color.FromArgb(244,247,250)
         Me.Font = New System.Drawing.Font("Segoe UI",10.0!)
         Me.ResumeLayout(False)

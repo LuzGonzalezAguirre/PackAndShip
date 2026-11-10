@@ -53,7 +53,7 @@ Public Class PartialPalletAuthorizationForm
         If barcodeInput.Text.Trim() = "" OrElse passwordInput.Text = "" OrElse
            reasonInput.Text.Trim().Length < 10 Then
             MessageBox.Show("Ingresa las credenciales de autorización y un motivo de al menos 10 caracteres.",
-                            "Required", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                            "Obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
         Try

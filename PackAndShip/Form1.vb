@@ -109,15 +109,18 @@ Public Class Form1
         End Try
     End Sub
 
-    ' Bounded exponential backoff: 5, 10, 20, 40, 80, 160, 300 s.
-    ' Probes run off the UI thread, never overlap, and only query CCS.
+    ' Comprobación no bloqueante: una interrupción de red NO cierra el programa.
+    ' Los reintentos solo consultan CCS y concilian operaciones pendientes
+    ' con las salvaguardas de ConnectionRecovery.
     Private Async Sub ConnectionTimerTick(sender As Object, e As EventArgs)
-        If connectionBusy OrElse SessionContext.UserId <= 0 Then Return
+        If connectionBusy OrElse SessionContext.UserId <= 0 OrElse IsDisposed Then Return
         connectionBusy = True
         connectionTimer.Stop()
         Try
             Dim result = Await System.Threading.Tasks.Task.Run(
                 Function() ConnectionRecovery.CheckAndRecover())
+            If IsDisposed OrElse Disposing Then Return
+
             Dim restored = connectionChecked AndAlso connectionFailed
             connectionChecked = True
             connectionFailed = False
@@ -125,44 +128,78 @@ Public Class Form1
             connectionLabel.ForeColor = If(result.StartsWith("REVIEW REQUIRED"),
                                            Color.DarkRed, Color.DarkGreen)
             connectionLabel.Text = "CCS: CONECTADO | " & result
-            If result.StartsWith("RECOVERED") OrElse result.StartsWith("NOT CLOSED") OrElse
-               result.StartsWith("NOT CANCELLED") Then
-                scannerView.AfterRecovery(result)
-            ElseIf result = "CONNECTED" AndAlso restored Then
-                scannerView.AfterRecovery()
-            End If
-            If restored Then
-                MessageBox.Show("Conexión con SQL Server restablecida." & Environment.NewLine &
-                                result, "Conexión PackAndShip",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information)
-            End If
+
+            Try
+                If result.StartsWith("RECOVERED") OrElse result.StartsWith("NOT CLOSED") OrElse
+                   result.StartsWith("NOT CANCELLED") Then
+                    scannerView.AfterRecovery(result)
+                ElseIf result = "CONNECTED" AndAlso restored Then
+                    scannerView.AfterRecovery()
+                End If
+            Catch refreshError As Exception
+                ' Si falla la actualización visual, no debe terminar el turno.
+                connectionLabel.ForeColor = Color.DarkRed
+                connectionLabel.Text = "CCS: conectado; se requiere actualizar el pallet."
+                System.Diagnostics.Debug.WriteLine(
+                    "[PackAndShip] Error al actualizar tras reconexión: " & refreshError.ToString())
+            End Try
+
+            ' No interrumpir al operador con cuadros de diálogo tras un corte breve.
             connectionTimer.Interval = 30000
+
         Catch ex As Exception
+            If IsDisposed OrElse Disposing Then Return
+            System.Diagnostics.Debug.WriteLine(
+                "[PackAndShip] Comprobación CCS fallida; la aplicación sigue abierta: " &
+                ex.ToString())
+
             Dim sqlError = TryCast(ex, Microsoft.Data.SqlClient.SqlException)
-            If sqlError IsNot Nothing AndAlso
-               (sqlError.Number >= 50000 OrElse sqlError.Number = 2601 OrElse
-                sqlError.Number = 2627) Then
-                ConnectionRecovery.FlagReview(ex.Message)
+            Dim businessRejection = sqlError IsNot Nothing AndAlso
+                (sqlError.Number >= 50000 OrElse sqlError.Number = 2601 OrElse
+                 sqlError.Number = 2627)
+
+            If businessRejection Then
+                ' Una operación rechazada no debe reproducirse automáticamente.
+                Try
+                    ConnectionRecovery.FlagReview(ex.Message)
+                Catch pendingError As Exception
+                    System.Diagnostics.Debug.WriteLine(
+                        "[PackAndShip] No se pudo marcar la operación para revisión: " &
+                        pendingError.ToString())
+                End Try
                 connectionChecked = True
                 connectionFailed = False
                 failureCount = 0
                 connectionLabel.ForeColor = Color.DarkRed
-                connectionLabel.Text = "CCS: CONECTADO | La última operación requiere revisión: " & ex.Message
+                connectionLabel.Text = "CCS: se requiere revisar la última operación SQL."
                 connectionTimer.Interval = 30000
-                Return
+            Else
+                ' Error transitorio, permiso de red o servidor no disponible.
+                ' No cerrar Form1, no cerrar el pallet y no reenviar piezas a ciegas.
+                connectionChecked = True
+                connectionFailed = True
+                failureCount = Math.Min(failureCount + 1, 7)
+                Dim seconds = CInt(Math.Min(300, 5 * Math.Pow(2, failureCount - 1)))
+                connectionTimer.Interval = seconds * 1000
+                connectionLabel.ForeColor = Color.DarkRed
+                connectionLabel.Text = "CCS: DESCONECTADO | Reintento en " &
+                                       seconds.ToString() & " s"
+                Try
+                    If ConnectionRecovery.Pending() IsNot Nothing Then
+                        connectionLabel.Text &= " | Operación SQL pendiente de verificar"
+                    End If
+                Catch pendingError As Exception
+                    connectionLabel.Text &= " | Revisar registro local"
+                    System.Diagnostics.Debug.WriteLine(
+                        "[PackAndShip] Error al consultar registro pendiente: " &
+                        pendingError.ToString())
+                End Try
             End If
-            connectionChecked = True
-            connectionFailed = True
-            failureCount += 1
-            Dim seconds = CInt(Math.Min(300, 5 * Math.Pow(2, Math.Min(6, failureCount - 1))))
-            connectionTimer.Interval = seconds * 1000
-            connectionLabel.ForeColor = Color.DarkRed
-            connectionLabel.Text = "CCS: DESCONECTADO | Nuevo intento en " & seconds &
-                                   "s | " & If(ConnectionRecovery.Pending() Is Nothing,
-                                               "Sin operaciones SQL pendientes", "Última operación guardada localmente")
         Finally
             connectionBusy = False
-            If SessionContext.UserId > 0 Then connectionTimer.Start()
+            If Not IsDisposed AndAlso Not Disposing AndAlso SessionContext.UserId > 0 Then
+                connectionTimer.Start()
+            End If
         End Try
     End Sub
 

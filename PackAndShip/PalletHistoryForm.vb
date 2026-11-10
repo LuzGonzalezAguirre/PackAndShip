@@ -143,7 +143,7 @@ Public Class PalletHistoryForm
             dialog.CancelButton = cancel
             If dialog.ShowDialog(Me) <> DialogResult.OK Then Return Nothing
             If reason.Text.Trim().Length < 10 Then
-                MessageBox.Show("El motivo debe tener al menos 10 caracteres.", "Required")
+                MessageBox.Show("El motivo debe tener al menos 10 caracteres.", "Obligatorio")
                 Return Nothing
             End If
             Return reason.Text.Trim()
@@ -170,7 +170,7 @@ Public Class PalletHistoryForm
         If selectedId <= 0 OrElse Not cancelButton.Enabled OrElse
            grid.SelectedRows.Count = 0 Then Return
         Dim code = Convert.ToString(grid.SelectedRows(0).Cells("Pallet").Value)
-        Dim required = Convert.ToInt32(grid.SelectedRows(0).Cells("Required").Value)
+        Dim required = Convert.ToInt32(grid.SelectedRows(0).Cells("Obligatorio").Value)
         Using auth As New PartialPalletAuthorizationForm(code, 0, required, True)
             If auth.ShowDialog(Me) <> DialogResult.OK Then Return
             If MessageBox.Show(

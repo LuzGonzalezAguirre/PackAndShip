@@ -61,7 +61,7 @@ Public Class PalletConfigurationForm
                 GroupBy(Function(p) p.BusinessUnitId.Value).
                 Select(Function(g) New BusinessUnit With {.Id = g.Key, .Name = g.First().BusinessUnit}).
                 OrderBy(Function(b) b.Name).ToList()
-            customers.Insert(0, New BusinessUnit With {.Id = 0, .Name = "All customers"})
+            customers.Insert(0, New BusinessUnit With {.Id = 0, .Name = "Todos los clientes"})
             Dim selectedCustomerId As Integer = SessionContext.BusinessUnitId
             Dim previousCustomer = TryCast(buPicker.SelectedItem, BusinessUnit)
             If previousCustomer IsNot Nothing Then
@@ -76,7 +76,7 @@ Public Class PalletConfigurationForm
             FilterParts(selectedId)
         Catch ex As Exception
             isLoading = False
-            MessageBox.Show(ex.Message, "Cannot load part catalog",
+            MessageBox.Show(ex.Message, "No se pudo cargar el catálogo de partes",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -105,7 +105,7 @@ Public Class PalletConfigurationForm
         Else
             selectedPart = Nothing
             titleLabel.Text = "Select a part number"
-            statusLabel.Text = options.Count & " matching parts"
+            statusLabel.Text = options.Count & " partes coincidentes"
             ClearLevels()
             EnableEditor(False)
         End If
@@ -127,20 +127,20 @@ Public Class PalletConfigurationForm
             titleLabel.Text = selectedPart.DisplayName
             statusLabel.Text = selectedPart.BusinessUnit
             If config Is Nothing Then
-                statusLabel.Text = selectedPart.BusinessUnit & " • Not configured • New configuration"
+                statusLabel.Text = selectedPart.BusinessUnit & " • Sin configurar • Configuración nueva"
                 activeCheck.Checked = True
                 AddLevel(1)
             Else
-                statusLabel.Text = selectedPart.BusinessUnit & " • Existing configuration"
+                statusLabel.Text = selectedPart.BusinessUnit & " • Configuración existente"
                 activeCheck.Checked = config.IsActive
                 For Each quantity In config.Levels
                     AddLevel(quantity)
                 Next
                 If config.Levels.Count = 0 Then
-                    statusLabel.Text = "Existing configuration has no levels; correct before saving."
+                    statusLabel.Text = "La configuración existente no tiene niveles; corrige antes de guardar."
                 End If
                 If config.Levels.Sum(Function(x) CLng(x)) <> CLng(config.TotalPieces) Then
-                    statusLabel.Text = "Warning: stored total does not match the levels."
+                    statusLabel.Text = "Advertencia: el total guardado no coincide con los niveles."
                 End If
             End If
             levelCountInput.Value = Math.Max(1, Math.Min(1000, quantityInputs.Count))
@@ -148,7 +148,7 @@ Public Class PalletConfigurationForm
             EnableEditor(True)
         Catch ex As Exception
             EnableEditor(False)
-            MessageBox.Show(ex.Message, "Cannot load pallet configuration",
+            MessageBox.Show(ex.Message, "No se pudo cargar la configuración del pallet",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -171,13 +171,13 @@ Public Class PalletConfigurationForm
         Dim numberOfLevels = CInt(levelCountInput.Value)
         Dim pieces = CInt(piecesPerLevelInput.Value)
         If CLng(numberOfLevels) * CLng(pieces) > Integer.MaxValue Then
-            MessageBox.Show("The total exceeds the supported maximum.",
-                            "Invalid configuration", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show("El total supera el máximo permitido.",
+                            "Configuración inválida", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
         If quantityInputs.Count > 0 AndAlso
-           MessageBox.Show("Replace the currently displayed levels? Unsaved changes will be lost.",
-                           "Generate levels", MessageBoxButtons.YesNo,
+           MessageBox.Show("¿Reemplazar los niveles mostrados? Se perderán los cambios sin guardar.",
+                           "Generar niveles", MessageBoxButtons.YesNo,
                            MessageBoxIcon.Question) <> DialogResult.Yes Then
             Return
         End If
@@ -209,12 +209,12 @@ Public Class PalletConfigurationForm
             .BackColor = Color.White, .Margin = New Padding(0, 0, 0, 8)
         }
         Dim levelTitle As New Label With {
-            .Text = "Level " & (quantityInputs.Count + 1),
+            .Text = "Nivel " & (quantityInputs.Count + 1),
             .Font = New Font("Segoe UI", 12, FontStyle.Bold),
             .ForeColor = navy, .Location = New Point(15, 17), .Size = New Size(120, 35)
         }
         Dim countText As New Label With {
-            .Text = "Required pieces:", .Location = New Point(145, 23),
+            .Text = "Piezas requeridas:", .Location = New Point(145, 23),
             .AutoSize = True
         }
         Dim input As New NumericUpDown With {
@@ -229,7 +229,7 @@ Public Class PalletConfigurationForm
         }
         AddHandler remove.Click, Sub()
                                      If quantityInputs.Count <= 1 Then
-                                         MessageBox.Show("A pallet needs at least one level.")
+                                         MessageBox.Show("Un pallet necesita al menos un nivel.")
                                          Return
                                      End If
                                      quantityInputs.Remove(input)
@@ -248,7 +248,7 @@ Public Class PalletConfigurationForm
     Private Sub RenumberLevels()
         For i = 0 To levelsPanel.Controls.Count - 1
             Dim row = DirectCast(levelsPanel.Controls(i), Panel)
-            DirectCast(row.Controls(0), Label).Text = "Level " & (i + 1)
+            DirectCast(row.Controls(0), Label).Text = "Nivel " & (i + 1)
         Next
     End Sub
 
@@ -259,9 +259,9 @@ Public Class PalletConfigurationForm
     End Sub
 
     Private Sub UpdateTotals()
-        countLabel.Text = quantityInputs.Count & " levels"
+        countLabel.Text = quantityInputs.Count & " niveles"
         Dim pieces As Long = quantityInputs.Sum(Function(n) CLng(n.Value))
-        totalLabel.Text = "Total: " & pieces & " pieces"
+        totalLabel.Text = "Total: " & pieces & " piezas"
         saveButton.Enabled = selectedPart IsNot Nothing AndAlso
                              quantityInputs.Count > 0 AndAlso pieces <= Integer.MaxValue
     End Sub
@@ -274,13 +274,13 @@ Public Class PalletConfigurationForm
         Dim quantities = quantityInputs.Select(Function(input) CInt(input.Value)).ToList()
         Try
             PalletConfigurationData.SaveConfiguration(selectedPart.Id, quantities, activeCheck.Checked)
-            MessageBox.Show("Pallet configuration saved successfully.",
+            MessageBox.Show("Configuración de pallet guardada correctamente.",
                             "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information)
             Dim currentPartId = selectedPart.Id
             LoadParts()
             FilterParts(currentPartId)
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Cannot save configuration",
+            MessageBox.Show(ex.Message, "No se pudo guardar la configuración",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub

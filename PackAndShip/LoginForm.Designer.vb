@@ -108,7 +108,8 @@ Partial Class LoginForm
         Me.MaximizeBox = True
         Me.MinimizeBox = True
         Me.Text = "PackAndShip | Inicio de sesión"
-        Me.AcceptButton = Me.buttonLogin
+        ' El Enter avanza por los controles; el botón ejecuta el acceso.
+        Me.AcceptButton = Nothing
         Me.Controls.Add(Me.titleLabel)
         Me.Controls.Add(Me.sectionLogin)
         Me.Controls.Add(Me.barcodeLabel)

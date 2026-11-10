@@ -52,7 +52,7 @@ Public Class PartialPalletAuthorizationForm
     Private Sub Authorize(sender As Object, e As EventArgs)
         If barcodeInput.Text.Trim() = "" OrElse passwordInput.Text = "" OrElse
            reasonInput.Text.Trim().Length < 10 Then
-            MessageBox.Show("Enter authorizer credentials and a reason of at least 10 characters.",
+            MessageBox.Show("Ingresa las credenciales de autorización y un motivo de al menos 10 caracteres.",
                             "Required", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -60,7 +60,7 @@ Public Class PartialPalletAuthorizationForm
             Dim user = PackAndShipData.Authenticate(
                 barcodeInput.Text.Trim().ToUpperInvariant(), passwordInput.Text)
             If user Is Nothing Then
-                Throw New UnauthorizedAccessException("Invalid or inactive authorizer credentials.")
+                Throw New UnauthorizedAccessException("Credenciales de autorización incorrectas o usuario inactivo.")
             End If
             If user.Id = SessionContext.UserId Then
                 Throw New UnauthorizedAccessException("Una segunda persona debe autorizar el pallet parcial.")

@@ -300,6 +300,12 @@ Public Class Form1
     End Sub
 
     Private Sub ChangeDefaultCustomer(sender As Object, e As EventArgs)
+        If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
+            MessageBox.Show("Tu rol no puede cambiar Configuración.", "Acceso denegado",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
         Dim openCode = StationSettings.ReadLockedPallet()
         If openCode <> "" Then
             MessageBox.Show("Termina el pallet " & openCode &
@@ -307,95 +313,24 @@ Public Class Form1
                             "Pallet activo", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
-        If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Tu rol no puede cambiar Configuración.", "Acceso denegado")
-            Return
-        End If
+
         If units.Count = 0 Then
             ReloadCustomers()
             If units.Count = 0 Then Return
         End If
 
-        Using dialog As New Form With {
-            .Text = "PackAndShip | Configuración de cliente",
-            .Size = New Size(550, 385),
-            .MinimumSize = New Size(550, 385),
-            .MaximumSize = New Size(550, 385),
-            .StartPosition = FormStartPosition.CenterParent,
-            .FormBorderStyle = FormBorderStyle.FixedDialog,
-            .MaximizeBox = False, .MinimizeBox = False
-        }
-            PaSTheme.ConfigureForm(dialog)
-
-            Dim topPanel As New Panel With {
-                .Dock = DockStyle.Top, .Height = 82,
-                .BackColor = PaSTheme.Navy
-            }
-            topPanel.Controls.Add(New Label With {
-                .Text = "Configuración de cliente",
-                .Location = New Point(23, 12), .AutoSize = True,
-                .Font = New Font("Segoe UI", 19, FontStyle.Bold),
-                .ForeColor = Color.White
-            })
-            topPanel.Controls.Add(New Label With {
-                .Text = "Cliente predeterminado de esta estación",
-                .Location = New Point(25, 53), .AutoSize = True,
-                .ForeColor = Color.FromArgb(220, 233, 247)
-            })
-            dialog.Controls.Add(topPanel)
-
-            Dim contentPanel As New Panel With {
-                .Dock = DockStyle.Fill,
-                .BackColor = PaSTheme.Background,
-                .Padding = New Padding(24)
-            }
-            Dim caption As New Label With {
-                .Text = "Customer",
-                .Location = New Point(24, 79),
-                .Size = New Size(460, 25),
-                .ForeColor = PaSTheme.TextPrimary,
-                .Font = New Font("Segoe UI", 10, FontStyle.Bold)
-            }
-            Dim picker As New ComboBox With {
-                .Location = New Point(24, 108),
-                .Size = New Size(476, 33),
-                .DropDownStyle = ComboBoxStyle.DropDownList,
-                .Font = New Font("Segoe UI", 11)
-            }
-            contentPanel.Controls.AddRange(New Control() {caption, picker})
-            dialog.Controls.Add(contentPanel)
-
-            picker.DisplayMember = "Name"
-            picker.ValueMember = "Id"
-            picker.DataSource = New List(Of BusinessUnit)(units)
-            If SessionContext.BusinessUnitId > 0 Then
-                Dim savedCustomer = units.Find(Function(u) u.Id = SessionContext.BusinessUnitId)
-                If savedCustomer IsNot Nothing Then picker.SelectedValue = savedCustomer.Id
-            End If
-
-            Dim footer As New Panel With {
-                .Dock = DockStyle.Bottom, .Height = 78,
-                .BackColor = PaSTheme.Surface
-            }
-            Dim save = PaSTheme.ActionButton("Guardar", True)
-            save.Location = New Point(365, 18)
-            save.Size = New Size(145, 40)
-            save.DialogResult = DialogResult.OK
-            Dim cancel = PaSTheme.ActionButton("Cancelar", False)
-            cancel.Location = New Point(215, 18)
-            cancel.Size = New Size(135, 40)
-            cancel.DialogResult = DialogResult.Cancel
-            footer.Controls.AddRange(New Control() {cancel, save})
-            dialog.Controls.Add(footer)
-            footer.BringToFront()
-            topPanel.BringToFront()
-            dialog.AcceptButton = save
-            dialog.CancelButton = cancel
-
+        Using dialog As New CustomerConfigurationForm(units, SessionContext.BusinessUnitId)
             If dialog.ShowDialog(Me) <> DialogResult.OK Then Return
-            Dim selected = TryCast(picker.SelectedItem, BusinessUnit)
+            Dim selected = dialog.SelectedCustomer
             If selected Is Nothing Then Return
+
             Try
+                ' Segunda comprobación: evita guardar si se abrió un pallet
+                ' mientras se mostraba el formulario de configuración.
+                If StationSettings.ReadLockedPallet() <> "" Then
+                    Throw New InvalidOperationException(
+                        "No se puede cambiar el cliente mientras haya un pallet activo.")
+                End If
                 StationSettings.SaveCustomerId(selected.Id)
                 RefreshCustomer()
                 scannerView.LoadStation()

@@ -64,7 +64,7 @@ Public Class Form1
             RefreshCustomer()
         Catch ex As Exception
             units.Clear()
-            MessageBox.Show(ex.Message, "SQL Server connection", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(ex.Message, "Conexión con SQL Server", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -124,7 +124,7 @@ Public Class Form1
             failureCount = 0
             connectionLabel.ForeColor = If(result.StartsWith("REVIEW REQUIRED"),
                                            Color.DarkRed, Color.DarkGreen)
-            connectionLabel.Text = "CCS: CONNECTED | " & result
+            connectionLabel.Text = "CCS: CONECTADO | " & result
             If result.StartsWith("RECOVERED") OrElse result.StartsWith("NOT CLOSED") OrElse
                result.StartsWith("NOT CANCELLED") Then
                 scannerView.AfterRecovery(result)
@@ -132,8 +132,8 @@ Public Class Form1
                 scannerView.AfterRecovery()
             End If
             If restored Then
-                MessageBox.Show("SQL Server connection restored." & Environment.NewLine &
-                                result, "PackAndShip connection",
+                MessageBox.Show("Conexión con SQL Server restablecida." & Environment.NewLine &
+                                result, "Conexión PackAndShip",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information)
             End If
             connectionTimer.Interval = 30000
@@ -147,7 +147,7 @@ Public Class Form1
                 connectionFailed = False
                 failureCount = 0
                 connectionLabel.ForeColor = Color.DarkRed
-                connectionLabel.Text = "CCS: CONNECTED | Last action requires review: " & ex.Message
+                connectionLabel.Text = "CCS: CONECTADO | La última operación requiere revisión: " & ex.Message
                 connectionTimer.Interval = 30000
                 Return
             End If
@@ -157,9 +157,9 @@ Public Class Form1
             Dim seconds = CInt(Math.Min(300, 5 * Math.Pow(2, Math.Min(6, failureCount - 1))))
             connectionTimer.Interval = seconds * 1000
             connectionLabel.ForeColor = Color.DarkRed
-            connectionLabel.Text = "CCS: DISCONNECTED | Retry in " & seconds &
+            connectionLabel.Text = "CCS: DESCONECTADO | Nuevo intento en " & seconds &
                                    "s | " & If(ConnectionRecovery.Pending() Is Nothing,
-                                               "No pending SQL action", "Last action saved locally")
+                                               "Sin operaciones SQL pendientes", "Última operación guardada localmente")
         Finally
             connectionBusy = False
             If SessionContext.UserId > 0 Then connectionTimer.Start()
@@ -168,19 +168,19 @@ Public Class Form1
 
     Private Sub OpenPalletTransfers(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 Then
-            MessageBox.Show("Sign in to transfer a partial pallet.", "Access denied")
+            MessageBox.Show("Inicia sesión para transferir un pallet parcial.", "Acceso denegado")
             Return
         End If
         If ConnectionRecovery.Pending() IsNot Nothing Then
-            MessageBox.Show("Resolve the pending SQL operation before transferring pallets.",
-                            "Pending operation", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show("Resuelve la operación SQL pendiente antes de transferir pallets.",
+                            "Operación pendiente", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
         Dim locked = StationSettings.ReadLockedPallet()
         If locked <> "" Then
-            MessageBox.Show("Finish current pallet " & locked &
-                            " before transferring another pallet.",
-                            "Active pallet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show("Termina el pallet actual " & locked &
+                            " antes de transferir otro pallet.",
+                            "Pallet activo", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
 
@@ -191,12 +191,12 @@ Public Class Form1
                 ' the new pallet can be restored with Open / Load.
                 scannerView.LoadTransferredPallet(dialog.DestinationCode)
             Catch ex As Exception
-                MessageBox.Show("Transfer saved in SQL. New pallet: " &
+                MessageBox.Show("Transferencia guardada en SQL. Pallet nuevo: " &
                                 dialog.DestinationCode & Environment.NewLine &
-                                "Automatic loading failed: " & ex.Message &
+                                "Falló la carga automática: " & ex.Message &
                                 Environment.NewLine &
                                 "Load the new pallet from the scanner manually.",
-                                "Pallet transferred", MessageBoxButtons.OK,
+                                "Pallet transferido", MessageBoxButtons.OK,
                                 MessageBoxIcon.Warning)
             End Try
         End Using
@@ -204,7 +204,7 @@ Public Class Form1
 
     Private Sub OpenPalletHistory(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 Then
-            MessageBox.Show("Sign in to view pallet history.", "Access denied")
+            MessageBox.Show("Inicia sesión para ver el historial de pallets.", "Acceso denegado")
             Return
         End If
         Using dialog As New PalletHistoryForm()
@@ -214,13 +214,13 @@ Public Class Form1
         Try
             scannerView.RefreshAfterHistory()
         Catch ex As Exception
-            MessageBox.Show(ex.Message, "Pallet refresh", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show(ex.Message, "Actualización de pallet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
     End Sub
 
     Private Sub OpenScanRules(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Your role cannot access Setup.", "Access denied",
+            MessageBox.Show("Tu rol no puede acceder a Configuración.", "Acceso denegado",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -231,7 +231,7 @@ Public Class Form1
 
     Private Sub OpenPalletConfiguration(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Your role cannot modify Setup.", "Access denied",
+            MessageBox.Show("Tu rol no puede modificar Configuración.", "Acceso denegado",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -242,7 +242,7 @@ Public Class Form1
 
     Private Sub OpenUsersSetup(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Your role cannot modify Setup.", "Access denied",
+            MessageBox.Show("Tu rol no puede modificar Configuración.", "Acceso denegado",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -253,7 +253,7 @@ Public Class Form1
 
     Private Sub OpenGeneralSettings(sender As Object, e As EventArgs)
         If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Your role cannot modify Setup.", "Access denied",
+            MessageBox.Show("Tu rol no puede modificar Configuración.", "Acceso denegado",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -267,11 +267,11 @@ Public Class Form1
         If openCode <> "" Then
             MessageBox.Show("Finish pallet " & openCode &
                             " (complete or authorized partial) before changing this station's customer.",
-                            "Active pallet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                            "Pallet activo", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
         If SessionContext.UserId <= 0 OrElse Not SessionContext.CanModifySetup Then
-            MessageBox.Show("Your role cannot change Setup.", "Access denied")
+            MessageBox.Show("Tu rol no puede cambiar Configuración.", "Acceso denegado")
             Return
         End If
         If units.Count = 0 Then
@@ -280,7 +280,7 @@ Public Class Form1
         End If
 
         Using dialog As New Form With {
-            .Text = "PackAndShip | Customer Configuration",
+            .Text = "PackAndShip | Configuración de cliente",
             .Size = New Size(550, 385),
             .MinimumSize = New Size(550, 385),
             .MaximumSize = New Size(550, 385),
@@ -295,13 +295,13 @@ Public Class Form1
                 .BackColor = PaSTheme.Navy
             }
             topPanel.Controls.Add(New Label With {
-                .Text = "Customer Configuration",
+                .Text = "Configuración de cliente",
                 .Location = New Point(23, 12), .AutoSize = True,
                 .Font = New Font("Segoe UI", 19, FontStyle.Bold),
                 .ForeColor = Color.White
             })
             topPanel.Controls.Add(New Label With {
-                .Text = "Default customer for this workstation",
+                .Text = "Cliente predeterminado de esta estación",
                 .Location = New Point(25, 53), .AutoSize = True,
                 .ForeColor = Color.FromArgb(220, 233, 247)
             })
@@ -363,7 +363,7 @@ Public Class Form1
                 RefreshCustomer()
                 scannerView.LoadStation()
             Catch ex As Exception
-                MessageBox.Show(ex.Message, "Station configuration error",
+                MessageBox.Show(ex.Message, "Error de configuración de estación",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error)
             End Try
         End Using
@@ -392,7 +392,7 @@ Public Class Form1
         If SessionContext.UserId <= 0 Then Return
         connectionTimer.Stop()
         SessionContext.Clear()
-        connectionLabel.Text = "CCS: signed out"
+        connectionLabel.Text = "CCS: sesión cerrada"
         connectionLabel.ForeColor = Color.DimGray
         menuSetup.Enabled = False
         menuPalletActions.Enabled = False

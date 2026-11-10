@@ -242,7 +242,7 @@ Partial Class ScanRulesForm
         Me.MinimumSize = New System.Drawing.Size(0,0)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.Text = "Pack and Ship | Setup - Scan Rules"
+        Me.Text = "PackAndShip | Reglas de escaneo"
         Me.BackColor = System.Drawing.Color.FromArgb(244,247,250)
         Me.Font = New System.Drawing.Font("Segoe UI",10.0!)
         Me.ResumeLayout(False)

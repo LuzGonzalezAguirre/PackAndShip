@@ -169,24 +169,20 @@ Public Class PalletHistoryForm
     Private Sub CancelSelectedPallet(sender As Object, e As EventArgs)
         If selectedId <= 0 OrElse Not dismissButton.Enabled OrElse
            grid.SelectedRows.Count = 0 Then Return
-        Dim code = Convert.ToString(grid.SelectedRows(0).Cells("Pallet").Value)
-        Dim required = Convert.ToInt32(grid.SelectedRows(0).Cells("Obligatorio").Value)
-        Using auth As New PartialPalletAuthorizationForm(code, 0, required, True)
-            If auth.ShowDialog(Me) <> DialogResult.OK Then Return
-            If MessageBox.Show(
-                "Cancelar pallet vacío " & code & "? El código no podrá reutilizarse.",
-                "Confirmar cancelación", MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
-            Try
-                PaSPackingData.CancelEmptyPallet(
-                    selectedId, auth.AuthorizedUserId, auth.AuthorizedBarcode,
-                    auth.AuthorizedPassword, auth.Reason)
-                RefreshHistory()
-            Catch ex As Exception
-                MessageBox.Show(ex.Message, "Cancelación bloqueada",
-                                MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            End Try
-        End Using
+        Try
+            Dim pallet = PaSPackingData.ReadContainer(selectedId)
+            If pallet Is Nothing OrElse pallet.Status <> "OPEN" OrElse
+               pallet.PieceTotal <> 0 OrElse pallet.ClosedLevels <> 0 Then
+                Throw New InvalidOperationException(
+                    "Solo se puede cancelar un pallet ABIERTO, vacío y sin niveles cerrados.")
+            End If
+            Using dialog As New PalletActionAuthorizationForm(pallet, True)
+                If dialog.ShowDialog(Me) = DialogResult.OK Then RefreshHistory()
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Cancelación bloqueada",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
     End Sub
 
     Private Shared Function CsvField(value As Object) As String

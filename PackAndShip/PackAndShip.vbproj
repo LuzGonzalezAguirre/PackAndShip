@@ -30,6 +30,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="ScanRejectionForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ScanRejectionForm.Designer.vb">
+      <DependentUpon>ScanRejectionForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="DepartmentAuthorizationForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DepartmentAuthorizationForm.Designer.vb">
+      <DependentUpon>DepartmentAuthorizationForm.vb</DependentUpon>
+    </Compile>
+    <Compile Update="RoleEditorForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="RoleEditorForm.Designer.vb">
+      <DependentUpon>RoleEditorForm.vb</DependentUpon>
+    </Compile>
     <Compile Update="CustomerConfigurationForm.vb">
       <SubType>Form</SubType>
     </Compile>

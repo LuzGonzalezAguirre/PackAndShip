@@ -30,6 +30,11 @@ Public Class UsersSetupForm
         AddHandler statusButton.Click, AddressOf ToggleStatus
         AddHandler resetButton.Click, AddressOf ResetPassword
         AddHandler reloadButton.Click, Sub() LoadData()
+        AddHandler departmentsButton.Click, Sub()
+            Using dialog As New DepartmentAuthorizationForm()
+                dialog.ShowDialog(Me)
+            End Using
+        End Sub
         AddHandler searchBox.TextChanged, Sub() RenderRows()
         AddHandler roleFilter.SelectedIndexChanged, Sub() RenderRows()
         AddHandler usersGrid.CellDoubleClick, Sub(sender, e)

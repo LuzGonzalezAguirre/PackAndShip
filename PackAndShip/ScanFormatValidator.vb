@@ -35,11 +35,12 @@ Public NotInheritable Class ScanFormatValidator
             Return Fail("Scan fields do not match the configured scan count.")
         End If
         For scanIndex As Integer = 0 To rule.ScanCount - 1
+            Dim currentScanIndex = scanIndex
             Dim raw = If(scanIndex = 0, firstRaw, secondRaw)
             If String.IsNullOrWhiteSpace(raw) Then
                 Return Fail("Scan " & (scanIndex + 1) & " is required.")
             End If
-            Dim mappings = fields.Where(Function(f) f.ScanIndex = scanIndex).OrderBy(Function(f) f.SequenceOrder).ToList()
+            Dim mappings = fields.Where(Function(f) f.ScanIndex = currentScanIndex).OrderBy(Function(f) f.SequenceOrder).ToList()
             If mappings.Count = 0 Then Return Fail("Scan " & (scanIndex + 1) & " has no field configuration.")
             For Each mapping In mappings
                 Dim value As String = Nothing

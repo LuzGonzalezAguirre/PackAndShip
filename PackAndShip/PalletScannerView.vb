@@ -824,24 +824,30 @@ Public Partial Class PalletScannerView
             ResetVerification()
             Dim sqlError = TryCast(ex, Microsoft.Data.SqlClient.SqlException)
             If sqlError IsNot Nothing AndAlso
-               (sqlError.Number = 51107 OrElse sqlError.Number = 2601 OrElse
-                sqlError.Number = 2627) Then
+               (sqlError.Number = 51106 OrElse sqlError.Number = 51107 OrElse
+                sqlError.Number = 51108 OrElse sqlError.Number = 51109 OrElse
+                sqlError.Number = 2601 OrElse sqlError.Number = 2627) Then
                 ' El servidor rechazo transaccionalmente esta insercion.
                 ' Verificar en CCS antes de descartar el intento durable local.
                 Try
                     ConnectionRecovery.FlagReview(ex.Message)
                     ConnectionRecovery.DismissRejectedAfterCheck()
-                    Dim part = TryCast(partPicker.SelectedItem, PaSPart)
-                    Dim location = If(part Is Nothing, "",
-                        RejectionAuthorizationData.FindPackedSerial(
-                            part.Id, firstQr.Text.Trim(), secondQr.Text.Trim()))
-                    Dim same = activeContainer IsNot Nothing AndAlso
-                        String.Equals(location, activeContainer.Code,
-                                      StringComparison.OrdinalIgnoreCase)
-                    RejectPiece(If(same, "DUPLICATE_SAME", "DUPLICATE_OTHER"),
-                        If(location = "", "Pieza duplicada: ya se encuentra empacada.",
-                           If(same, "La pieza ya esta en ESTE CONTENEDOR: ",
-                                    "La pieza ya esta en OTRO CONTENEDOR: ") & location))
+                    If sqlError.Number = 51106 OrElse sqlError.Number = 51108 OrElse
+                       sqlError.Number = 51109 Then
+                        RejectPiece("QWALL_REJECT", "Q-Wall rechazó la pieza: " & ex.Message)
+                    Else
+                        Dim part = TryCast(partPicker.SelectedItem, PaSPart)
+                        Dim location = If(part Is Nothing, "",
+                            RejectionAuthorizationData.FindPackedSerial(
+                                part.Id, firstQr.Text.Trim(), secondQr.Text.Trim()))
+                        Dim same = activeContainer IsNot Nothing AndAlso
+                            String.Equals(location, activeContainer.Code,
+                                          StringComparison.OrdinalIgnoreCase)
+                        RejectPiece(If(same, "DUPLICATE_SAME", "DUPLICATE_OTHER"),
+                            If(location = "", "Pieza duplicada: ya se encuentra empacada.",
+                               If(same, "La pieza ya esta en ESTE CONTENEDOR: ",
+                                        "La pieza ya esta en OTRO CONTENEDOR: ") & location))
+                    End If
                     Return
                 Catch recoveryEx As Exception
                     ShowPackingError(recoveryEx)

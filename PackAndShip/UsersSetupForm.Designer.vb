@@ -12,7 +12,7 @@ Partial Class UsersSetupForm
     End Sub
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
-        Me.top = New System.Windows.Forms.Panel()
+        Me.headerPanel = New System.Windows.Forms.Panel()
         Me.heading = New System.Windows.Forms.Label()
         Me.subheading = New System.Windows.Forms.Label()
         Me.actions = New System.Windows.Forms.Panel()
@@ -35,9 +35,9 @@ Partial Class UsersSetupForm
         Me.columnRoleName = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.columnIsActive = New System.Windows.Forms.DataGridViewCheckBoxColumn()
         Me.SuspendLayout()
-        Me.top.Name = "top"
-        Me.top.Location = New System.Drawing.Point(0,0)
-        Me.top.Size = New System.Drawing.Size(1060,92)
+        Me.headerPanel.Name = "headerPanel"
+        Me.headerPanel.Location = New System.Drawing.Point(0,0)
+        Me.headerPanel.Size = New System.Drawing.Size(1060,92)
         Me.heading.Name = "heading"
         Me.heading.Location = New System.Drawing.Point(22,13)
         Me.heading.Size = New System.Drawing.Size(600,37)
@@ -99,7 +99,7 @@ Partial Class UsersSetupForm
         Me.reloadButton.Text = "Actualizar"
         Me.searchLabel.Text = "Buscar"
         Me.roleLabel.Text = "Rol"
-        Me.top.BackColor = System.Drawing.Color.FromArgb(31,78,121)
+        Me.headerPanel.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.heading.ForeColor = System.Drawing.Color.White
         Me.subheading.ForeColor = System.Drawing.Color.White
         Me.heading.Font = New System.Drawing.Font("Segoe UI",22.0!,System.Drawing.FontStyle.Bold)
@@ -155,8 +155,8 @@ Partial Class UsersSetupForm
         Me.reloadButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.reloadButton.ForeColor = System.Drawing.Color.White
         Me.reloadButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.top.Controls.Add(Me.heading)
-        Me.top.Controls.Add(Me.subheading)
+        Me.headerPanel.Controls.Add(Me.heading)
+        Me.headerPanel.Controls.Add(Me.subheading)
         Me.actions.Controls.Add(Me.newButton)
         Me.actions.Controls.Add(Me.editButton)
         Me.actions.Controls.Add(Me.statusButton)
@@ -168,7 +168,7 @@ Partial Class UsersSetupForm
         Me.searchPanel.Controls.Add(Me.roleLabel)
         Me.searchPanel.Controls.Add(Me.roleFilter)
         Me.searchPanel.Controls.Add(Me.countLabel)
-        Me.Controls.Add(Me.top)
+        Me.Controls.Add(Me.headerPanel)
         Me.Controls.Add(Me.actions)
         Me.Controls.Add(Me.searchPanel)
         Me.Controls.Add(Me.usersGrid)
@@ -181,7 +181,7 @@ Partial Class UsersSetupForm
         Me.Font = New System.Drawing.Font("Segoe UI",10.0!)
         Me.ResumeLayout(False)
     End Sub
-    Friend WithEvents top As System.Windows.Forms.Panel
+    Friend WithEvents headerPanel As System.Windows.Forms.Panel
     Friend WithEvents heading As System.Windows.Forms.Label
     Friend WithEvents subheading As System.Windows.Forms.Label
     Friend WithEvents actions As System.Windows.Forms.Panel

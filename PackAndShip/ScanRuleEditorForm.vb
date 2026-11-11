@@ -249,7 +249,8 @@ Public Class ScanRuleEditorForm
             Return
         End Try
         For index As Integer = 0 To CInt(scanCount.Value) - 1
-            If Not fieldModels.Any(Function(f) f.ScanIndex = index) Then
+            Dim currentIndex = index
+            If Not fieldModels.Any(Function(f) f.ScanIndex = currentIndex) Then
                 MessageBox.Show("Escaneo " & (index + 1) & " necesita al menos un campo.")
                 Return
             End If

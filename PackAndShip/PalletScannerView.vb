@@ -155,6 +155,66 @@ Public Partial Class PalletScannerView
         VerifyAndRecord()
     End Sub
 
+    ' La liberacion siempre se comprueba en CCS, nunca solo en memoria local.
+    Private Function RejectionAllowsScan() As Boolean
+        If activeContainer Is Nothing OrElse activeContainer.Status <> "OPEN" Then Return True
+        Try
+            Dim blocked = RejectionAuthorizationData.Pending(activeContainer.Id)
+            If blocked Is Nothing Then Return True
+            ResetVerification()
+            Using dialog As New ScanRejectionForm(blocked, activeContainer.Code)
+                dialog.ShowDialog(FindForm())
+            End Using
+            Dim stillBlocked = RejectionAuthorizationData.Pending(activeContainer.Id)
+            If stillBlocked IsNot Nothing Then
+                scanStatus.ForeColor = Color.DarkRed
+                scanStatus.Text = "ESCANEO BLOQUEADO: faltan aprobaciones del rechazo."
+                Return False
+            End If
+            firstQr.Clear()
+            secondQr.Clear()
+            scanStatus.ForeColor = Color.DarkGreen
+            scanStatus.Text = "Rechazo autorizado. Retira la pieza rechazada y escanea otra pieza válida."
+            Return False  ' Nunca registrar automaticamente la pieza rechazada.
+        Catch ex As Exception
+            ResetVerification()
+            scanStatus.ForeColor = Color.DarkRed
+            scanStatus.Text = "Sin confirmación de autorizaciones en CCS: " & ex.Message
+            MessageBox.Show(ex.Message, "Escáner detenido: autorización no verificable",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return False
+        End Try
+    End Function
+
+    Private Sub RejectPiece(kind As String, detail As String)
+        ResetVerification()
+        scanStatus.ForeColor = Color.DarkRed
+        scanStatus.Text = "RECHAZADO: " & detail
+        If activeContainer Is Nothing OrElse activeContainer.Status <> "OPEN" Then
+            MessageBox.Show(detail, "PIEZA RECHAZADA", MessageBoxButtons.OK, MessageBoxIcon.Stop)
+            Return
+        End If
+        Try
+            Dim info = RejectionAuthorizationData.Register(
+                activeContainer.Id, kind, firstQr.Text.Trim(), secondQr.Text.Trim(), detail)
+            If info Is Nothing Then Throw New InvalidOperationException("No se confirmó el bloqueo del pallet.")
+            Using dialog As New ScanRejectionForm(info, activeContainer.Code)
+                dialog.ShowDialog(FindForm())
+            End Using
+            firstQr.Clear()
+            secondQr.Clear()
+        Catch ex As Exception
+            scanStatus.ForeColor = Color.DarkRed
+            scanStatus.Text = "RECHAZO — intervención de TI requerida: " & ex.Message
+            MessageBox.Show(detail & Environment.NewLine & Environment.NewLine &
+                            "No se pudo confirmar el bloqueo en CCS: " & ex.Message &
+                            Environment.NewLine & "Detén el escaneo y notifica a TI.",
+                            "PIEZA RECHAZADA — DETENER ESTACIÓN",
+                            MessageBoxButtons.OK, MessageBoxIcon.Stop)
+            ' No continuar mientras falle la comprobacion del bloqueo en CCS.
+        End Try
+    End Sub
+
     Private Sub VerifyAndRecord()
         If autoScanBusy Then Return
         autoScanBusy = True
@@ -170,6 +230,7 @@ Public Partial Class PalletScannerView
                 scanStatus.Text = "Confirma el nivel completo antes de escanear más piezas."
                 Return
             End If
+            If Not RejectionAllowsScan() Then Return
             VerifyQrFormat()
             If recordButton.Enabled Then
                 RecordPiece(Me, EventArgs.Empty)
@@ -710,6 +771,7 @@ Public Partial Class PalletScannerView
 
     Private Sub RecordPiece(sender As Object, e As EventArgs)
         If Not recordButton.Enabled OrElse activeContainer Is Nothing Then Return
+        If Not RejectionAllowsScan() Then Return
         Try
             Dim current = activeContainer.CurrentLevel
             If current Is Nothing Then Throw New InvalidOperationException("No hay nivel abierto.")
@@ -960,9 +1022,21 @@ Public Partial Class PalletScannerView
                                               result.GeneratedClientCode, secondQr.Text.Trim())
             Dim qwall = QWallPassValidator.Verify(selectedPart.Id, firstQr.Text.Trim(), fullClientCode)
             If Not qwall.Verified Then
-                scanStatus.ForeColor = Color.DarkRed
-                scanStatus.Text = "QR format valid; " & qwall.Message
-                SetQWallStatus("NOT VERIFIED")
+                SetQWallStatus("RECHAZADO")
+                RejectPiece("QWALL_REJECT", qwall.Message)
+                Return
+            End If
+
+            ' El producto puede estar ya empacado en este mismo pallet o en otro.
+            ' La restriccion UNIQUE(product_id) en SQL sigue siendo la ultima garantia.
+            Dim alreadyIn = RejectionAuthorizationData.FindPackedProduct(qwall.ProductId)
+            If alreadyIn <> "" Then
+                Dim sameContainer = String.Equals(alreadyIn, activeContainer?.Code,
+                                                  StringComparison.OrdinalIgnoreCase)
+                RejectPiece(If(sameContainer, "DUPLICATE_SAME", "DUPLICATE_OTHER"),
+                            If(sameContainer,
+                               "La pieza ya esta registrada en ESTE MISMO CONTENEDOR: " & alreadyIn,
+                               "La pieza ya esta registrada en OTRO CONTENEDOR: " & alreadyIn))
                 Return
             End If
 

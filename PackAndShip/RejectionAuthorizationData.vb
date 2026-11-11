@@ -36,7 +36,8 @@ Public NotInheritable Class RejectionAuthorizationData
     End Function
 
     Public Shared Function Register(containerId As Integer, kind As String,
-                                    ssi As String, client As String, reason As String) As ScanRejectionInfo
+                                    ssi As String, client As String, reason As String,
+                                    eventToken As Guid) As ScanRejectionInfo
         Using cn = PackAndShipData.CreateConnection()
             Using cmd As New SqlCommand("dbo.ssi_PaS_StartScanRejection", cn)
                 cmd.CommandType = CommandType.StoredProcedure
@@ -46,6 +47,7 @@ Public NotInheritable Class RejectionAuthorizationData
                 cmd.Parameters.Add("@ssi_scan", SqlDbType.NVarChar, 200).Value = If(ssi, "")
                 cmd.Parameters.Add("@client_scan", SqlDbType.NVarChar, 200).Value = If(client, "")
                 cmd.Parameters.Add("@reason", SqlDbType.NVarChar, 1000).Value = If(reason, "")
+                cmd.Parameters.Add("@event_token", SqlDbType.UniqueIdentifier).Value = eventToken
                 cmd.ExecuteNonQuery()
             End Using
         End Using

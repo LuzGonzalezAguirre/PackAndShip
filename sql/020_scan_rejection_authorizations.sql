@@ -223,6 +223,10 @@ BEGIN
             THROW 52023,'Uno de los roles seleccionados no existe.',1;
         IF @is_required=1 AND NOT EXISTS(SELECT 1 FROM @roles)
             THROW 52024,'Un departamento habilitado requiere al menos un rol.',1;
+        IF @is_required=0 AND NOT EXISTS (
+            SELECT 1 FROM dbo.ssi_PaS_RejectionDepartments
+            WHERE department_id<>@department_id AND is_required=1
+        ) THROW 52025,'Debe mantenerse habilitado al menos un departamento.',1;
         UPDATE dbo.ssi_PaS_RejectionDepartments
         SET is_required=@is_required WHERE department_id=@department_id;
         DELETE dbo.ssi_PaS_RejectionDepartmentRoles WHERE department_id=@department_id;

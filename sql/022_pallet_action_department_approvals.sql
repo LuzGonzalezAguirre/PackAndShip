@@ -269,12 +269,25 @@ BEGIN
 END;
 GO
 
+-- También cerrar la ruta de cancelación genérica usada por versiones anteriores.
+CREATE OR ALTER PROCEDURE dbo.ssi_PaS_CancelContainer
+    @container_id INT,
+    @actor_user_id INT,
+    @reason NVARCHAR(500)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    THROW 52243,'La cancelación requiere autorizaciones por departamento. Actualiza PackAndShip.',1;
+END;
+GO
+
 -- Los procedimientos heredados permiten una sola aprobación: deshabilitar su
 -- ejecución al rol runtime para no permitir un bypass por interfaz antigua.
 IF DATABASE_PRINCIPAL_ID(N'ssi_PaS_RuntimeRole') IS NOT NULL
 BEGIN
     DENY EXECUTE ON dbo.ssi_PaS_ClosePartialContainer TO ssi_PaS_RuntimeRole;
     DENY EXECUTE ON dbo.ssi_PaS_CancelEmptyPalletAuthorized TO ssi_PaS_RuntimeRole;
+    DENY EXECUTE ON dbo.ssi_PaS_CancelContainer TO ssi_PaS_RuntimeRole;
     GRANT SELECT ON dbo.ssi_PaS_PalletActionRequests TO ssi_PaS_RuntimeRole;
     GRANT SELECT ON dbo.ssi_PaS_PalletActionRequirements TO ssi_PaS_RuntimeRole;
     GRANT SELECT ON dbo.ssi_PaS_PalletActionApprovals TO ssi_PaS_RuntimeRole;

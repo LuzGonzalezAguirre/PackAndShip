@@ -27,7 +27,7 @@ Partial Class GeneralSettingsForm
         Me.testResult = New System.Windows.Forms.Label()
         Me.note = New System.Windows.Forms.Label()
         Me.saveButton = New System.Windows.Forms.Button()
-        Me.cancelButton = New System.Windows.Forms.Button()
+        Me.dismissButton = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         Me.header.Name = "header"
         Me.header.Location = New System.Drawing.Point(0,0)
@@ -74,9 +74,9 @@ Partial Class GeneralSettingsForm
         Me.saveButton.Name = "saveButton"
         Me.saveButton.Location = New System.Drawing.Point(535,476)
         Me.saveButton.Size = New System.Drawing.Size(150,40)
-        Me.cancelButton.Name = "cancelButton"
-        Me.cancelButton.Location = New System.Drawing.Point(390,476)
-        Me.cancelButton.Size = New System.Drawing.Size(130,40)
+        Me.dismissButton.Name = "dismissButton"
+        Me.dismissButton.Location = New System.Drawing.Point(390,476)
+        Me.dismissButton.Size = New System.Drawing.Size(130,40)
         Me.heading.Text = "Configuración general"
         Me.subtitle.Text = "Formato global de ID de pallet • Compartido por todas las estaciones"
         Me.sectionHeading.Text = "IDENTIFICADOR DE PALLET"
@@ -85,7 +85,7 @@ Partial Class GeneralSettingsForm
         Me.testCaption.Text = "Probar ID de pallet escaneado"
         Me.note.Text = "Esta opción valida el formato del ID de pallet; no genera números ni modifica registros existentes."
         Me.saveButton.Text = "Guardar cambios"
-        Me.cancelButton.Text = "Cerrar"
+        Me.dismissButton.Text = "Cerrar"
         Me.header.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.section.BackColor = System.Drawing.Color.White
         Me.heading.Font = New System.Drawing.Font("Segoe UI", 22.0!, System.Drawing.FontStyle.Bold)
@@ -99,8 +99,8 @@ Partial Class GeneralSettingsForm
         Me.digitsInput.Maximum = 12D
         Me.saveButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.saveButton.ForeColor = System.Drawing.Color.White
-        Me.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.CancelButton = Me.cancelButton
+        Me.dismissButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.CancelButton = Me.dismissButton
         Me.header.Controls.Add(Me.heading)
         Me.header.Controls.Add(Me.subtitle)
         Me.section.Controls.Add(Me.sectionHeading)
@@ -116,7 +116,7 @@ Partial Class GeneralSettingsForm
         Me.Controls.Add(Me.header)
         Me.Controls.Add(Me.section)
         Me.Controls.Add(Me.saveButton)
-        Me.Controls.Add(Me.cancelButton)
+        Me.Controls.Add(Me.dismissButton)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(750,560)
         Me.MinimumSize = New System.Drawing.Size(0,0)
@@ -142,5 +142,5 @@ Partial Class GeneralSettingsForm
     Friend WithEvents testResult As System.Windows.Forms.Label
     Friend WithEvents note As System.Windows.Forms.Label
     Friend WithEvents saveButton As System.Windows.Forms.Button
-    Friend WithEvents cancelButton As System.Windows.Forms.Button
+    Friend WithEvents dismissButton As System.Windows.Forms.Button
 End Class

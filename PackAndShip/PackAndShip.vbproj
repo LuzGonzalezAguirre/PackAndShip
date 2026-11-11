@@ -30,6 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="PalletActionAuthorizationForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="PalletActionAuthorizationForm.Designer.vb">
+      <DependentUpon>PalletActionAuthorizationForm.vb</DependentUpon>
+    </Compile>
     <Compile Update="ScanRejectionForm.vb">
       <SubType>Form</SubType>
     </Compile>

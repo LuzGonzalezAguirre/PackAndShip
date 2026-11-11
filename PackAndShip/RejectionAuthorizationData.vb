@@ -123,6 +123,24 @@ Public NotInheritable Class RejectionAuthorizationData
         End Using
     End Sub
 
+    Public Shared Function FindPackedSerial(partId As Integer, ssi As String,
+                                            client As String) As String
+        Using cn = PackAndShipData.CreateConnection()
+            Using cmd As New SqlCommand(
+                "SELECT TOP(1) c.container_code FROM dbo.ssi_Products q " &
+                "JOIN dbo.ssi_PaS_ContainerPieces cp ON cp.product_id=q.product_id " &
+                "JOIN dbo.ssi_PaS_ContainerLevels l ON l.container_level_id=cp.container_level_id " &
+                "JOIN dbo.ssi_PaS_Containers c ON c.container_id=l.container_id " &
+                "WHERE q.pn_id=@part AND q.frameSN=@ssi AND q.fpcaSN=@client", cn)
+                cmd.Parameters.Add("@part", SqlDbType.Int).Value = partId
+                cmd.Parameters.Add("@ssi", SqlDbType.NVarChar, 200).Value = ssi
+                cmd.Parameters.Add("@client", SqlDbType.NVarChar, 200).Value = client
+                Dim value = cmd.ExecuteScalar()
+                Return If(value Is Nothing OrElse value Is DBNull.Value, "", Convert.ToString(value))
+            End Using
+        End Using
+    End Function
+
     Public Shared Function FindPackedProduct(productId As Integer) As String
         Using cn = PackAndShipData.CreateConnection()
             Using cmd As New SqlCommand(

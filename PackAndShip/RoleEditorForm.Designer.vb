@@ -21,7 +21,7 @@ Partial Class RoleEditorForm
         Me.setupCheckbox = New System.Windows.Forms.CheckBox()
         Me.permissionHelp = New System.Windows.Forms.Label()
         Me.saveButton = New System.Windows.Forms.Button()
-        Me.cancelButton = New System.Windows.Forms.Button()
+        Me.dismissButton = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         ' titleLabel
@@ -76,14 +76,14 @@ Partial Class RoleEditorForm
         Me.saveButton.Size = New System.Drawing.Size(140, 40)
         Me.saveButton.TabIndex = 2
         '
-        ' cancelButton
+        ' dismissButton
         '
-        Me.cancelButton.Name = "cancelButton"
-        Me.cancelButton.Text = "Cancelar"
-        Me.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.cancelButton.Location = New System.Drawing.Point(128, 273)
-        Me.cancelButton.Size = New System.Drawing.Size(140, 40)
-        Me.cancelButton.TabIndex = 3
+        Me.dismissButton.Name = "dismissButton"
+        Me.dismissButton.Text = "Cancelar"
+        Me.dismissButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.dismissButton.Location = New System.Drawing.Point(128, 273)
+        Me.dismissButton.Size = New System.Drawing.Size(140, 40)
+        Me.dismissButton.TabIndex = 3
         '
         ' RoleEditorForm
         '
@@ -96,14 +96,14 @@ Partial Class RoleEditorForm
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Text = "PackAndShip | Agregar rol"
         Me.AcceptButton = Me.saveButton
-        Me.CancelButton = Me.cancelButton
+        Me.CancelButton = Me.dismissButton
         Me.Controls.Add(Me.titleLabel)
         Me.Controls.Add(Me.nameCaption)
         Me.Controls.Add(Me.nameInput)
         Me.Controls.Add(Me.setupCheckbox)
         Me.Controls.Add(Me.permissionHelp)
         Me.Controls.Add(Me.saveButton)
-        Me.Controls.Add(Me.cancelButton)
+        Me.Controls.Add(Me.dismissButton)
         Me.ResumeLayout(False)
         Me.PerformLayout()
     End Sub
@@ -114,5 +114,5 @@ Partial Class RoleEditorForm
     Friend WithEvents setupCheckbox As System.Windows.Forms.CheckBox
     Friend WithEvents permissionHelp As System.Windows.Forms.Label
     Friend WithEvents saveButton As System.Windows.Forms.Button
-    Friend WithEvents cancelButton As System.Windows.Forms.Button
+    Friend WithEvents dismissButton As System.Windows.Forms.Button
 End Class

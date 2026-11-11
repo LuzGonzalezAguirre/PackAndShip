@@ -20,6 +20,7 @@ Public Partial Class PalletScannerView
     Private autoConfirmVisible As Boolean
     Private autoScanBusy As Boolean
     Private autoOpenBusy As Boolean
+    Private rejectionStorageFailed As Boolean
 
     ' These hidden state guards preserve the existing SQL write workflow.
     ' They are not visual controls and do not need Designer positions.
@@ -157,8 +158,23 @@ Public Partial Class PalletScannerView
 
     ' La liberacion siempre se comprueba en CCS, nunca solo en memoria local.
     Private Function RejectionAllowsScan() As Boolean
-        If activeContainer Is Nothing OrElse activeContainer.Status <> "OPEN" Then Return True
+        If rejectionStorageFailed Then
+            scanStatus.ForeColor = Color.DarkRed
+            scanStatus.Text = "ESTACIÓN DETENIDA: no se pudo registrar el rechazo local. Solicita TI."
+            Return False
+        End If
         Try
+            Dim localHold = ScanRejectionHold.Pending()
+            If localHold IsNot Nothing Then
+                Dim registered = RejectionAuthorizationData.Register(
+                    localHold.ContainerId, localHold.RejectionType, localHold.SsiCode,
+                    localHold.ClientCode, localHold.Reason)
+                If registered Is Nothing Then
+                    Throw New InvalidOperationException("CCS no confirmó el rechazo pendiente.")
+                End If
+                ScanRejectionHold.ClearIfRegistered(localHold.ContainerId)
+            End If
+            If activeContainer Is Nothing OrElse activeContainer.Status <> "OPEN" Then Return True
             Dim blocked = RejectionAuthorizationData.Pending(activeContainer.Id)
             If blocked Is Nothing Then Return True
             ResetVerification()
@@ -195,15 +211,30 @@ Public Partial Class PalletScannerView
             Return
         End If
         Try
+            ' Guardar primero el incidente en disco para no perderlo si CCS falla.
+            ScanRejectionHold.Save(New UnregisteredScanRejection With {
+                .ContainerId = activeContainer.Id,
+                .RejectionType = kind,
+                .SsiCode = firstQr.Text.Trim(),
+                .ClientCode = secondQr.Text.Trim(),
+                .Reason = detail
+            })
             Dim info = RejectionAuthorizationData.Register(
                 activeContainer.Id, kind, firstQr.Text.Trim(), secondQr.Text.Trim(), detail)
             If info Is Nothing Then Throw New InvalidOperationException("No se confirmó el bloqueo del pallet.")
+            ScanRejectionHold.ClearIfRegistered(activeContainer.Id)
             Using dialog As New ScanRejectionForm(info, activeContainer.Code)
                 dialog.ShowDialog(FindForm())
             End Using
             firstQr.Clear()
             secondQr.Clear()
         Catch ex As Exception
+            ' Si falla el almacenamiento local, el proceso en memoria se detiene.
+            Try
+                If ScanRejectionHold.Pending() Is Nothing Then rejectionStorageFailed = True
+            Catch
+                rejectionStorageFailed = True
+            End Try
             scanStatus.ForeColor = Color.DarkRed
             scanStatus.Text = "RECHAZO — intervención de TI requerida: " & ex.Message
             MessageBox.Show(detail & Environment.NewLine & Environment.NewLine &

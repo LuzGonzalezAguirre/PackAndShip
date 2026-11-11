@@ -936,46 +936,26 @@ Public Partial Class PalletScannerView
     Private Sub ClosePartialPallet(sender As Object, e As EventArgs)
         If Not partialButton.Enabled OrElse activeContainer Is Nothing Then Return
         Try
-            ' Refresh from CCS immediately before requesting approval.
             RefreshContainer()
             If activeContainer.Status <> "OPEN" OrElse activeContainer.PieceTotal <= 0 OrElse
                activeContainer.PieceTotal >= activeContainer.RequiredTotal Then
-                Throw New InvalidOperationException("El cierre parcial requiere un pallet ABIERTO, incompleto y con piezas.")
+                Throw New InvalidOperationException("Se requiere un pallet ABIERTO, incompleto y con piezas.")
             End If
-            Using authorization As New PartialPalletAuthorizationForm(
-                activeContainer.Code, activeContainer.PieceTotal, activeContainer.RequiredTotal)
-                If authorization.ShowDialog(FindForm()) <> DialogResult.OK Then Return
-                If MessageBox.Show(
-                    "¿Cerrar pallet " & activeContainer.Code & " como PARCIAL con " &
-                    activeContainer.PieceTotal & " of " & activeContainer.RequiredTotal &
-                    " piezas? No se podrá volver a abrir.", "Confirmar pallet parcial",
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
-
-                ' Only the operation identity is persisted; credentials are
-                ' never stored locally or replayed after a network outage.
-                ConnectionRecovery.SaveBeforeSend(
-                    "CLOSE_PARTIAL", activeContainer.Id, 0, "", "", SessionContext.UserId)
-                Try
-                    PaSPackingData.ClosePartialContainer(
-                        activeContainer.Id, authorization.AuthorizedUserId,
-                        authorization.AuthorizedBarcode, authorization.AuthorizedPassword,
-                        authorization.Reason)
-                    ConnectionRecovery.MarkDelivered()
-                Catch ex As Microsoft.Data.SqlClient.SqlException
-                    If ex.Number >= 50000 OrElse ex.Number = 2601 OrElse ex.Number = 2627 Then
-                        ' SQL rejected it transactionally: credentials/reason/etc.
-                        ' Retrying requires a fresh explicit approval.
-                        ConnectionRecovery.MarkDelivered()
-                    End If
-                    Throw
-                End Try
+            Using dialog As New PalletActionAuthorizationForm(activeContainer, False)
+                If dialog.ShowDialog(FindForm()) <> DialogResult.OK Then Return
             End Using
+            ' La ejecución final ya fue confirmada de forma transaccional en CCS.
+            ' No guardar CLOSE_PARTIAL en recuperación local: el procedimiento
+            ' verifica las aprobaciones y no usa credenciales de una sola persona.
             ResetVerification()
             RefreshContainer()
+            If activeContainer.Status <> "PARTIAL" Then
+                Throw New InvalidOperationException("CCS no confirmó el cierre parcial.")
+            End If
             Dim closedCode = activeContainer.Code
             ResetAfterPalletClosed(closedCode)
             scanStatus.ForeColor = Color.DarkGreen
-            scanStatus.Text = "Pallet parcial " & closedCode & " cerrado. Listo para el siguiente contenedor."
+            scanStatus.Text = "Pallet parcial " & closedCode & " cerrado con autorizaciones."
         Catch ex As Exception
             ShowPackingError(ex)
         End Try
@@ -984,50 +964,24 @@ Public Partial Class PalletScannerView
     Private Sub CancelEmptyPallet(sender As Object, e As EventArgs)
         If Not cancelEmptyButton.Enabled OrElse activeContainer Is Nothing Then Return
         Try
-            ' Always refresh the authoritative CCS counts before authorization.
             RefreshContainer()
             If activeContainer.Status <> "OPEN" OrElse
-               activeContainer.PieceTotal <> 0 OrElse
-               activeContainer.ClosedLevels <> 0 Then
+               activeContainer.PieceTotal <> 0 OrElse activeContainer.ClosedLevels <> 0 Then
                 Throw New InvalidOperationException(
                     "Solo se puede cancelar un pallet ABIERTO sin piezas ni niveles cerrados.")
             End If
-            Using authorization As New PartialPalletAuthorizationForm(
-                activeContainer.Code, 0, activeContainer.RequiredTotal, True)
-                If authorization.ShowDialog(FindForm()) <> DialogResult.OK Then Return
-                If MessageBox.Show(
-                    "¿Cancelar pallet vacío " & activeContainer.Code & "?" &
-                    Environment.NewLine &
-                    "El código del contenedor quedará reservado y no podrá reutilizarse.",
-                    "Confirmar cancelación de pallet vacío",
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) <> DialogResult.Yes Then Return
-
-                ' Retain the operation identity across network loss, but never
-                ' persist a second user's credentials on the workstation.
-                ConnectionRecovery.SaveBeforeSend(
-                    "CANCEL_EMPTY", activeContainer.Id, 0, "", "", SessionContext.UserId)
-                Try
-                    PaSPackingData.CancelEmptyPallet(
-                        activeContainer.Id, authorization.AuthorizedUserId,
-                        authorization.AuthorizedBarcode, authorization.AuthorizedPassword,
-                        authorization.Reason)
-                    ConnectionRecovery.MarkDelivered()
-                Catch ex As Microsoft.Data.SqlClient.SqlException
-                    If ex.Number >= 50000 OrElse ex.Number = 2601 OrElse ex.Number = 2627 Then
-                        ' Explicit business rejection: SQL rolled back, so a fresh
-                        ' authorization can be used. A timeout remains pending.
-                        ConnectionRecovery.MarkDelivered()
-                    End If
-                    Throw
-                End Try
+            Using dialog As New PalletActionAuthorizationForm(activeContainer, True)
+                If dialog.ShowDialog(FindForm()) <> DialogResult.OK Then Return
             End Using
             ResetVerification()
             RefreshContainer()
+            If activeContainer.Status <> "CANCELLED" Then
+                Throw New InvalidOperationException("CCS no confirmó la cancelación del pallet.")
+            End If
             Dim cancelledCode = activeContainer.Code
             ResetAfterPalletClosed(cancelledCode)
             scanStatus.ForeColor = Color.DarkGreen
-            scanStatus.Text = "Pallet vacío " & cancelledCode &
-                              " cancelado. Listo para el siguiente contenedor."
+            scanStatus.Text = "Pallet vacío " & cancelledCode & " cancelado con autorizaciones."
         Catch ex As Exception
             ShowPackingError(ex)
         End Try

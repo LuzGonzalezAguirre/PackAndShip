@@ -143,6 +143,7 @@ Public Partial Class PalletScannerView
         If e.KeyCode <> Keys.Enter Then Return
         e.SuppressKeyPress = True
         If autoScanBusy Then Return
+        If Not RejectionAllowsScan() Then Return
         If selectedRule IsNot Nothing AndAlso selectedRule.ScanCount = 1 Then
             VerifyAndRecord()
         Else

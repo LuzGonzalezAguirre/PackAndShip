@@ -21,7 +21,7 @@ Partial Class UserEditorDialog
         Me.inputRole = New System.Windows.Forms.ComboBox()
         Me.inputActive = New System.Windows.Forms.CheckBox()
         Me.saveButton = New System.Windows.Forms.Button()
-        Me.cancelButton = New System.Windows.Forms.Button()
+        Me.dismissButton = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         Me.heading.Name = "heading"
         Me.heading.Location = New System.Drawing.Point(24,15)
@@ -50,16 +50,16 @@ Partial Class UserEditorDialog
         Me.saveButton.Name = "saveButton"
         Me.saveButton.Location = New System.Drawing.Point(333,334)
         Me.saveButton.Size = New System.Drawing.Size(121,37)
-        Me.cancelButton.Name = "cancelButton"
-        Me.cancelButton.Location = New System.Drawing.Point(200,334)
-        Me.cancelButton.Size = New System.Drawing.Size(120,37)
+        Me.dismissButton.Name = "dismissButton"
+        Me.dismissButton.Location = New System.Drawing.Point(200,334)
+        Me.dismissButton.Size = New System.Drawing.Size(120,37)
         Me.heading.Text = "Agregar empleado"
         Me.nameCaption.Text = "Nombre del empleado"
         Me.barcodeCaption.Text = "Código de barras"
         Me.roleCaption.Text = "Rol"
         Me.inputActive.Text = "Usuario activo"
         Me.saveButton.Text = "Guardar"
-        Me.cancelButton.Text = "Cancelar"
+        Me.dismissButton.Text = "Cancelar"
         Me.heading.Font = New System.Drawing.Font("Segoe UI",19.0!,System.Drawing.FontStyle.Bold)
         Me.heading.ForeColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.inputName.MaxLength = 100
@@ -69,9 +69,9 @@ Partial Class UserEditorDialog
         Me.inputActive.Checked = True
         Me.saveButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.saveButton.ForeColor = System.Drawing.Color.White
-        Me.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.dismissButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
         Me.AcceptButton = Me.saveButton
-        Me.CancelButton = Me.cancelButton
+        Me.CancelButton = Me.dismissButton
         Me.Controls.Add(Me.heading)
         Me.Controls.Add(Me.nameCaption)
         Me.Controls.Add(Me.inputName)
@@ -81,7 +81,7 @@ Partial Class UserEditorDialog
         Me.Controls.Add(Me.inputRole)
         Me.Controls.Add(Me.inputActive)
         Me.Controls.Add(Me.saveButton)
-        Me.Controls.Add(Me.cancelButton)
+        Me.Controls.Add(Me.dismissButton)
         Me.ClientSize = New System.Drawing.Size(480,390)
         Me.MinimumSize = New System.Drawing.Size(0,0)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
@@ -100,5 +100,5 @@ Partial Class UserEditorDialog
     Friend WithEvents inputRole As System.Windows.Forms.ComboBox
     Friend WithEvents inputActive As System.Windows.Forms.CheckBox
     Friend WithEvents saveButton As System.Windows.Forms.Button
-    Friend WithEvents cancelButton As System.Windows.Forms.Button
+    Friend WithEvents dismissButton As System.Windows.Forms.Button
 End Class

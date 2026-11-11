@@ -239,6 +239,36 @@ BEGIN
 END;
 GO
 
+-- Impedir que software antiguo o conexiones con db_owner usen una sola firma.
+-- En adelante solo ssi_PaS_CompletePalletAction realiza estas operaciones.
+CREATE OR ALTER PROCEDURE dbo.ssi_PaS_ClosePartialContainer
+    @container_id INT,
+    @packing_user_id INT,
+    @authorized_by_user_id INT,
+    @authorized_barcode VARCHAR(50),
+    @authorized_password VARCHAR(50),
+    @reason NVARCHAR(500)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    THROW 52241,'Cierre parcial requiere autorizaciones por departamento. Actualiza PackAndShip.',1;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.ssi_PaS_CancelEmptyPalletAuthorized
+    @container_id INT,
+    @packing_user_id INT,
+    @authorized_by_user_id INT,
+    @authorized_barcode VARCHAR(50),
+    @authorized_password VARCHAR(50),
+    @reason NVARCHAR(500)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    THROW 52242,'Cancelación requiere autorizaciones por departamento. Actualiza PackAndShip.',1;
+END;
+GO
+
 -- Los procedimientos heredados permiten una sola aprobación: deshabilitar su
 -- ejecución al rol runtime para no permitir un bypass por interfaz antigua.
 IF DATABASE_PRINCIPAL_ID(N'ssi_PaS_RuntimeRole') IS NOT NULL

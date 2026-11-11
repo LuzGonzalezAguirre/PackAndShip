@@ -27,7 +27,7 @@ Partial Class ScanRuleEditorForm
         Me.notesBox = New System.Windows.Forms.TextBox()
         Me.scanContainer = New System.Windows.Forms.FlowLayoutPanel()
         Me.saveButton = New System.Windows.Forms.Button()
-        Me.cancelButton = New System.Windows.Forms.Button()
+        Me.dismissButton = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         Me.header.Name = "header"
         Me.header.Location = New System.Drawing.Point(0,0)
@@ -74,9 +74,9 @@ Partial Class ScanRuleEditorForm
         Me.saveButton.Name = "saveButton"
         Me.saveButton.Location = New System.Drawing.Point(960,677)
         Me.saveButton.Size = New System.Drawing.Size(158,39)
-        Me.cancelButton.Name = "cancelButton"
-        Me.cancelButton.Location = New System.Drawing.Point(805,677)
-        Me.cancelButton.Size = New System.Drawing.Size(130,39)
+        Me.dismissButton.Name = "dismissButton"
+        Me.dismissButton.Location = New System.Drawing.Point(805,677)
+        Me.dismissButton.Size = New System.Drawing.Size(130,39)
         Me.headerTitle.Text = "Agregar regla de escaneo"
         Me.customerCaption.Text = "Cliente"
         Me.partCaption.Text = "Número de parte (SSI / cliente)"
@@ -85,7 +85,7 @@ Partial Class ScanRuleEditorForm
         Me.activeCheck.Text = "Activo"
         Me.notesCaption.Text = "Notas"
         Me.saveButton.Text = "Guardar regla"
-        Me.cancelButton.Text = "Cancelar"
+        Me.dismissButton.Text = "Cancelar"
         Me.header.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.headerTitle.Font = New System.Drawing.Font("Segoe UI",22.0!,System.Drawing.FontStyle.Bold)
         Me.headerTitle.ForeColor = System.Drawing.Color.White
@@ -102,8 +102,8 @@ Partial Class ScanRuleEditorForm
         Me.scanContainer.AutoScroll = True
         Me.saveButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
         Me.saveButton.ForeColor = System.Drawing.Color.White
-        Me.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.CancelButton = Me.cancelButton
+        Me.dismissButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.CancelButton = Me.dismissButton
         Me.header.Controls.Add(Me.headerTitle)
         Me.upper.Controls.Add(Me.customerCaption)
         Me.upper.Controls.Add(Me.customerPicker)
@@ -119,7 +119,7 @@ Partial Class ScanRuleEditorForm
         Me.Controls.Add(Me.upper)
         Me.Controls.Add(Me.scanContainer)
         Me.Controls.Add(Me.saveButton)
-        Me.Controls.Add(Me.cancelButton)
+        Me.Controls.Add(Me.dismissButton)
         Me.ClientSize = New System.Drawing.Size(1190,765)
         Me.MinimumSize = New System.Drawing.Size(0,0)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable
@@ -144,5 +144,5 @@ Partial Class ScanRuleEditorForm
     Friend WithEvents notesBox As System.Windows.Forms.TextBox
     Friend WithEvents scanContainer As System.Windows.Forms.FlowLayoutPanel
     Friend WithEvents saveButton As System.Windows.Forms.Button
-    Friend WithEvents cancelButton As System.Windows.Forms.Button
+    Friend WithEvents dismissButton As System.Windows.Forms.Button
 End Class

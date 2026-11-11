@@ -22,7 +22,7 @@ Partial Class CustomerConfigurationForm
         Me.customerPicker = New System.Windows.Forms.ComboBox()
         Me.helpLabel = New System.Windows.Forms.Label()
         Me.saveButton = New System.Windows.Forms.Button()
-        Me.cancelButton = New System.Windows.Forms.Button()
+        Me.dismissButton = New System.Windows.Forms.Button()
         Me.headerPanel.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -89,14 +89,14 @@ Partial Class CustomerConfigurationForm
         Me.saveButton.Size = New System.Drawing.Size(145, 40)
         Me.saveButton.TabIndex = 1
         '
-        ' cancelButton
+        ' dismissButton
         '
-        Me.cancelButton.Name = "cancelButton"
-        Me.cancelButton.Text = "Cancelar"
-        Me.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.cancelButton.Location = New System.Drawing.Point(215, 260)
-        Me.cancelButton.Size = New System.Drawing.Size(135, 40)
-        Me.cancelButton.TabIndex = 2
+        Me.dismissButton.Name = "dismissButton"
+        Me.dismissButton.Text = "Cancelar"
+        Me.dismissButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.dismissButton.Location = New System.Drawing.Point(215, 260)
+        Me.dismissButton.Size = New System.Drawing.Size(135, 40)
+        Me.dismissButton.TabIndex = 2
         '
         ' CustomerConfigurationForm
         '
@@ -110,12 +110,12 @@ Partial Class CustomerConfigurationForm
         Me.Font = New System.Drawing.Font("Segoe UI", 10.0!)
         Me.Text = "PackAndShip | Configuración de cliente"
         Me.AcceptButton = Me.saveButton
-        Me.CancelButton = Me.cancelButton
+        Me.CancelButton = Me.dismissButton
         Me.Controls.Add(Me.headerPanel)
         Me.Controls.Add(Me.customerCaption)
         Me.Controls.Add(Me.customerPicker)
         Me.Controls.Add(Me.helpLabel)
-        Me.Controls.Add(Me.cancelButton)
+        Me.Controls.Add(Me.dismissButton)
         Me.Controls.Add(Me.saveButton)
         Me.headerPanel.ResumeLayout(False)
         Me.ResumeLayout(False)
@@ -128,5 +128,5 @@ Partial Class CustomerConfigurationForm
     Friend WithEvents customerPicker As System.Windows.Forms.ComboBox
     Friend WithEvents helpLabel As System.Windows.Forms.Label
     Friend WithEvents saveButton As System.Windows.Forms.Button
-    Friend WithEvents cancelButton As System.Windows.Forms.Button
+    Friend WithEvents dismissButton As System.Windows.Forms.Button
 End Class

@@ -18,7 +18,7 @@ Public NotInheritable Class QWallPassValidator
                                   clientFullCode As String) As QWallPassResult
         If partId <= 0 OrElse String.IsNullOrWhiteSpace(ssiFullCode) OrElse
            String.IsNullOrWhiteSpace(clientFullCode) Then
-            Return Refused("Part number and both complete serial codes are required.")
+            Return Refused("Se requiere el modelo y ambos números de serie completos.")
         End If
 
         Using cn = PackAndShipData.CreateConnection()
@@ -42,10 +42,10 @@ Public NotInheritable Class QWallPassValidator
             End Using
 
             If matched = 0 Then
-                Return Refused("Q-Wall has no matching product with this part and both complete serial codes.")
+                Return Refused("La pieza NO SE ENCUENTRA EN Q-Wall para este modelo y estas dos series.")
             End If
             If matched > 1 Then
-                Return Refused("More than one Q-Wall product matches these serials. Quality review required.")
+                Return Refused("Existen varios productos de Q-Wall para estas series. Se requiere revisión de Calidad.")
             End If
 
             Dim inspectionId As Integer
@@ -68,10 +68,10 @@ Public NotInheritable Class QWallPassValidator
                     End If
                 End Using
             End Using
-            If Not found Then Return Refused("This product has no Q-Wall inspection.")
-            If Not finished Then Return Refused("The latest Q-Wall inspection is unfinished.")
-            If scrap Then Return Refused("The latest Q-Wall inspection marks this piece as scrap.")
-            If Not passed Then Return Refused("The latest Q-Wall inspection is not PASS.")
+            If Not found Then Return Refused("La pieza NO TIENE INSPECCIÓN registrada en Q-Wall.")
+            If Not finished Then Return Refused("La última inspección de Q-Wall está SIN FINALIZAR.")
+            If scrap Then Return Refused("La última inspección de Q-Wall marcó la pieza como SCRAP.")
+            If Not passed Then Return Refused("La pieza tiene FAIL en su última inspección de Q-Wall.")
 
             ' Q-Wall authorizes flags independently of the inspection fields.
             ' A past flag does not block a newer completed PASS inspection.
@@ -90,7 +90,7 @@ Public NotInheritable Class QWallPassValidator
                     If rd.Read() Then
                         currentFlagCount = Convert.ToInt32(rd("total_flags"))
                         If Convert.ToInt32(rd("unauthorized_flags")) <> 0 Then
-                            Return Refused("Latest inspection has a Quality flag without valid authorization.")
+                            Return Refused("La última inspección tiene una bandera de Calidad sin autorización válida.")
                         End If
                     End If
                 End Using
@@ -101,8 +101,8 @@ Public NotInheritable Class QWallPassValidator
                 .ProductId = productId,
                 .InspectionId = inspectionId,
                 .Message = If(currentFlagCount > 0,
-                    "Q-Wall PASS with authorized Quality flag confirmed. Duplicate check occurs on record.",
-                    "Q-Wall PASS confirmed. Duplicate check occurs on record.")
+                    "Q-Wall PASS con bandera de Calidad autorizada. Se revisarán duplicados.",
+                    "Q-Wall PASS confirmado. Se revisarán duplicados.")
             }
         End Using
     End Function

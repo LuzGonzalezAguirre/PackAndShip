@@ -21,6 +21,7 @@ Partial Class UsersSetupForm
         Me.statusButton = New System.Windows.Forms.Button()
         Me.resetButton = New System.Windows.Forms.Button()
         Me.reloadButton = New System.Windows.Forms.Button()
+        Me.departmentsButton = New System.Windows.Forms.Button()
         Me.searchPanel = New System.Windows.Forms.Panel()
         Me.searchLabel = New System.Windows.Forms.Label()
         Me.searchBox = New System.Windows.Forms.TextBox()
@@ -61,6 +62,13 @@ Partial Class UsersSetupForm
         Me.reloadButton.Name = "reloadButton"
         Me.reloadButton.Location = New System.Drawing.Point(592,10)
         Me.reloadButton.Size = New System.Drawing.Size(95,34)
+        Me.departmentsButton.Name = "departmentsButton"
+        Me.departmentsButton.Text = "Autorizaciones"
+        Me.departmentsButton.Location = New System.Drawing.Point(700,10)
+        Me.departmentsButton.Size = New System.Drawing.Size(155,34)
+        Me.departmentsButton.BackColor = System.Drawing.Color.FromArgb(31,78,121)
+        Me.departmentsButton.ForeColor = System.Drawing.Color.White
+        Me.departmentsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.searchPanel.Name = "searchPanel"
         Me.searchPanel.Location = New System.Drawing.Point(0,149)
         Me.searchPanel.Size = New System.Drawing.Size(1060,52)
@@ -154,6 +162,7 @@ Partial Class UsersSetupForm
         Me.actions.Controls.Add(Me.statusButton)
         Me.actions.Controls.Add(Me.resetButton)
         Me.actions.Controls.Add(Me.reloadButton)
+        Me.actions.Controls.Add(Me.departmentsButton)
         Me.searchPanel.Controls.Add(Me.searchLabel)
         Me.searchPanel.Controls.Add(Me.searchBox)
         Me.searchPanel.Controls.Add(Me.roleLabel)
@@ -181,6 +190,7 @@ Partial Class UsersSetupForm
     Friend WithEvents statusButton As System.Windows.Forms.Button
     Friend WithEvents resetButton As System.Windows.Forms.Button
     Friend WithEvents reloadButton As System.Windows.Forms.Button
+    Friend WithEvents departmentsButton As System.Windows.Forms.Button
     Friend WithEvents searchPanel As System.Windows.Forms.Panel
     Friend WithEvents searchLabel As System.Windows.Forms.Label
     Friend WithEvents searchBox As System.Windows.Forms.TextBox

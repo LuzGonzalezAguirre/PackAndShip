@@ -99,6 +99,66 @@ Public NotInheritable Class UserAdministration
         Return fullName
     End Function
 
+    Private Shared Function NormalizeRoleName(value As String) As String
+        Dim roleName = If(value, "").Trim()
+        If roleName.Length = 0 OrElse roleName.Length > 50 Then
+            Throw New ArgumentException("El nombre del rol debe contener entre 1 y 50 caracteres.")
+        End If
+        Return roleName
+    End Function
+
+    ' El permiso se valida en CCS: no basta con habilitar botones en la interfaz.
+    Public Shared Sub CreateRole(name As String, canModifySetup As Boolean)
+        Dim normalized = NormalizeRoleName(name)
+        Using cn = PackAndShipData.CreateConnection()
+            RequireAuthorizedActor(cn)
+            Using cmd As New SqlCommand(
+                "INSERT INTO dbo.ssi_PaS_Roles(role_name,can_modify_setup) " &
+                "SELECT @name,@setup WHERE NOT EXISTS " &
+                "(SELECT 1 FROM dbo.ssi_PaS_Roles WITH (UPDLOCK,HOLDLOCK) " &
+                "WHERE UPPER(LTRIM(RTRIM(role_name)))=UPPER(@name))", cn)
+                cmd.Parameters.Add("@name", SqlDbType.VarChar, 50).Value = normalized
+                cmd.Parameters.Add("@setup", SqlDbType.Bit).Value = canModifySetup
+                If cmd.ExecuteNonQuery() <> 1 Then
+                    Throw New InvalidOperationException("Ya existe un rol con ese nombre.")
+                End If
+            End Using
+        End Using
+    End Sub
+
+    Public Shared Sub UpdateRole(roleId As Integer, name As String, canModifySetup As Boolean)
+        If roleId <= 0 Then Throw New ArgumentOutOfRangeException(NameOf(roleId))
+        Dim normalized = NormalizeRoleName(name)
+        Using cn = PackAndShipData.CreateConnection()
+            RequireAuthorizedActor(cn)
+            ' Mantener el permiso actual del usuario autenticado durante su sesión:
+            ' no permitir revocar el propio acceso ni dejar la estación sin administrador.
+            Using check As New SqlCommand(
+                "SELECT COUNT(1) FROM dbo.ssi_PaS_Users " &
+                "WHERE user_id=@actor AND role_id=@role AND is_active=1", cn)
+                check.Parameters.Add("@actor", SqlDbType.Int).Value = SessionContext.UserId
+                check.Parameters.Add("@role", SqlDbType.Int).Value = roleId
+                If Convert.ToInt32(check.ExecuteScalar()) > 0 Then
+                    Throw New InvalidOperationException(
+                        "No puedes editar el rol de tu propia sesión. Usa otro usuario autorizado.")
+                End If
+            End Using
+            Using cmd As New SqlCommand(
+                "UPDATE dbo.ssi_PaS_Roles SET role_name=@name,can_modify_setup=@setup " &
+                "WHERE role_id=@id AND NOT EXISTS " &
+                "(SELECT 1 FROM dbo.ssi_PaS_Roles WITH (UPDLOCK,HOLDLOCK) " &
+                "WHERE role_id<>@id AND UPPER(LTRIM(RTRIM(role_name)))=UPPER(@name))", cn)
+                cmd.Parameters.Add("@id", SqlDbType.Int).Value = roleId
+                cmd.Parameters.Add("@name", SqlDbType.VarChar, 50).Value = normalized
+                cmd.Parameters.Add("@setup", SqlDbType.Bit).Value = canModifySetup
+                If cmd.ExecuteNonQuery() <> 1 Then
+                    Throw New InvalidOperationException(
+                        "No se actualizó el rol: puede no existir o el nombre ya está en uso.")
+                End If
+            End Using
+        End Using
+    End Sub
+
     ' Initial password equals Barcode ID, as requested for this station.
     Public Shared Sub CreateUser(fullName As String, barcodeId As String, roleId As Integer, active As Boolean)
         Dim name = NormalizeName(fullName)

@@ -169,7 +169,7 @@ Public Partial Class PalletScannerView
             If localHold IsNot Nothing Then
                 Dim registered = RejectionAuthorizationData.Register(
                     localHold.ContainerId, localHold.RejectionType, localHold.SsiCode,
-                    localHold.ClientCode, localHold.Reason)
+                    localHold.ClientCode, localHold.Reason, localHold.EventToken)
                 If registered Is Nothing Then
                     Throw New InvalidOperationException("CCS no confirmó el rechazo pendiente.")
                 End If
@@ -213,15 +213,17 @@ Public Partial Class PalletScannerView
         End If
         Try
             ' Guardar primero el incidente en disco para no perderlo si CCS falla.
-            ScanRejectionHold.Save(New UnregisteredScanRejection With {
+            Dim incident As New UnregisteredScanRejection With {
                 .ContainerId = activeContainer.Id,
                 .RejectionType = kind,
                 .SsiCode = firstQr.Text.Trim(),
                 .ClientCode = secondQr.Text.Trim(),
                 .Reason = detail
-            })
+            }
+            ScanRejectionHold.Save(incident)
             Dim info = RejectionAuthorizationData.Register(
-                activeContainer.Id, kind, firstQr.Text.Trim(), secondQr.Text.Trim(), detail)
+                incident.ContainerId, incident.RejectionType, incident.SsiCode,
+                incident.ClientCode, incident.Reason, incident.EventToken)
             If info Is Nothing Then Throw New InvalidOperationException("No se confirmó el bloqueo del pallet.")
             ScanRejectionHold.ClearIfRegistered(activeContainer.Id)
             Using dialog As New ScanRejectionForm(info, activeContainer.Code)

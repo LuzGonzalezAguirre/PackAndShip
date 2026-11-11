@@ -28,7 +28,7 @@ Partial Class PalletHistoryForm
         Me.actions = New System.Windows.Forms.Panel()
         Me.summary = New System.Windows.Forms.Label()
         Me.removeButton = New System.Windows.Forms.Button()
-        Me.cancelButton = New System.Windows.Forms.Button()
+        Me.dismissButton = New System.Windows.Forms.Button()
         Me.palletsTitle = New System.Windows.Forms.Label()
         Me.grid = New System.Windows.Forms.DataGridView()
         Me.tabs = New System.Windows.Forms.TabControl()
@@ -96,9 +96,9 @@ Partial Class PalletHistoryForm
         Me.removeButton.Name = "removeButton"
         Me.removeButton.Location = New System.Drawing.Point(490,7)
         Me.removeButton.Size = New System.Drawing.Size(185,31)
-        Me.cancelButton.Name = "cancelButton"
-        Me.cancelButton.Location = New System.Drawing.Point(694,7)
-        Me.cancelButton.Size = New System.Drawing.Size(130,31)
+        Me.dismissButton.Name = "dismissButton"
+        Me.dismissButton.Location = New System.Drawing.Point(694,7)
+        Me.dismissButton.Size = New System.Drawing.Size(130,31)
         Me.palletsTitle.Name = "palletsTitle"
         Me.palletsTitle.Location = New System.Drawing.Point(15,151)
         Me.palletsTitle.Size = New System.Drawing.Size(450,24)
@@ -161,7 +161,7 @@ Partial Class PalletHistoryForm
         Me.refreshButton.Text = "Buscar"
         Me.exportSummaryButton.Text = "Exportar reporte de pallets CSV"
         Me.removeButton.Text = "Eliminar pieza seleccionada"
-        Me.cancelButton.Text = "Cancelar pallet"
+        Me.dismissButton.Text = "Cancelar pallet"
         Me.palletsTitle.Text = "Pallets"
         Me.piecesTab.Text = "Piezas e ID de inspección Q-Wall"
         Me.levelsTab.Text = "Niveles"
@@ -239,7 +239,7 @@ Partial Class PalletHistoryForm
         Me.filters.Controls.Add(Me.exportSummaryButton)
         Me.actions.Controls.Add(Me.summary)
         Me.actions.Controls.Add(Me.removeButton)
-        Me.actions.Controls.Add(Me.cancelButton)
+        Me.actions.Controls.Add(Me.dismissButton)
         Me.piecesTab.Controls.Add(Me.pieces)
         Me.piecesTab.Controls.Add(Me.exportPieces)
         Me.tabs.TabPages.Add(Me.piecesTab)
@@ -285,7 +285,7 @@ Partial Class PalletHistoryForm
     Friend WithEvents actions As System.Windows.Forms.Panel
     Friend WithEvents summary As System.Windows.Forms.Label
     Friend WithEvents removeButton As System.Windows.Forms.Button
-    Friend WithEvents cancelButton As System.Windows.Forms.Button
+    Friend WithEvents dismissButton As System.Windows.Forms.Button
     Friend WithEvents palletsTitle As System.Windows.Forms.Label
     Friend WithEvents grid As System.Windows.Forms.DataGridView
     Friend WithEvents tabs As System.Windows.Forms.TabControl

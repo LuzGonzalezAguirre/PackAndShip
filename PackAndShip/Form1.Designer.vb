@@ -48,7 +48,7 @@ Partial Class Form1
         mainMenu.AutoSize = False
         mainMenu.BackColor = Color.White
         mainMenu.Font = New Font("Segoe UI", 10F)
-        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuPalletActions, menuHistory, menuTransfer, menuHelp, menuLogout})
+        mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuPalletActions, menuHistory, menuHelp, menuLogout})
         mainMenu.Location = New Point(0, 0)
         mainMenu.Name = "mainMenu"
         mainMenu.Size = New Size(1384, 34)
@@ -93,7 +93,7 @@ Partial Class Form1
         ' 
         ' menuPalletActions
         ' 
-        menuPalletActions.DropDownItems.AddRange(New ToolStripItem() {menuPartialPallet, menuCancelEmptyPallet, menuReviewPendingSql})
+        menuPalletActions.DropDownItems.AddRange(New ToolStripItem() {menuPartialPallet, menuCancelEmptyPallet})
         menuPalletActions.Name = "menuPalletActions"
         menuPalletActions.Size = New Size(130, 30)
         menuPalletActions.Text = "Acciones de pallet"
@@ -115,6 +115,7 @@ Partial Class Form1
         menuReviewPendingSql.Name = "menuReviewPendingSql"
         menuReviewPendingSql.Size = New Size(288, 24)
         menuReviewPendingSql.Text = "Revisar operación SQL pendiente"
+        menuReviewPendingSql.Visible = False
         ' 
         ' menuHistory
         ' 
@@ -127,6 +128,7 @@ Partial Class Form1
         menuTransfer.Name = "menuTransfer"
         menuTransfer.Size = New Size(168, 30)
         menuTransfer.Text = "Transferencias de pallets"
+        menuTransfer.Visible = False
         ' 
         ' menuHelp
         ' 

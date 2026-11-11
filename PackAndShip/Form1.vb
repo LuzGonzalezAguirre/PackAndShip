@@ -45,7 +45,13 @@ Public Class Form1
         AddHandler menuPalletActions.DropDownOpening, AddressOf UpdatePalletActionsMenu
         AddHandler menuPartialPallet.Click, Sub() scannerView.RequestPartialPallet()
         AddHandler menuCancelEmptyPallet.Click, Sub() scannerView.RequestCancelEmptyPallet()
-        AddHandler menuReviewPendingSql.Click, Sub() scannerView.RequestPendingSqlReview()
+        ' La conciliación SQL sigue disponible al pulsar el estado de conexión,
+        ' pero desaparece del menú normal de Acciones de pallet.
+        AddHandler connectionLabel.Click, Sub()
+            If SessionContext.UserId > 0 AndAlso scannerView.HasPendingSqlAction Then
+                scannerView.RequestPendingSqlReview()
+            End If
+        End Sub
         AddHandler menuHistory.Click, AddressOf OpenPalletHistory
         AddHandler menuTransfer.Click, AddressOf OpenPalletTransfers
         AddHandler menuLogout.Click, AddressOf LogoutFromMenu

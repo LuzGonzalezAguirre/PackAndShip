@@ -21,7 +21,7 @@ Public Class GeneralSettingsForm
 
     Private Sub BindEvents()
         AddHandler saveButton.Click, AddressOf SaveChanges
-        AddHandler cancelButton.Click, Sub() Close()
+        AddHandler dismissButton.Click, Sub() Close()
         AddHandler prefixInput.TextChanged, Sub() UpdatePreview()
         AddHandler digitsInput.ValueChanged, Sub() UpdatePreview()
         AddHandler testInput.TextChanged, Sub() UpdatePreview()

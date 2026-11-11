@@ -5,6 +5,7 @@ Imports System.Text.Json
 ' Intent local durable: si no es posible registrar un rechazo en CCS,
 ' la estacion NO puede aceptar otro escaneo ni perder la incidencia tras reiniciar.
 Public NotInheritable Class UnregisteredScanRejection
+    Public Property EventToken As Guid = Guid.NewGuid()
     Public Property ContainerId As Integer
     Public Property RejectionType As String = ""
     Public Property SsiCode As String = ""
@@ -28,7 +29,8 @@ Public NotInheritable Class ScanRejectionHold
             If Not File.Exists(filePath) Then Return Nothing
             Dim v = JsonSerializer.Deserialize(Of UnregisteredScanRejection)(
                 File.ReadAllText(filePath, Encoding.UTF8))
-            If v Is Nothing OrElse v.ContainerId <= 0 OrElse
+            If v Is Nothing OrElse v.EventToken = Guid.Empty OrElse
+               v.ContainerId <= 0 OrElse
                String.IsNullOrWhiteSpace(v.RejectionType) Then
                 Throw New InvalidDataException(
                     "El rechazo local no es valido. Deten la estacion y solicita revision de TI.")
@@ -38,7 +40,8 @@ Public NotInheritable Class ScanRejectionHold
     End Function
 
     Public Shared Sub Save(value As UnregisteredScanRejection)
-        If value Is Nothing OrElse value.ContainerId <= 0 Then
+        If value Is Nothing OrElse value.ContainerId <= 0 OrElse
+           value.EventToken = Guid.Empty Then
             Throw New ArgumentException("Rechazo sin contenedor valido.")
         End If
         SyncLock gate

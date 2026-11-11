@@ -62,9 +62,9 @@ Public NotInheritable Class ScanRejectionHold
 
     Public Shared Sub ClearIfRegistered(containerId As Integer)
         SyncLock gate
-            Dim pending = Pending()
-            If pending Is Nothing Then Return
-            If pending.ContainerId <> containerId Then
+            Dim savedRejection As UnregisteredScanRejection = ScanRejectionHold.Pending()
+            If savedRejection Is Nothing Then Return
+            If savedRejection.ContainerId <> containerId Then
                 Throw New InvalidOperationException(
                     "No se puede borrar un rechazo de otro pallet.")
             End If

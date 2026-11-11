@@ -237,5 +237,24 @@ BEGIN
 END;
 GO
 
--- IMPORTANTE: el usuario de la app necesita EXECUTE sobre estos procedimientos
--- y SELECT de estas cinco tablas. Administrar GRANT segun rol SQL de la planta.
+-- Permisos para el rol de ejecucion existente (no concede DELETE/UPDATE directo).
+IF DATABASE_PRINCIPAL_ID(N'ssi_PaS_RuntimeRole') IS NOT NULL
+BEGIN
+    GRANT SELECT ON dbo.ssi_PaS_RejectionDepartments TO ssi_PaS_RuntimeRole;
+    GRANT SELECT ON dbo.ssi_PaS_RejectionDepartmentRoles TO ssi_PaS_RuntimeRole;
+    GRANT SELECT ON dbo.ssi_PaS_ScanRejections TO ssi_PaS_RuntimeRole;
+    GRANT SELECT ON dbo.ssi_PaS_RejectionRequirements TO ssi_PaS_RuntimeRole;
+    GRANT SELECT ON dbo.ssi_PaS_RejectionApprovals TO ssi_PaS_RuntimeRole;
+    GRANT EXECUTE ON dbo.ssi_PaS_StartScanRejection TO ssi_PaS_RuntimeRole;
+    GRANT EXECUTE ON dbo.ssi_PaS_ApproveScanRejection TO ssi_PaS_RuntimeRole;
+    GRANT EXECUTE ON dbo.ssi_PaS_SaveRejectionDepartment TO ssi_PaS_RuntimeRole;
+END;
+GO
+
+-- Revision visual de semilla y permisos.
+SELECT d.department_name, d.is_required, r.role_name
+FROM dbo.ssi_PaS_RejectionDepartments d
+LEFT JOIN dbo.ssi_PaS_RejectionDepartmentRoles m ON m.department_id=d.department_id
+LEFT JOIN dbo.ssi_PaS_Roles r ON r.role_id=m.role_id
+ORDER BY d.department_id,r.role_name;
+

@@ -791,6 +791,32 @@ Public Partial Class PalletScannerView
             If levelButton.Enabled Then PromptCompletedLevel()
         Catch ex As Exception
             ResetVerification()
+            Dim sqlError = TryCast(ex, Microsoft.Data.SqlClient.SqlException)
+            If sqlError IsNot Nothing AndAlso
+               (sqlError.Number = 51107 OrElse sqlError.Number = 2601 OrElse
+                sqlError.Number = 2627) Then
+                ' El servidor rechazo transaccionalmente esta insercion.
+                ' Verificar en CCS antes de descartar el intento durable local.
+                Try
+                    ConnectionRecovery.FlagReview(ex.Message)
+                    ConnectionRecovery.DismissRejectedAfterCheck()
+                    Dim part = TryCast(partPicker.SelectedItem, PaSPart)
+                    Dim location = If(part Is Nothing, "",
+                        RejectionAuthorizationData.FindPackedSerial(
+                            part.Id, firstQr.Text.Trim(), secondQr.Text.Trim()))
+                    Dim same = activeContainer IsNot Nothing AndAlso
+                        String.Equals(location, activeContainer.Code,
+                                      StringComparison.OrdinalIgnoreCase)
+                    RejectPiece(If(same, "DUPLICATE_SAME", "DUPLICATE_OTHER"),
+                        If(location = "", "Pieza duplicada: ya se encuentra empacada.",
+                           If(same, "La pieza ya esta en ESTE CONTENEDOR: ",
+                                    "La pieza ya esta en OTRO CONTENEDOR: ") & location))
+                    Return
+                Catch recoveryEx As Exception
+                    ShowPackingError(recoveryEx)
+                    Return
+                End Try
+            End If
             ShowPackingError(ex)
         End Try
     End Sub

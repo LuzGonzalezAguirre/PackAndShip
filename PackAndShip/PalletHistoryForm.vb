@@ -32,7 +32,7 @@ Public Class PalletHistoryForm
         fromPicker.Value = DateTime.Today.AddMonths(-3)
         toPicker.Value = DateTime.Today
         removeButton.Visible = SessionContext.CanModifySetup
-        cancelButton.Visible = SessionContext.UserId > 0
+        dismissButton.Visible = SessionContext.UserId > 0
         BindEvents()
         AddHandler Shown, Sub() RefreshHistory()
     End Sub
@@ -52,7 +52,7 @@ Public Class PalletHistoryForm
         AddHandler refreshButton.Click, Sub() RefreshHistory()
         AddHandler exportSummaryButton.Click, Sub() ExportGrid(grid, "pallet_report")
         AddHandler removeButton.Click, AddressOf RemoveSelectedPiece
-        AddHandler cancelButton.Click, AddressOf CancelSelectedPallet
+        AddHandler dismissButton.Click, AddressOf CancelSelectedPallet
         AddHandler grid.SelectionChanged, AddressOf SelectedPalletChanged
         AddHandler exportPieces.Click, Sub() ExportGrid(pieces, "Pieces_and_Q-Wall_Inspection_IDs")
         AddHandler exportLevels.Click, Sub() ExportGrid(levels, "Levels")
@@ -114,7 +114,7 @@ Public Class PalletHistoryForm
         Dim openState = grid.SelectedRows.Count > 0 AndAlso
             Convert.ToString(grid.SelectedRows(0).Cells("Status").Value) = "OPEN"
         removeButton.Enabled = authorized AndAlso openState AndAlso pieces.Rows.Count > 0
-        cancelButton.Enabled = SessionContext.UserId > 0 AndAlso openState AndAlso
+        dismissButton.Enabled = SessionContext.UserId > 0 AndAlso openState AndAlso
             pieces.Rows.Count = 0 AndAlso
             Not levels.Rows.Cast(Of DataGridViewRow)().Any(
                 Function(row) Convert.ToString(row.Cells("Status").Value) = "CLOSED")
@@ -167,7 +167,7 @@ Public Class PalletHistoryForm
     End Sub
 
     Private Sub CancelSelectedPallet(sender As Object, e As EventArgs)
-        If selectedId <= 0 OrElse Not cancelButton.Enabled OrElse
+        If selectedId <= 0 OrElse Not dismissButton.Enabled OrElse
            grid.SelectedRows.Count = 0 Then Return
         Dim code = Convert.ToString(grid.SelectedRows(0).Cells("Pallet").Value)
         Dim required = Convert.ToInt32(grid.SelectedRows(0).Cells("Obligatorio").Value)

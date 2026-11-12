@@ -73,8 +73,7 @@ Public NotInheritable Class PaSPackingData
 
     Public Shared Function OpenContainer(code As String, partId As Integer) As Integer
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_OpenContainer", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.OpenContainer, cn)
                 cmd.Parameters.Add("@container_code", SqlDbType.VarChar, 18).Value = code.Trim()
                 cmd.Parameters.Add("@pn_id", SqlDbType.Int).Value = partId
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
@@ -168,8 +167,7 @@ Public NotInheritable Class PaSPackingData
     Public Shared Sub AddPiece(containerId As Integer, levelNumber As Integer,
                                ssiCode As String, clientCode As String)
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_AddPiece", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.AddPiece, cn)
                 cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
                 cmd.Parameters.Add("@level_number", SqlDbType.Int).Value = levelNumber
                 cmd.Parameters.Add("@ssi_full_code", SqlDbType.NVarChar, 200).Value = ssiCode.Trim()
@@ -182,8 +180,7 @@ Public NotInheritable Class PaSPackingData
 
     Public Shared Sub CloseLevel(containerId As Integer, levelNumber As Integer)
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_CloseLevel", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.CloseLevel, cn)
                 cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
                 cmd.Parameters.Add("@level_number", SqlDbType.Int).Value = levelNumber
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
@@ -227,8 +224,7 @@ Public NotInheritable Class PaSPackingData
 
     Public Shared Sub CloseContainer(containerId As Integer)
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_CloseContainer", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.CloseContainer, cn)
                 cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
                 cmd.ExecuteNonQuery()

@@ -173,26 +173,19 @@ Public NotInheritable Class PaSHistoryData
     End Function
 
     Public Shared Sub RemovePiece(containerId As Integer, productId As Integer, reason As String)
-        ExecuteCorrection("dbo.ssi_PaS_RemovePiece", containerId, productId, reason)
-    End Sub
-
-    Public Shared Sub CancelContainer(containerId As Integer, reason As String)
-        ExecuteCorrection("dbo.ssi_PaS_CancelContainer", containerId, Nothing, reason)
-    End Sub
-
-    Private Shared Sub ExecuteCorrection(procedure As String, containerId As Integer,
-                                         productId As Integer?, reason As String)
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand(procedure, cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.RemovePiece, cn)
                 cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
-                If productId.HasValue Then
-                    cmd.Parameters.Add("@product_id", SqlDbType.Int).Value = productId.Value
-                End If
+                cmd.Parameters.Add("@product_id", SqlDbType.Int).Value = productId
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
                 cmd.Parameters.Add("@reason", SqlDbType.NVarChar, 500).Value = reason.Trim()
                 cmd.ExecuteNonQuery()
             End Using
         End Using
+    End Sub
+
+    Public Shared Sub CancelContainer(containerId As Integer, reason As String)
+        Throw New InvalidOperationException(
+            "La cancelación debe realizarse con autorizaciones por departamento.")
     End Sub
 End Class

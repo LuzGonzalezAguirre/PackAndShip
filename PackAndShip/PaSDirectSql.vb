@@ -89,7 +89,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH;",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -147,7 +148,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH;",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -220,7 +222,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH;",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -336,7 +339,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH;",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -388,7 +392,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -432,7 +437,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -505,7 +511,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -564,7 +571,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -604,7 +612,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -695,7 +704,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 
@@ -747,7 +757,8 @@ Public NotInheritable Class PaSDirectSql
                 "        IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;",
                 "        THROW;",
                 "    END CATCH;",
-                "END;",            })
+                "END;"
+            })
         End Get
     End Property
 

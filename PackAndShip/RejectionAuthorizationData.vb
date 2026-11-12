@@ -39,8 +39,7 @@ Public NotInheritable Class RejectionAuthorizationData
                                     ssi As String, client As String, reason As String,
                                     eventToken As Guid) As ScanRejectionInfo
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_StartScanRejection", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.StartScanRejection, cn)
                 cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
                 cmd.Parameters.Add("@rejection_type", SqlDbType.VarChar, 30).Value = kind
@@ -80,8 +79,7 @@ Public NotInheritable Class RejectionAuthorizationData
     Public Shared Sub Approve(rejectionId As Long, departmentId As Integer,
                               barcode As String, password As String)
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_ApproveScanRejection", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.ApproveScanRejection, cn)
                 cmd.Parameters.Add("@rejection_id", SqlDbType.BigInt).Value = rejectionId
                 cmd.Parameters.Add("@department_id", SqlDbType.Int).Value = departmentId
                 cmd.Parameters.Add("@barcode", SqlDbType.VarChar, 50).Value = barcode.Trim().ToUpperInvariant()
@@ -113,8 +111,7 @@ Public NotInheritable Class RejectionAuthorizationData
     Public Shared Sub SaveDepartment(departmentId As Integer, required As Boolean,
                                      roleIds As IEnumerable(Of Integer))
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_SaveRejectionDepartment", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.SaveRejectionDepartment, cn)
                 cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
                 cmd.Parameters.Add("@department_id", SqlDbType.Int).Value = departmentId
                 cmd.Parameters.Add("@is_required", SqlDbType.Bit).Value = required

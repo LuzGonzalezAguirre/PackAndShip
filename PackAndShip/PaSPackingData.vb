@@ -55,20 +55,8 @@ Public NotInheritable Class PaSPackingData
 
     Public Shared Function TransferPartial(sourceCode As String,
                                             destinationCode As String) As Integer
-        Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_TransferPartialPallet", cn)
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.Parameters.Add("@source_code", SqlDbType.VarChar, 18).Value = sourceCode.Trim()
-                cmd.Parameters.Add("@destination_code", SqlDbType.VarChar, 18).Value = destinationCode.Trim()
-                cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = SessionContext.UserId
-                Using reader = cmd.ExecuteReader()
-                    If Not reader.Read() Then
-                        Throw New InvalidOperationException("SQL did not confirm the pallet transfer.")
-                    End If
-                    Return Convert.ToInt32(reader("destination_container_id"))
-                End Using
-            End Using
-        End Using
+        Throw New NotSupportedException(
+            "Las transferencias están deshabilitadas en esta versión de PackAndShip.")
     End Function
 
     Public Shared Function OpenContainer(code As String, partId As Integer) As Integer
@@ -189,37 +177,18 @@ Public NotInheritable Class PaSPackingData
         End Using
     End Sub
 
+    ' Se conserva la firma para código heredado; impedir cualquier bypass de tres aprobaciones.
     Public Shared Sub CancelEmptyPallet(containerId As Integer, authorizedBy As Integer,
                                         barcode As String, password As String, reason As String)
-        Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_CancelEmptyPalletAuthorized", cn)
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
-                cmd.Parameters.Add("@packing_user_id", SqlDbType.Int).Value = SessionContext.UserId
-                cmd.Parameters.Add("@authorized_by_user_id", SqlDbType.Int).Value = authorizedBy
-                cmd.Parameters.Add("@authorized_barcode", SqlDbType.VarChar, 50).Value = barcode
-                cmd.Parameters.Add("@authorized_password", SqlDbType.VarChar, 50).Value = password
-                cmd.Parameters.Add("@reason", SqlDbType.NVarChar, 500).Value = reason
-                cmd.ExecuteNonQuery()
-            End Using
-        End Using
+        Throw New NotSupportedException(
+            "Utiliza las autorizaciones por departamento antes de cancelar el pallet.")
     End Sub
 
     Public Shared Sub ClosePartialContainer(containerId As Integer,
                                              authorizedBy As Integer, barcode As String,
                                              password As String, reason As String)
-        Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_ClosePartialContainer", cn)
-                cmd.CommandType = CommandType.StoredProcedure
-                cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
-                cmd.Parameters.Add("@packing_user_id", SqlDbType.Int).Value = SessionContext.UserId
-                cmd.Parameters.Add("@authorized_by_user_id", SqlDbType.Int).Value = authorizedBy
-                cmd.Parameters.Add("@authorized_barcode", SqlDbType.VarChar, 50).Value = barcode
-                cmd.Parameters.Add("@authorized_password", SqlDbType.VarChar, 50).Value = password
-                cmd.Parameters.Add("@reason", SqlDbType.NVarChar, 500).Value = reason
-                cmd.ExecuteNonQuery()
-            End Using
-        End Using
+        Throw New NotSupportedException(
+            "Utiliza las autorizaciones por departamento antes de cerrar el pallet parcial.")
     End Sub
 
     Public Shared Sub CloseContainer(containerId As Integer)

@@ -16,6 +16,8 @@ REVOKE INSERT, UPDATE, DELETE ON OBJECT::dbo.ssi_PaS_Containers FROM ssi_PaS_Run
 REVOKE INSERT, UPDATE, DELETE ON OBJECT::dbo.ssi_PaS_ContainerLevels FROM ssi_PaS_RuntimeRole;
 REVOKE INSERT, UPDATE, DELETE ON OBJECT::dbo.ssi_PaS_ContainerPieces FROM ssi_PaS_RuntimeRole;
 REVOKE INSERT, UPDATE, DELETE ON OBJECT::dbo.ssi_PaS_PackingAudit FROM ssi_PaS_RuntimeRole;
+REVOKE INSERT, UPDATE, DELETE ON OBJECT::dbo.ssi_PaS_PartialClosures FROM ssi_PaS_RuntimeRole;
+REVOKE INSERT, UPDATE, DELETE ON OBJECT::dbo.ssi_PaS_EmptyPalletCancellations FROM ssi_PaS_RuntimeRole;
 GO
 
 -- Solo tablas operativas de PackAndShip, sin escritura en Q-Wall.

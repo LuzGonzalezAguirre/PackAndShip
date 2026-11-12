@@ -237,16 +237,15 @@ Public NotInheritable Class ConnectionRecovery
         Dim proc As String
         Select Case p.Kind
             Case "ADD_PIECE"
-                proc = "dbo.ssi_PaS_AddPiece"
+                proc = PaSDirectSql.AddPiece
             Case "CLOSE_LEVEL"
-                proc = "dbo.ssi_PaS_CloseLevel"
+                proc = PaSDirectSql.CloseLevel
             Case "CLOSE_PALLET"
-                proc = "dbo.ssi_PaS_CloseContainer"
+                proc = PaSDirectSql.CloseContainer
             Case Else
                 Throw New InvalidOperationException("Unknown pending action.")
         End Select
         Using cmd As New SqlCommand(proc, cn)
-            cmd.CommandType = CommandType.StoredProcedure
             cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = p.ContainerId
             cmd.Parameters.Add("@actor_user_id", SqlDbType.Int).Value = p.ActorUserId
             If p.Kind <> "CLOSE_PALLET" Then

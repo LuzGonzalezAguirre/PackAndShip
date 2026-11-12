@@ -8,8 +8,7 @@ Public NotInheritable Class PalletActionAuthorizationData
     Public Shared Function BeginAction(containerId As Integer, kind As String,
                                        reason As String) As Long
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_BeginPalletAction", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.BeginPalletAction, cn)
                 cmd.Parameters.Add("@container_id", SqlDbType.Int).Value = containerId
                 cmd.Parameters.Add("@action_type", SqlDbType.VarChar, 20).Value = kind
                 cmd.Parameters.Add("@packing_user_id", SqlDbType.Int).Value = SessionContext.UserId
@@ -60,8 +59,7 @@ Public NotInheritable Class PalletActionAuthorizationData
     Public Shared Sub Approve(requestId As Long, departmentId As Integer,
                               barcode As String, password As String)
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_ApprovePalletAction", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.ApprovePalletAction, cn)
                 cmd.Parameters.Add("@request_id", SqlDbType.BigInt).Value = requestId
                 cmd.Parameters.Add("@department_id", SqlDbType.Int).Value = departmentId
                 cmd.Parameters.Add("@barcode", SqlDbType.VarChar, 50).Value = barcode.Trim().ToUpperInvariant()
@@ -73,8 +71,7 @@ Public NotInheritable Class PalletActionAuthorizationData
 
     Public Shared Sub Complete(requestId As Long)
         Using cn = PackAndShipData.CreateConnection()
-            Using cmd As New SqlCommand("dbo.ssi_PaS_CompletePalletAction", cn)
-                cmd.CommandType = CommandType.StoredProcedure
+            Using cmd As New SqlCommand(PaSDirectSql.CompletePalletAction, cn)
                 cmd.Parameters.Add("@request_id", SqlDbType.BigInt).Value = requestId
                 cmd.Parameters.Add("@packing_user_id", SqlDbType.Int).Value = SessionContext.UserId
                 cmd.ExecuteNonQuery()

@@ -10,6 +10,7 @@ Public Partial Class PalletActionAuthorizationForm
     Private ReadOnly actionKind As String
     Private requestId As Long
     Private completed As Boolean
+    Private approvalInProgress As Boolean
 
     Public Sub New()
         InitializeComponent()
@@ -24,9 +25,22 @@ Public Partial Class PalletActionAuthorizationForm
             container.PieceTotal & " / " & container.RequiredTotal & " piezas"
         AddHandler startButton.Click, AddressOf StartRequest
         AddHandler approveButton.Click, AddressOf ApproveRequest
+        AddHandler barcodeInput.KeyDown, AddressOf BarcodeEnter
+        AddHandler passwordInput.KeyDown, AddressOf PasswordEnter
+        ' Solo el Enter del campo contraseña autoriza; el del gafete cambia el foco.
+        Me.AcceptButton = Nothing
         AddHandler completeButton.Click, AddressOf CompleteRequest
         AddHandler refreshButton.Click, Sub() RefreshApprovals()
-        AddHandler Shown, Sub() RestoreRequest()
+        AddHandler Shown, Sub()
+                              RestoreRequest()
+                              If Not IsDisposed Then
+                                  If requestId > 0 Then
+                                      barcodeInput.Focus()
+                                  Else
+                                      reasonInput.Focus()
+                                  End If
+                              End If
+                          End Sub
     End Sub
 
     Private Sub RestoreRequest()
@@ -101,8 +115,32 @@ Public Partial Class PalletActionAuthorizationForm
         End Try
     End Sub
 
+    Private Sub BarcodeEnter(sender As Object, e As KeyEventArgs)
+        If e.KeyCode <> Keys.Enter Then Return
+        e.SuppressKeyPress = True
+        e.Handled = True
+        If Not barcodeInput.Enabled OrElse String.IsNullOrWhiteSpace(barcodeInput.Text) Then Return
+        passwordInput.Focus()
+    End Sub
+
+    Private Sub PasswordEnter(sender As Object, e As KeyEventArgs)
+        If e.KeyCode <> Keys.Enter Then Return
+        e.SuppressKeyPress = True
+        e.Handled = True
+        If Not passwordInput.Enabled OrElse String.IsNullOrWhiteSpace(passwordInput.Text) Then Return
+        If approveButton.Enabled AndAlso Not approvalInProgress Then approveButton.PerformClick()
+    End Sub
+
     Private Sub ApproveRequest(sender As Object, e As EventArgs)
-        If requestId <= 0 OrElse departmentPicker.SelectedValue Is Nothing Then Return
+        If approvalInProgress OrElse Not approveButton.Enabled OrElse
+           requestId <= 0 OrElse departmentPicker.SelectedValue Is Nothing Then Return
+        If String.IsNullOrWhiteSpace(barcodeInput.Text) OrElse
+           String.IsNullOrWhiteSpace(passwordInput.Text) Then
+            passwordInput.Focus()
+            Return
+        End If
+        approvalInProgress = True
+        approveButton.Enabled = False
         Try
             PalletActionAuthorizationData.Approve(
                 requestId, Convert.ToInt32(departmentPicker.SelectedValue),
@@ -110,10 +148,15 @@ Public Partial Class PalletActionAuthorizationForm
             barcodeInput.Clear()
             passwordInput.Clear()
             RefreshApprovals()
+            If Not IsDisposed Then barcodeInput.Focus()
         Catch ex As Exception
             passwordInput.Clear()
+            approveButton.Enabled = True
             MessageBox.Show(ex.Message, "Autorización denegada",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            If Not IsDisposed Then passwordInput.Focus()
+        Finally
+            approvalInProgress = False
         End Try
     End Sub
 

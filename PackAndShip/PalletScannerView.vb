@@ -1236,7 +1236,11 @@ Public Partial Class PalletScannerView
 
             ' El producto puede estar ya empacado en este mismo pallet o en otro.
             ' La restriccion UNIQUE(product_id) en SQL sigue siendo la ultima garantia.
-            Dim alreadyIn = RejectionAuthorizationData.FindPackedProduct(qwall.ProductId)
+            ' Multiple Q-Wall product IDs can represent the SAME physical
+            ' piece. Check every matching SSI + Client pair, not only the
+            ' product_id of the latest PASS inspection.
+            Dim alreadyIn = RejectionAuthorizationData.FindPackedSerial(
+                selectedPart.Id, firstQr.Text.Trim(), fullClientCode)
             If alreadyIn <> "" Then
                 Dim sameContainer = String.Equals(alreadyIn, activeContainer?.Code,
                                                   StringComparison.OrdinalIgnoreCase)

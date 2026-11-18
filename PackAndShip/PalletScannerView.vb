@@ -341,11 +341,27 @@ Public Partial Class PalletScannerView
             If lockedCode <> "" Then
                 Dim saved = PaSPackingData.FindContainer(lockedCode)
                 If saved Is Nothing Then
-                    Throw New InvalidOperationException(
-                        "La estación está vinculada al pallet " & lockedCode &
-                        ", pero CCS no lo encuentra. Se requiere revisión de TI.")
-                End If
-                If saved.Status = "OPEN" Then
+                    ' CCS respondió correctamente: este código ya no existe.
+                    ' Es seguro quitar el bloqueo LOCAL solo si no queda ninguna
+                    ' operación durable o rechazo sin registrar por conciliar.
+                    ' Si CCS falla por red/SQL, FindContainer lanza excepción y
+                    ' NO entra a este bloque; la estación permanece bloqueada.
+                    Dim pendingSql = ConnectionRecovery.Pending()
+                    Dim pendingRejection = ScanRejectionHold.Pending()
+                    If pendingSql IsNot Nothing OrElse pendingRejection IsNot Nothing Then
+                        Throw New InvalidOperationException(
+                            "CCS ya no encuentra el pallet " & lockedCode &
+                            ", pero existen operaciones o rechazos locales pendientes de revisión. " &
+                            "No se liberó el bloqueo para evitar perder una operación. Solicita revisión de TI.")
+                    End If
+                    StationSettings.UnlockPallet(lockedCode)
+                    containerInput.Clear()
+                    UpdateScannerAvailability()
+                    scanStatus.ForeColor = Color.DarkOrange
+                    scanStatus.Text = "El pallet " & lockedCode &
+                                      " ya no existe en CCS. Se liberó el bloqueo local " &
+                                      "y puedes escanear un nuevo contenedor."
+                ElseIf saved.Status = "OPEN" Then
                     Dim model = parts.FirstOrDefault(Function(x) x.Id = saved.PartId)
                     If model Is Nothing Then
                         Throw New InvalidOperationException(

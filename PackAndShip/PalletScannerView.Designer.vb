@@ -16,6 +16,11 @@ Partial Class PalletScannerView
     Private Sub InitializeComponent()
         mainLayout = New Panel()
         DataGridView1 = New DataGridView()
+        serialFilterBar = New Panel()
+        serialSearchLabel = New Label()
+        serialSearch = New TextBox()
+        clearSerialSearch = New Button()
+        serialResultCount = New Label()
         scanArea = New Panel()
         leftLayout = New Panel()
         piecesArea = New Panel()
@@ -64,6 +69,7 @@ Partial Class PalletScannerView
         clockValue = New Label()
         mainLayout.SuspendLayout()
         CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
+        serialFilterBar.SuspendLayout()
         scanArea.SuspendLayout()
         leftLayout.SuspendLayout()
         piecesArea.SuspendLayout()
@@ -84,6 +90,7 @@ Partial Class PalletScannerView
         mainLayout.AutoScrollMinSize = New Size(1150, 730)
         mainLayout.BackColor = Color.FromArgb(CByte(245), CByte(248), CByte(252))
         mainLayout.Controls.Add(DataGridView1)
+        mainLayout.Controls.Add(serialFilterBar)
         mainLayout.Controls.Add(scanArea)
         mainLayout.Controls.Add(progressArea)
         mainLayout.Controls.Add(headerPage)
@@ -100,15 +107,65 @@ Partial Class PalletScannerView
         DataGridView1.AllowUserToDeleteRows = False
         DataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         DataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        DataGridView1.Location = New Point(12, 414)
+        DataGridView1.Location = New Point(12, 456)
         DataGridView1.MultiSelect = False
         DataGridView1.Name = "DataGridView1"
         DataGridView1.ReadOnly = True
         DataGridView1.RowHeadersVisible = False
         DataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        DataGridView1.Size = New Size(1357, 331)
+        DataGridView1.Size = New Size(1357, 289)
         DataGridView1.TabIndex = 2
-        ' 
+        '
+        ' serialFilterBar
+        '
+        serialFilterBar.BackColor = Color.FromArgb(CByte(245), CByte(248), CByte(252))
+        serialFilterBar.Controls.Add(serialSearchLabel)
+        serialFilterBar.Controls.Add(serialSearch)
+        serialFilterBar.Controls.Add(clearSerialSearch)
+        serialFilterBar.Controls.Add(serialResultCount)
+        serialFilterBar.Location = New Point(12, 414)
+        serialFilterBar.Name = "serialFilterBar"
+        serialFilterBar.Size = New Size(1357, 36)
+        serialFilterBar.TabIndex = 2
+        '
+        ' serialSearchLabel
+        '
+        serialSearchLabel.Font = New Font("Segoe UI", 10.0F, FontStyle.Bold)
+        serialSearchLabel.ForeColor = Color.FromArgb(CByte(31), CByte(78), CByte(121))
+        serialSearchLabel.Location = New Point(3, 7)
+        serialSearchLabel.Name = "serialSearchLabel"
+        serialSearchLabel.Size = New Size(142, 25)
+        serialSearchLabel.Text = "BUSCAR SERIAL:"
+        '
+        ' serialSearch
+        '
+        serialSearch.Font = New Font("Segoe UI", 10.0F)
+        serialSearch.Location = New Point(148, 3)
+        serialSearch.Name = "serialSearch"
+        serialSearch.PlaceholderText = "SN SSI o cliente..."
+        serialSearch.Size = New Size(440, 28)
+        serialSearch.TabIndex = 0
+        '
+        ' clearSerialSearch
+        '
+        clearSerialSearch.BackColor = Color.White
+        clearSerialSearch.Location = New Point(595, 3)
+        clearSerialSearch.Name = "clearSerialSearch"
+        clearSerialSearch.Size = New Size(96, 28)
+        clearSerialSearch.Text = "Limpiar"
+        clearSerialSearch.TabIndex = 1
+        clearSerialSearch.UseVisualStyleBackColor = False
+        '
+        ' serialResultCount
+        '
+        serialResultCount.Font = New Font("Segoe UI", 9.0F)
+        serialResultCount.ForeColor = Color.FromArgb(CByte(108), CByte(128), CByte(155))
+        serialResultCount.Location = New Point(1185, 8)
+        serialResultCount.Name = "serialResultCount"
+        serialResultCount.Size = New Size(165, 22)
+        serialResultCount.TextAlign = ContentAlignment.MiddleRight
+        serialResultCount.Text = "0 / 0 piezas"
+        '
         ' scanArea
         ' 
         scanArea.BackColor = Color.FromArgb(CByte(255), CByte(255), CByte(255))
@@ -620,6 +677,8 @@ Partial Class PalletScannerView
         Size = New Size(1382, 760)
         mainLayout.ResumeLayout(False)
         CType(DataGridView1, ComponentModel.ISupportInitialize).EndInit()
+        serialFilterBar.ResumeLayout(False)
+        serialFilterBar.PerformLayout()
         scanArea.ResumeLayout(False)
         scanArea.PerformLayout()
         leftLayout.ResumeLayout(False)
@@ -686,6 +745,11 @@ Partial Class PalletScannerView
     Friend WithEvents lbl_lot As Label
     Friend WithEvents Label1 As Label
     Friend WithEvents DataGridView1 As DataGridView
+    Friend WithEvents serialFilterBar As Panel
+    Friend WithEvents serialSearchLabel As Label
+    Friend WithEvents serialSearch As TextBox
+    Friend WithEvents clearSerialSearch As Button
+    Friend WithEvents serialResultCount As Label
     Friend WithEvents colContainer As DataGridViewTextBoxColumn
     Friend WithEvents colSsiModel As DataGridViewTextBoxColumn
     Friend WithEvents colLevel As DataGridViewTextBoxColumn

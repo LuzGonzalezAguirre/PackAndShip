@@ -53,10 +53,12 @@ Public NotInheritable Class QWallPassValidator
             Dim scrap As Boolean
             Dim found As Boolean
             Dim finished As Boolean
+            ' Priorizar el inicio de la inspección más reciente; nunca aprobar un
+            ' PASS antiguo si luego hubo FAIL o una inspección pendiente.
             Using cmd As New SqlCommand(
                 "SELECT TOP (1) inspection_id, overall_result, is_scrap, finished_at " &
                 "FROM dbo.ssi_Inspections WHERE product_id=@product " &
-                "ORDER BY COALESCE(finished_at, started_at) DESC, inspection_id DESC", cn)
+                "ORDER BY COALESCE(started_at, finished_at) DESC, inspection_id DESC", cn)
                 cmd.Parameters.Add("@product", SqlDbType.Int).Value = productId
                 Using rd = cmd.ExecuteReader()
                     If rd.Read() Then

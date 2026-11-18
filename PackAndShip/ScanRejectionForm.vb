@@ -7,6 +7,7 @@ Public Partial Class ScanRejectionForm
     Inherits Form
 
     Private ReadOnly blocked As ScanRejectionInfo
+    Private approvalInProgress As Boolean
 
     Public Sub New()
         InitializeComponent()
@@ -21,7 +22,14 @@ Public Partial Class ScanRejectionForm
             Environment.NewLine & "CLIENTE: " & info.ClientCode
         AddHandler refreshButton.Click, Sub() LoadApprovals()
         AddHandler approveButton.Click, AddressOf ApproveDepartment
-        AddHandler Shown, Sub() LoadApprovals()
+        AddHandler barcodeInput.KeyDown, AddressOf BarcodeEnter
+        AddHandler passwordInput.KeyDown, AddressOf PasswordEnter
+        ' Evita que el Enter del gafete dispare el botón predeterminado.
+        Me.AcceptButton = Nothing
+        AddHandler Shown, Sub()
+                              LoadApprovals()
+                              If Not IsDisposed AndAlso barcodeInput.Enabled Then barcodeInput.Focus()
+                          End Sub
     End Sub
 
     Private Sub LoadApprovals()
@@ -68,8 +76,33 @@ Public Partial Class ScanRejectionForm
         End Try
     End Sub
 
+    Private Sub BarcodeEnter(sender As Object, e As KeyEventArgs)
+        If e.KeyCode <> Keys.Enter Then Return
+        e.SuppressKeyPress = True
+        e.Handled = True
+        If Not barcodeInput.Enabled Then Return
+        If String.IsNullOrWhiteSpace(barcodeInput.Text) Then Return
+        passwordInput.Focus()
+    End Sub
+
+    Private Sub PasswordEnter(sender As Object, e As KeyEventArgs)
+        If e.KeyCode <> Keys.Enter Then Return
+        e.SuppressKeyPress = True
+        e.Handled = True
+        If Not passwordInput.Enabled OrElse String.IsNullOrWhiteSpace(passwordInput.Text) Then Return
+        If approveButton.Enabled AndAlso Not approvalInProgress Then approveButton.PerformClick()
+    End Sub
+
     Private Sub ApproveDepartment(sender As Object, e As EventArgs)
-        If departmentPicker.SelectedValue Is Nothing Then Return
+        If approvalInProgress OrElse Not approveButton.Enabled OrElse
+           departmentPicker.SelectedValue Is Nothing Then Return
+        If String.IsNullOrWhiteSpace(barcodeInput.Text) OrElse
+           String.IsNullOrWhiteSpace(passwordInput.Text) Then
+            passwordInput.Focus()
+            Return
+        End If
+        approvalInProgress = True
+        approveButton.Enabled = False
         Try
             RejectionAuthorizationData.Approve(blocked.Id,
                 Convert.ToInt32(departmentPicker.SelectedValue),
@@ -77,11 +110,15 @@ Public Partial Class ScanRejectionForm
             barcodeInput.Clear()
             passwordInput.Clear()
             LoadApprovals()
-            barcodeInput.Focus()
+            If Not IsDisposed AndAlso barcodeInput.Enabled Then barcodeInput.Focus()
         Catch ex As Exception
             passwordInput.Clear()
+            approveButton.Enabled = True
             MessageBox.Show(ex.Message, "Autorización rechazada",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            If Not IsDisposed Then passwordInput.Focus()
+        Finally
+            approvalInProgress = False
         End Try
     End Sub
 End Class

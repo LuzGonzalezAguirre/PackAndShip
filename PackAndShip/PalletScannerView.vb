@@ -22,6 +22,14 @@ Public Partial Class PalletScannerView
     Private autoOpenBusy As Boolean
     Private rejectionStorageFailed As Boolean
 
+    ' Copia visual de las piezas confirmadas en CCS. Nunca modifica el pallet.
+    Private scanTable As New System.Data.DataTable()
+    Private displayedContainerId As Integer
+    Private scannerLayoutBusy As Boolean
+    Private ReadOnly compactCounterFont As New Font("Segoe UI", 32.0F, FontStyle.Bold)
+    Private ReadOnly mediumCounterFont As New Font("Segoe UI", 40.0F, FontStyle.Bold)
+    Private ReadOnly largeCounterFont As New Font("Segoe UI", 48.0F, FontStyle.Bold)
+
     ' These hidden state guards preserve the existing SQL write workflow.
     ' They are not visual controls and do not need Designer positions.
     Private ReadOnly openButton As New Button()
@@ -37,6 +45,7 @@ Public Partial Class PalletScannerView
     Public Sub New()
         InitializeComponent()
         BindScannerEvents()
+        LayoutScannerSurface()
         AddHandler clockTimer.Tick, Sub() clockValue.Text = DateTime.Now.ToString("dd/MM/yyyy  HH:mm:ss")
         AddHandler Disposed, Sub() clockTimer.Stop()
         clockTimer.Start()
@@ -115,6 +124,19 @@ Public Partial Class PalletScannerView
                                             End If
                                         End Sub
         AddHandler secondQr.TextChanged, Sub() ResetVerification()
+        AddHandler serialSearch.TextChanged, Sub() ApplySerialFilter()
+        AddHandler clearSerialSearch.Click, Sub()
+                                                serialSearch.Clear()
+                                                FocusScannerInput()
+                                            End Sub
+        AddHandler serialSearch.KeyDown, Sub(sender, e)
+                                            If e.KeyCode <> Keys.Enter Then Return
+                                            e.SuppressKeyPress = True
+                                            e.Handled = True
+                                            FocusScannerInput()
+                                        End Sub
+        AddHandler mainLayout.Resize, Sub() LayoutScannerSurface()
+        AddHandler Me.Load, Sub() LayoutScannerSurface()
     End Sub
 
     Private Sub ContainerEnter(sender As Object, e As KeyEventArgs)
@@ -297,6 +319,10 @@ Public Partial Class PalletScannerView
             ShowConfiguredPalletMetrics()
             activeContainer = Nothing
             lbl_lot.Text = "P######"
+            scanTable = New System.Data.DataTable()
+            displayedContainerId = 0
+            serialSearch.Clear()
+            serialResultCount.Text = "0 / 0 piezas"
             DataGridView1.DataSource = Nothing
             ResetVerification()
             scannedList.Items.Clear()
@@ -723,8 +749,145 @@ Public Partial Class PalletScannerView
             Next
         End If
 
-        DataGridView1.DataSource = rows
+        If activeContainer IsNot Nothing AndAlso
+           displayedContainerId <> activeContainer.Id Then
+            displayedContainerId = activeContainer.Id
+            serialSearch.Clear()
+        End If
+        scanTable = rows
+        ApplySerialFilter()
+    End Sub
+
+    ' Filtra ambas columnas de SN por coincidencia parcial, sin consultar ni
+    ' editar SQL. ImportRow conserva numero de pieza/nivel, aun al filtrar.
+    Private Sub ApplySerialFilter()
+        If IsDisposed OrElse serialSearch Is Nothing Then Return
+        Dim textToFind = serialSearch.Text.Trim()
+        If scanTable.Columns.Count = 0 Then
+            DataGridView1.DataSource = Nothing
+            serialResultCount.Text = "0 / 0 piezas"
+            Return
+        End If
+        Dim filtered = scanTable.Clone()
+        For Each row As System.Data.DataRow In scanTable.Rows
+            Dim matches = textToFind.Length = 0 OrElse
+                Convert.ToString(row("SsiSerial")).IndexOf(
+                    textToFind, StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+                Convert.ToString(row("ClientSerial")).IndexOf(
+                    textToFind, StringComparison.OrdinalIgnoreCase) >= 0
+            If matches Then filtered.ImportRow(row)
+        Next
+        DataGridView1.DataSource = filtered
         DataGridView1.ClearSelection()
+        serialResultCount.Text = filtered.Rows.Count & " / " &
+                                 scanTable.Rows.Count & " piezas"
+    End Sub
+
+    Private Sub FocusScannerInput()
+        If activeContainer IsNot Nothing AndAlso activeContainer.Status = "OPEN" Then
+            firstQr.Focus()
+        Else
+            containerInput.Focus()
+        End If
+    End Sub
+
+    ' Designer mantiene las posiciones base. Al maximizar, las regiones crecen
+    ' con la ventana; en una pantalla demasiado pequena aparece scroll.
+    Private Sub LayoutScannerSurface()
+        If scannerLayoutBusy OrElse IsDisposed OrElse
+           mainLayout Is Nothing OrElse mainLayout.ClientSize.Width <= 0 Then Return
+        scannerLayoutBusy = True
+        Try
+            Const horizontalPadding As Integer = 12
+            Const topPanels As Integer = 97
+            Const topPanelsHeight As Integer = 310
+            Const panelGap As Integer = 8
+            Const filterTop As Integer = 414
+            Const gridTop As Integer = 456
+
+            mainLayout.AutoScrollMinSize = New Size(1150, 660)
+            Dim contentWidth = Math.Max(1150, mainLayout.ClientSize.Width) -
+                               horizontalPadding * 2
+            Dim contentHeight = Math.Max(660, mainLayout.ClientSize.Height)
+
+            mainLayout.SuspendLayout()
+            headerPage.SetBounds(horizontalPadding, 10, contentWidth, 82)
+            headerLayout.SetBounds(0, 0, contentWidth, 82)
+            LayoutScannerHeader(contentWidth)
+
+            Dim scanWidth = Math.Max(442, CInt(Math.Floor(contentWidth * 0.38R)))
+            Dim progressWidth = contentWidth - scanWidth - panelGap
+            scanArea.SetBounds(horizontalPadding, topPanels, scanWidth, topPanelsHeight)
+            progressArea.SetBounds(horizontalPadding + scanWidth + panelGap,
+                                   topPanels, progressWidth, topPanelsHeight)
+            firstQr.Width = scanWidth - 38
+            secondQr.Width = scanWidth - 38
+            scanHelp.Width = scanWidth - 36
+            scanStatus.Width = scanWidth - 36
+            LayoutProgressIndicators(progressWidth)
+
+            serialFilterBar.SetBounds(horizontalPadding, filterTop, contentWidth, 36)
+            Dim searchWidth = Math.Min(440, Math.Max(220, contentWidth - 450))
+            serialSearch.SetBounds(148, 3, searchWidth, 28)
+            clearSerialSearch.SetBounds(155 + searchWidth, 3, 96, 28)
+            serialResultCount.SetBounds(contentWidth - 172, 8, 165, 22)
+            DataGridView1.SetBounds(horizontalPadding, gridTop, contentWidth,
+                                    Math.Max(180, contentHeight - gridTop - 12))
+        Finally
+            mainLayout.ResumeLayout(True)
+            scannerLayoutBusy = False
+        End Try
+    End Sub
+
+    Private Sub LayoutScannerHeader(width As Integer)
+        Dim modelWidth = CInt(Math.Floor(width * 0.22R))
+        Dim containerWidth = CInt(Math.Floor(width * 0.17R))
+        Dim operatorWidth = CInt(Math.Floor(width * 0.16R))
+        Dim customerWidth = CInt(Math.Floor(width * 0.1R))
+        Dim timeWidth = CInt(Math.Floor(width * 0.16R))
+        Dim x As Integer = 0
+        headerModelCell.SetBounds(x, 0, modelWidth, 82)
+        partPicker.Width = modelWidth - 18
+        x += modelWidth
+        headerContainerCell.SetBounds(x, 0, containerWidth, 82)
+        containerInput.Width = containerWidth - 18
+        x += containerWidth
+        headerOperatorCell.SetBounds(x, 0, operatorWidth, 82)
+        operatorValue.Width = operatorWidth - 20
+        x += operatorWidth
+        headerCustomerCell.SetBounds(x, 0, customerWidth, 82)
+        customerValue.Width = customerWidth - 18
+        x += customerWidth
+        headerTimeCell.SetBounds(x, 0, timeWidth, 82)
+        clockValue.Width = timeWidth - 18
+        x += timeWidth
+        activeStrip.SetBounds(x, 0, width - x, 82)
+        activePartTitle.Width = Math.Max(60, activeStrip.Width - 12)
+        buildState.Width = Math.Max(60, activeStrip.Width - 12)
+    End Sub
+
+    Private Sub LayoutProgressIndicators(width As Integer)
+        ' Distribucion en tres columnas sin que las cifras se superpongan.
+        Dim countWidth = (width - 32) \ 3
+        Dim startX As Integer = 16
+        Dim counterFont As Font = If(width < 740, compactCounterFont,
+                                     If(width < 900, mediumCounterFont, largeCounterFont))
+        Dim captions As Label() = {lblLevelPiecesCaption, lblLevelsCaption,
+                                   lblPalletPiecesCaption}
+        Dim counts As Label() = {lblLevelPiecesCount, lblLevelsCount,
+                                 lblPalletPiecesCount}
+        For index = 0 To 2
+            Dim columnX = startX + countWidth * index
+            captions(index).SetBounds(columnX, 60, countWidth - 6, 26)
+            counts(index).SetBounds(columnX, 90, countWidth - 6, 98)
+            counts(index).Font = counterFont
+        Next
+        Label1.AutoSize = False
+        lbl_lot.AutoSize = False
+        Label1.SetBounds(Math.Max(215, width - 312), 8, 155, 38)
+        lbl_lot.SetBounds(Math.Max(372, width - 156), 6, 151, 39)
+        confirmAgain.SetBounds(width - 112, 208, 97, 97)
+        levelTiles.SetBounds(18, 208, Math.Max(180, width - 142), 97)
     End Sub
 
     Private Sub ResetAfterPalletClosed(closedCode As String)
@@ -739,8 +902,11 @@ Public Partial Class PalletScannerView
         scannedList.Items.Clear()
         scannedList.Items.Add("No hay pallet activo. Ingresa o escanea el siguiente contenedor.")
         lbl_lot.Text = "P######"
+        scanTable = New System.Data.DataTable()
+        displayedContainerId = 0
+        serialSearch.Clear()
         DataGridView1.DataSource = Nothing
-        DataGridView1.ClearSelection()
+        serialResultCount.Text = "0 / 0 piezas"
         levelTiles.Controls.Clear()
         ' Un pallet terminado no debe mostrar los totales de la configuración
         ' del modelo anterior. Los tres contadores quedan realmente en cero.

@@ -186,9 +186,9 @@ Partial Class Form1
         scannerView.Dock = DockStyle.Fill
         scannerView.Font = New Font("Segoe UI", 10.0F)
         scannerView.Location = New Point(0, 0)
-        scannerView.MinimumSize = New Size(990, 830)
+        scannerView.MinimumSize = New Size(0, 0)
         scannerView.Name = "scannerView"
-        scannerView.Size = New Size(1384, 830)
+        scannerView.Size = New Size(1384, 620)
         scannerView.TabIndex = 0
         ' 
         ' connectionStatus

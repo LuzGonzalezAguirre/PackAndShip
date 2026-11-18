@@ -740,8 +740,15 @@ Public Partial Class PalletScannerView
         scannedList.Items.Add("No hay pallet activo. Ingresa o escanea el siguiente contenedor.")
         lbl_lot.Text = "P######"
         DataGridView1.DataSource = Nothing
+        DataGridView1.ClearSelection()
         levelTiles.Controls.Clear()
-        ShowConfiguredPalletMetrics()
+        ' Un pallet terminado no debe mostrar los totales de la configuración
+        ' del modelo anterior. Los tres contadores quedan realmente en cero.
+        lblLevelsCount.Text = "0 / 0"
+        lblLevelPiecesCount.Text = "0 / 0"
+        lblPalletPiecesCount.Text = "0 / 0"
+        autoConfirmVisible = False
+        autoScanBusy = False
         buildState.Text = "Listo para el siguiente pallet"
         SetQWallStatus("Verificar al escanear")
         UpdateScannerAvailability()

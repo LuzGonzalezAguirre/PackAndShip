@@ -805,10 +805,10 @@ Public Partial Class PalletScannerView
             Const filterTop As Integer = 414
             Const gridTop As Integer = 456
 
-            mainLayout.AutoScrollMinSize = New Size(1150, 710)
+            mainLayout.AutoScrollMinSize = New Size(1150, 660)
             Dim contentWidth = Math.Max(1150, mainLayout.ClientSize.Width) -
                                horizontalPadding * 2
-            Dim contentHeight = Math.Max(710, mainLayout.ClientSize.Height)
+            Dim contentHeight = Math.Max(660, mainLayout.ClientSize.Height)
 
             mainLayout.SuspendLayout()
             headerPage.SetBounds(horizontalPadding, 10, contentWidth, 82)
@@ -832,7 +832,7 @@ Public Partial Class PalletScannerView
             clearSerialSearch.SetBounds(155 + searchWidth, 3, 96, 28)
             serialResultCount.SetBounds(contentWidth - 172, 8, 165, 22)
             DataGridView1.SetBounds(horizontalPadding, gridTop, contentWidth,
-                                    Math.Max(210, contentHeight - gridTop - 12))
+                                    Math.Max(180, contentHeight - gridTop - 12))
         Finally
             mainLayout.ResumeLayout(True)
             scannerLayoutBusy = False
@@ -877,9 +877,9 @@ Public Partial Class PalletScannerView
         Dim counts As Label() = {lblLevelPiecesCount, lblLevelsCount,
                                  lblPalletPiecesCount}
         For index = 0 To 2
-            Dim left = startX + countWidth * index
-            captions(index).SetBounds(left, 60, countWidth - 6, 26)
-            counts(index).SetBounds(left, 90, countWidth - 6, 98)
+            Dim columnX = startX + countWidth * index
+            captions(index).SetBounds(columnX, 60, countWidth - 6, 26)
+            counts(index).SetBounds(columnX, 90, countWidth - 6, 98)
             counts(index).Font = counterFont
         Next
         Label1.AutoSize = False

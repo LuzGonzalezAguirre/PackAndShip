@@ -747,8 +747,6 @@ Public Partial Class PalletScannerView
         lblLevelsCount.Text = "0 / 0"
         lblLevelPiecesCount.Text = "0 / 0"
         lblPalletPiecesCount.Text = "0 / 0"
-        autoConfirmVisible = False
-        autoScanBusy = False
         buildState.Text = "Listo para el siguiente pallet"
         SetQWallStatus("Verificar al escanear")
         UpdateScannerAvailability()

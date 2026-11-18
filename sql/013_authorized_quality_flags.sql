@@ -81,7 +81,7 @@ BEGIN
         )
             THROW 51107, 'Piece already belongs to a container.', 1;
 
-        -- Only the most recent completed-or-started Q-Wall inspection is authoritative.
+        -- The most recently started Q-Wall inspection governs (including unfinished runs).
         SELECT TOP (1)
             @inspection_id=inspection_id,
             @inspection_result=overall_result,
@@ -89,7 +89,7 @@ BEGIN
             @finished_at=finished_at
         FROM dbo.ssi_Inspections WITH (HOLDLOCK)
         WHERE product_id=@product_id
-        ORDER BY COALESCE(finished_at,started_at) DESC, inspection_id DESC;
+        ORDER BY COALESCE(started_at,finished_at) DESC, inspection_id DESC;
 
         IF @inspection_id IS NULL OR @finished_at IS NULL
            OR ISNULL(@inspection_result,0)<>1 OR ISNULL(@is_scrap,0)<>0

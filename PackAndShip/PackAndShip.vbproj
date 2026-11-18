@@ -6,7 +6,12 @@
     <StartupObject>Sub Main</StartupObject>
     <UseWindowsForms>true</UseWindowsForms>
     <MyType>WindowsForms</MyType>
+    <ApplicationIcon>10614581.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="10614581.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Import Include="System.Data" />
@@ -132,9 +137,7 @@
     <Compile Update="LoginForm.Designer.vb">
       <DependentUpon>LoginForm.vb</DependentUpon>
     </Compile>
-    <Compile Update="Form1.vb">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="Form1.vb" />
     <Compile Update="Form1.Designer.vb">
       <DependentUpon>Form1.vb</DependentUpon>
     </Compile>

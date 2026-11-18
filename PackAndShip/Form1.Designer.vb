@@ -15,6 +15,7 @@ Partial Class Form1
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
         mainMenu = New MenuStrip()
         menuSetup = New ToolStripMenuItem()
         setupCustomerItem = New ToolStripMenuItem()
@@ -25,12 +26,12 @@ Partial Class Form1
         menuPalletActions = New ToolStripMenuItem()
         menuPartialPallet = New ToolStripMenuItem()
         menuCancelEmptyPallet = New ToolStripMenuItem()
-        menuReviewPendingSql = New ToolStripMenuItem()
         menuHistory = New ToolStripMenuItem()
-        menuTransfer = New ToolStripMenuItem()
         menuHelp = New ToolStripMenuItem()
         helpAboutItem = New ToolStripMenuItem()
         menuLogout = New ToolStripMenuItem()
+        menuReviewPendingSql = New ToolStripMenuItem()
+        menuTransfer = New ToolStripMenuItem()
         appHeader = New Panel()
         headerTitle = New Label()
         signedInPanel = New Panel()
@@ -47,7 +48,7 @@ Partial Class Form1
         ' 
         mainMenu.AutoSize = False
         mainMenu.BackColor = Color.White
-        mainMenu.Font = New Font("Segoe UI", 10F)
+        mainMenu.Font = New Font("Segoe UI", 10.0F)
         mainMenu.Items.AddRange(New ToolStripItem() {menuSetup, menuPalletActions, menuHistory, menuHelp, menuLogout})
         mainMenu.Location = New Point(0, 0)
         mainMenu.Name = "mainMenu"
@@ -110,25 +111,11 @@ Partial Class Form1
         menuCancelEmptyPallet.Size = New Size(288, 24)
         menuCancelEmptyPallet.Text = "Cancelar pallet vacío (autorización)"
         ' 
-        ' menuReviewPendingSql
-        ' 
-        menuReviewPendingSql.Name = "menuReviewPendingSql"
-        menuReviewPendingSql.Size = New Size(288, 24)
-        menuReviewPendingSql.Text = "Revisar operación SQL pendiente"
-        menuReviewPendingSql.Visible = False
-        ' 
         ' menuHistory
         ' 
         menuHistory.Name = "menuHistory"
         menuHistory.Size = New Size(133, 30)
         menuHistory.Text = "Historial de pallets"
-        ' 
-        ' menuTransfer
-        ' 
-        menuTransfer.Name = "menuTransfer"
-        menuTransfer.Size = New Size(168, 30)
-        menuTransfer.Text = "Transferencias de pallets"
-        menuTransfer.Visible = False
         ' 
         ' menuHelp
         ' 
@@ -148,6 +135,20 @@ Partial Class Form1
         menuLogout.Name = "menuLogout"
         menuLogout.Size = New Size(101, 30)
         menuLogout.Text = "Cerrar sesión"
+        ' 
+        ' menuReviewPendingSql
+        ' 
+        menuReviewPendingSql.Name = "menuReviewPendingSql"
+        menuReviewPendingSql.Size = New Size(288, 24)
+        menuReviewPendingSql.Text = "Revisar operación SQL pendiente"
+        menuReviewPendingSql.Visible = False
+        ' 
+        ' menuTransfer
+        ' 
+        menuTransfer.Name = "menuTransfer"
+        menuTransfer.Size = New Size(168, 30)
+        menuTransfer.Text = "Transferencias de pallets"
+        menuTransfer.Visible = False
         ' 
         ' appHeader
         ' 
@@ -215,7 +216,8 @@ Partial Class Form1
         Controls.Add(appHeader)
         Controls.Add(connectionStatus)
         Controls.Add(mainMenu)
-        Font = New Font("Segoe UI", 11F)
+        Font = New Font("Segoe UI", 11.0F)
+        Icon = CType(resources.GetObject("$this.Icon"), Icon)
         MainMenuStrip = mainMenu
         Name = "Form1"
         StartPosition = FormStartPosition.CenterScreen

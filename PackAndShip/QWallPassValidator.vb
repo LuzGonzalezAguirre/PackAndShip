@@ -22,51 +22,52 @@ Public NotInheritable Class QWallPassValidator
         End If
 
         Using cn = PackAndShipData.CreateConnection()
-            ' Q-Wall GetOrCreateProductID stores the complete scan strings.
-            ' Do not use only extracted digits: part+both strings identify the record.
-            Dim matched As Integer
-            Dim productId As Integer
+            ' Q-Wall may have more than one ssi_Products row after
+            ' reinspecting the same physical SSI + Client serials. Those
+            ' rows are not extra pieces: inspect their shared history.
+            Dim existsInQWall As Boolean
             Using cmd As New SqlCommand(
-                "SELECT product_id FROM dbo.ssi_Products " &
-                "WHERE pn_id=@pn AND frameSN=@ssi AND fpcaSN=@client", cn)
+                "SELECT CASE WHEN EXISTS (" &
+                "SELECT 1 FROM dbo.ssi_Products " &
+                "WHERE pn_id=@pn AND frameSN=@ssi AND fpcaSN=@client) " &
+                "THEN 1 ELSE 0 END", cn)
                 cmd.Parameters.Add("@pn", SqlDbType.Int).Value = partId
                 cmd.Parameters.Add("@ssi", SqlDbType.NVarChar, 200).Value = ssiFullCode.Trim()
                 cmd.Parameters.Add("@client", SqlDbType.NVarChar, 200).Value = clientFullCode.Trim()
-                Using rd = cmd.ExecuteReader()
-                    While rd.Read()
-                        matched += 1
-                        If matched > 1 Then Exit While
-                        productId = Convert.ToInt32(rd("product_id"))
-                    End While
-                End Using
+                existsInQWall = Convert.ToInt32(cmd.ExecuteScalar()) = 1
             End Using
 
-            If matched = 0 Then
+            If Not existsInQWall Then
                 Return Refused("La pieza NO SE ENCUENTRA EN Q-Wall para este modelo y estas dos series.")
             End If
-            If matched > 1 Then
-                Return Refused("Existen varios productos de Q-Wall para estas series. Se requiere revisión de Calidad.")
-            End If
 
+            Dim productId As Integer
             Dim inspectionId As Integer
             Dim passed As Boolean
             Dim scrap As Boolean
             Dim found As Boolean
             Dim finished As Boolean
-            ' Priorizar el inicio de la inspección más reciente; nunca aprobar un
-            ' PASS antiguo si luego hubo FAIL o una inspección pendiente.
+            ' All Q-Wall product rows with this SAME physical pair of QR codes
+            ' form one inspection history. The most recently STARTED inspection
+            ' wins, including FAIL or unfinished runs. Never pick an older PASS.
             Using cmd As New SqlCommand(
-                "SELECT TOP (1) inspection_id, overall_result, is_scrap, finished_at " &
-                "FROM dbo.ssi_Inspections WHERE product_id=@product " &
-                "ORDER BY COALESCE(started_at, finished_at) DESC, inspection_id DESC", cn)
-                cmd.Parameters.Add("@product", SqlDbType.Int).Value = productId
+                "SELECT TOP (1) i.product_id, i.inspection_id, i.overall_result, " &
+                "i.is_scrap, i.finished_at " &
+                "FROM dbo.ssi_Products AS p " &
+                "INNER JOIN dbo.ssi_Inspections AS i ON i.product_id=p.product_id " &
+                "WHERE p.pn_id=@pn AND p.frameSN=@ssi AND p.fpcaSN=@client " &
+                "ORDER BY COALESCE(i.started_at,i.finished_at) DESC, i.inspection_id DESC", cn)
+                cmd.Parameters.Add("@pn", SqlDbType.Int).Value = partId
+                cmd.Parameters.Add("@ssi", SqlDbType.NVarChar, 200).Value = ssiFullCode.Trim()
+                cmd.Parameters.Add("@client", SqlDbType.NVarChar, 200).Value = clientFullCode.Trim()
                 Using rd = cmd.ExecuteReader()
                     If rd.Read() Then
                         found = True
+                        productId = Convert.ToInt32(rd("product_id"))
                         inspectionId = Convert.ToInt32(rd("inspection_id"))
-                        passed = Not rd.IsDBNull(1) AndAlso Convert.ToBoolean(rd("overall_result"))
-                        scrap = Not rd.IsDBNull(2) AndAlso Convert.ToBoolean(rd("is_scrap"))
-                        finished = Not rd.IsDBNull(3)
+                        passed = Not rd.IsDBNull(2) AndAlso Convert.ToBoolean(rd("overall_result"))
+                        scrap = Not rd.IsDBNull(3) AndAlso Convert.ToBoolean(rd("is_scrap"))
+                        finished = Not rd.IsDBNull(4)
                     End If
                 End Using
             End Using

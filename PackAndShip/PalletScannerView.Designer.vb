@@ -114,7 +114,7 @@ Partial Class PalletScannerView
         DataGridView1.RowHeadersVisible = False
         DataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         DataGridView1.Size = New Size(1357, 289)
-        DataGridView1.TabIndex = 2
+        DataGridView1.TabIndex = 3
         '
         ' serialFilterBar
         '
